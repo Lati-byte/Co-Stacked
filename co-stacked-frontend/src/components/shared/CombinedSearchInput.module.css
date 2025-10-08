@@ -1,0 +1,42 @@
+/* src/components/shared/CombinedSearchInput.module.css */
+.container {
+  display: flex;
+  align-items: center;
+  background-color: var(--card-background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 0.5rem 0.75rem;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.container:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px hsla(221, 83%, 53%, 0.1);
+}
+.inputGroup {
+  display: flex;
+  align-items: center;
+  flex: 1; /* Each group takes half the space */
+  gap: 0.75rem;
+}
+.icon {
+  color: var(--muted-foreground);
+  flex-shrink: 0;
+}
+.input {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  font-size: 1rem;
+  color: var(--foreground);
+}
+.input::placeholder {
+  color: var(--muted-foreground);
+}
+.separator {
+  height: 24px;
+  width: 1px;
+  background-color: var(--border);
+  margin: 0 1rem;
+}

@@ -1,0 +1,32 @@
+/* src/pages/SupportPage.module.css */
+.pageContainer {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 3rem 1rem;
+}
+.header {
+  text-align: center;
+  padding-bottom: 2.5rem;
+}
+.title { font-size: 2.5rem; font-weight: 800; }
+.subtitle { margin-top: 0.75rem; color: var(--muted-foreground); font-size: 1.1rem; }
+.section { margin-bottom: 4rem; }
+.sectionTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+.sectionSubtitle {
+  text-align: center;
+  margin-top: -1rem;
+  margin-bottom: 2rem;
+  color: var(--muted-foreground);
+}
+.faqContainer {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden; /* This clips the children to the parent's border radius */
+}
+.form { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; }
+.formGroup { display: flex; flex-direction: column; gap: 0.5rem; }

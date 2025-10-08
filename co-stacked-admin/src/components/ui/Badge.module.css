@@ -1,0 +1,32 @@
+/* src/components/ui/Badge.module.css */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px; /* Pill shape */
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+/* --- Variants --- */
+.primary {
+  background-color: hsla(211, 71%, 52%, 0.1);
+  color: hsl(211, 71%, 45%);
+}
+
+.secondary {
+  background-color: #f1f5f9; /* cool gray 100 */
+  color: #475569;      /* cool gray 600 */
+}
+
+.success {
+  background-color: #dcfce7; /* green 100 */
+  color: #166534;       /* green 700 */
+}
+
+.danger {
+  background-color: #fee2e2; /* red 100 */
+  color: #991b1b;       /* red 700 */
+}

@@ -1,0 +1,13 @@
+/* src/components/reviews/ReviewCard.module.css */
+.card { padding: 1.5rem; }
+.header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.founderName { font-weight: 600; }
+.role { font-size: 0.9rem; color: var(--muted-foreground); }
+.rating { margin-left: auto; }
+.comment { line-height: 1.7; color: var(--foreground); }
+.footer {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+  text-align: right;
+}

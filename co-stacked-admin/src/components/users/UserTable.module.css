@@ -1,0 +1,67 @@
+/* src/components/users/UserTable.module.css */
+
+.tableWrapper {
+  background-color: var(--card-background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow-x: auto; /* Ensures table is scrollable on small screens */
+  box-shadow: var(--shadow-sm);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse; /* Removes gaps between cells */
+  font-size: 0.9rem;
+}
+
+.table th, .table td {
+  padding: 0.8rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.table thead th {
+  background-color: #f8fafc; /* cool gray 50 */
+  color: var(--muted-foreground);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+/* Style for the table body rows */
+.table tbody tr:hover {
+  background-color: var(--background); /* Use the main light gray for hover */
+}
+
+.table td {
+  color: var(--foreground);
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.actions button {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.actions button:hover {
+  background-color: var(--background);
+}
+
+.deleteBtn {
+  color: #b91c1c; /* red 700 */
+}
+.deleteBtn:hover {
+  border-color: #fecaca; /* red 200 */
+  background-color: #fee2e2; /* red 100 */
+}

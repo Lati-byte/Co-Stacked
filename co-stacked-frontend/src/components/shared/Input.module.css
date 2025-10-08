@@ -1,0 +1,22 @@
+/* src/components/shared/Input.module.css */
+.input {
+  width: 100%;
+  background-color: var(--input-background); /* Uses the new white background var */
+  border: 1px solid var(--border);          /* Uses the standard light border */
+  border-radius: var(--radius);
+  color: var(--foreground);
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary);
+  /* The shadow for the light theme should not have a background color */
+  box-shadow: 0 0 0 3px hsla(221, 83%, 53%, 0.1);
+}
+
+.input::placeholder {
+  color: var(--muted-foreground);
+}

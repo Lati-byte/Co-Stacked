@@ -1,0 +1,30 @@
+/* src/components/shared/Accordion.module.css */
+.accordion {
+  border-bottom: 1px solid var(--border);
+  background-color: var(--card-background);
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 1.25rem 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+.title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.content {
+  overflow: hidden;
+}
+/* This adds a div with padding inside the animated div for better UX */
+.content > div {
+  padding: 0 1rem 1.25rem 1rem;
+  line-height: 1.7;
+  color: var(--muted-foreground);
+}

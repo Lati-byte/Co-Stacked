@@ -1,0 +1,30 @@
+/* src/pages/RequestsPage.module.css */
+.pageContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 1rem;
+}
+
+.title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 3rem;
+}
+.header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.noRequests {
+  grid-column: 1 / -1; /* Make this span all columns */
+  text-align: center;
+  color: var(--muted-foreground);
+  font-size: 1.1rem;
+  padding: 3rem 0;
+}

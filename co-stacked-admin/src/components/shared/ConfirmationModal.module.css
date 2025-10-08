@@ -1,0 +1,56 @@
+/* src/components/shared/ConfirmationModal.module.css */
+.container {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.iconWrapper {
+  flex-shrink: 0;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #fee2e2; /* Red 100 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon {
+  color: #dc2626; /* Red 600 */
+}
+
+.textWrapper {
+  flex-grow: 1;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 0.5rem;
+}
+
+.message {
+  color: var(--muted-foreground);
+  line-height: 1.6;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1rem;
+}
+
+.confirmButton {
+  background-color: #dc2626; /* Red 600 */
+  border-color: #dc2626;
+  color: #ffffff;
+}
+
+.confirmButton:hover {
+  background-color: #b91c1c; /* Red 700 */
+  border-color: #b91c1c;
+}

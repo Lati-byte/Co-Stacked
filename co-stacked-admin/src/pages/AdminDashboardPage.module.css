@@ -1,0 +1,53 @@
+/* src/pages/AdminDashboardPage.module.css */
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  color: var(--foreground);
+}
+
+/* --- The Grid for Stat Cards --- */
+.grid {
+  display: grid;
+  /* Start with 1 column on the smallest screens */
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+/* At a small breakpoint, switch to 2 columns */
+@media (min-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* At a larger breakpoint, switch to 3 or 4 columns */
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* --- Main Content Area for Charts & Feeds --- */
+.mainContent {
+  margin-top: 3rem;
+}
+
+.mainContent h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.error {
+    color: hsl(0, 70%, 50%);
+    background-color: hsl(0, 80%, 97%);
+    border: 1px solid hsl(0, 70%, 80%);
+    border-radius: var(--radius);
+    padding: 1rem;
+    text-align: center;
+    font-weight: 500;
+}

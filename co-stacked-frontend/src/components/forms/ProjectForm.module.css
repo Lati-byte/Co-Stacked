@@ -1,0 +1,24 @@
+/* src/components/forms/ProjectForm.module.css */
+.card {
+  width: 100%;
+  max-width: 650px;
+}
+.header { text-align: center; margin-bottom: 2rem; }
+.title { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.5rem; }
+.description { color: var(--muted-foreground); }
+.form { display: flex; flex-direction: column; gap: 1.5rem; padding: 1.5rem; }
+.formGroup { display: flex; flex-direction: column; gap: 0.5rem; }
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+@media (min-width: 640px) { .grid { grid-template-columns: 1fr 1fr; } }
+.submitButton { width: 100%; }
+.loader {
+  margin-right: 0.5rem;
+  height: 1.2rem;
+  width: 1.2rem;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }

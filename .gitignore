@@ -1,0 +1,19 @@
+# General
+.DS_Store
+.vscode/
+*.log
+
+# Ignore all node_modules folders in any subdirectory
+**/node_modules
+
+# Ignore all .env files in any subdirectory
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Ignore build artifacts from frontend/admin apps
+**/build
+**/dist
+**/.next
+
+# Add other specific files if needed

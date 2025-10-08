@@ -1,0 +1,5 @@
+.button { padding: 0.6rem 1.2rem; border: 1px solid transparent; border-radius: var(--radius); cursor: pointer; font-weight: 600; }
+.primary { background-color: var(--primary); color: var(--primary-foreground); }
+.primary:hover { background-color: var(--primary-hover); }
+.secondary { background-color: var(--card-background); border-color: var(--border); }
+.secondary:hover { background-color: #f9fafb; }

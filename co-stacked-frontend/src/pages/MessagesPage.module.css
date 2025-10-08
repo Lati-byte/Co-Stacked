@@ -1,0 +1,28 @@
+/* src/pages/MessagesPage.module.css */
+.pageContainer {
+  display: flex;
+  height: calc(100vh - 65px); /* Full screen height minus header */
+}
+.conversationListWrapper {
+  width: 320px;
+  flex-shrink: 0;
+}
+.chatWindowWrapper {
+  flex-grow: 1;
+}
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--muted-foreground);
+}
+/* Basic responsive handling - a better solution would use a 'useState' to toggle visibility */
+@media (max-width: 768px) {
+  .conversationListWrapper {
+    width: 100%;
+  }
+  .chatWindowWrapper {
+    display: none; /* Hide chat window by default on mobile */
+  }
+}

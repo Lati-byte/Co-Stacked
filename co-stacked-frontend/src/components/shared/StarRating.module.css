@@ -1,0 +1,12 @@
+/* src/components/shared/StarRating.module.css */
+.starContainer {
+  display: flex;
+  gap: 0.25rem;
+}
+.filled {
+  color: #f59e0b; /* A nice amber color */
+  fill: #f59e0b;
+}
+.empty {
+  color: var(--border);
+}

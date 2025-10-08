@@ -1,0 +1,6 @@
+/* src/components/billing/BoostModal.module.css */
+.header { text-align: center; margin-bottom: 2rem; }
+.title { font-size: 1.5rem; font-weight: 700; }
+.subtitle { margin-top: 0.5rem; color: var(--muted-foreground); }
+.tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
+.footer { display: flex; justify-content: flex-end; gap: 1rem; }

@@ -1,0 +1,109 @@
+/* src/pages/HomePage.module.css */
+
+.hero {
+  /* Positioning context for the overlay */
+  position: relative; 
+  
+  /* Layout */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(80vh - 65px);
+  padding: 4rem 2rem;
+  text-align: center;
+  background-size: cover; /* CRITICAL: Scales the image to cover the area without stretching */
+  background-position: center center; /* Keeps the image centered as it scales */
+  background-repeat: no-repeat;
+}
+
+/* A professional touch: A dark overlay to improve text readability */
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.1); /* Dark overlay with 40% opacity */
+  z-index: 1; /* Place the overlay between the background and the content */
+}
+
+.headline {
+  color: var(--foreground);
+  font-size: 3.75rem; /* Large font size */
+  font-weight: 800; /* Extra bold */
+  letter-spacing: -0.05em; /* Tighten up letter spacing */
+  line-height: 1.1;
+  max-width: 800px; /* Prevent it from getting too wide on large screens */
+  margin-bottom: 1.5rem;
+}
+
+.tagline {
+  color: rgb(35, 97, 255);
+  font-size: 1.25rem;
+  max-width: 600px;
+  line-height: 1.6;
+  margin-bottom: 2.5rem;
+  position: relative; /* z-index only works on positioned elements */
+  z-index: 2; /* The content is on layer 2 */
+}
+
+.ctaGroup {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem; /* Spacing between buttons */
+  position: relative; /* z-index only works on positioned elements */
+  z-index: 2; /* The content is on layer 2 */
+}
+
+/* A custom style for the 'Browse Projects' link */
+.browseLink {
+  color: var(--foreground);
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+
+.browseLink:hover {
+  color: var(--primary);
+}
+
+/* NEW: Styles for the "How it Works" section */
+.howItWorksSection {
+  width: 100%;
+  padding: 5rem 2rem;
+  /* We don't need a background color here, it will use the body's light gray */
+}
+
+.sectionTitle {
+  text-align: center;
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  color: var(--foreground);
+  margin-bottom: 3rem;
+}
+
+.featuresGrid {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  /* Responsive grid: 1 column on small screens, 3 on larger screens */
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+/* Use a media query to switch to a 3-column layout on larger screens */
+@media (min-width: 768px) {
+  .featuresGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.testimonialsSection {
+  width: 100%;
+  padding: 5rem 2rem;
+  background-color: #ffffff; /* Give it a slightly different background */
+  border-top: 1px solid var(--border);
+}

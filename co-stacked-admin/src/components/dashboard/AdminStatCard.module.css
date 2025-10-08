@@ -1,0 +1,65 @@
+/* src/components/dashboard/AdminStatCard.module.css */
+
+.card {
+  background-color: var(--card-background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.title {
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.icon {
+  color: var(--muted-foreground);
+}
+
+.body {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.value {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--foreground);
+}
+
+.change {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Color styles for the change indicator */
+.increase {
+  color: #10b981; /* Green */
+}
+
+.decrease {
+  color: #ef4444; /* Red */
+}
+
+/* Rotate the arrow for a decrease */
+.decrease > svg {
+  transform: rotate(90deg);
+}

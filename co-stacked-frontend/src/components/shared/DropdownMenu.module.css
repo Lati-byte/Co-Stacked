@@ -1,0 +1,45 @@
+/* src/components/shared/DropdownMenu.module.css */
+.menu {
+  position: absolute;
+  top: calc(100% + 10px); /* 100% of the parent's height plus a 10px gap */
+  right: 0;
+  width: 220px;
+  background-color: var(--card-background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  padding: 0.5rem 0;
+  z-index: 20; /* Ensure it appears above other content */
+}
+
+.item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  color: var(--foreground);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.item:hover {
+  background-color: var(--secondary-button-hover);
+  color: var(--primary);
+}
+
+.title {
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.separator {
+  height: 1px;
+  background-color: var(--border);
+  margin: 0.5rem 0;
+}

@@ -1,0 +1,15 @@
+/* src/components/shared/Card.module.css */
+.card {
+  background-color: var(--card-background);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  padding: 1.5rem; /* A good default padding */
+  transition: box-shadow 200ms ease-in-out, transform 200ms ease-in-out;
+}
+
+/* An optional hover effect for interactive cards */
+.interactive:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}

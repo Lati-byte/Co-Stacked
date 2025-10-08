@@ -1,0 +1,95 @@
+/* src/components/shared/InterestRequestCard.module.css */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Ensures cards in a grid have the same height */
+  padding: 1rem 1.25rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 0.75rem;
+}
+
+.title {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--foreground);
+}
+
+.description {
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+
+.description strong {
+  font-weight: 500;
+  color: var(--card-foreground);
+}
+
+.content {
+  padding: 0.75rem 0;
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+  font-style: italic;
+  flex-grow: 1; /* Pushes the footer to the bottom */
+}
+
+.footer {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  align-items: center; /* Vertically align badge/buttons */
+}
+
+/* === Action Button Styles === */
+
+.rejectButton {
+  border-color: hsl(0, 70%, 80%);
+  color: hsl(0, 60%, 50%);
+}
+.rejectButton:hover {
+  background-color: hsl(0, 80%, 97%);
+}
+
+.loader {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* === Status Badge Styles === */
+
+.statusBadge {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-transform: capitalize;
+}
+
+.approved {
+  background-color: hsl(140, 80%, 96%);
+  color: hsl(140, 60%, 40%);
+}
+
+.rejected, .declined { /* .declined is for backwards compatibility if needed */
+  background-color: hsl(0, 80%, 96%);
+  color: hsl(0, 60%, 40%);
+}
+
+.pending {
+  background-color: hsl(45, 90%, 95%);
+  color: hsl(45, 80%, 40%);
+}

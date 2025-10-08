@@ -1,0 +1,68 @@
+/* src/components/shared/ProjectCard.module.css */
+.contentWrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--card-foreground);
+  margin-bottom: 0.5rem;
+}
+
+.description {
+  font-size: 0.9rem;
+  color: var(--card-muted-foreground);
+  margin-bottom: 1.25rem;
+  line-height: 1.6;
+}
+
+.tagsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.detailsList {
+  margin-bottom: 1.25rem;
+  flex-grow: 1; /* Pushes footer down */
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.detailItem {
+  font-size: 0.875rem;
+  color: var(--card-muted-foreground);
+}
+
+.detailLabel {
+  font-weight: 600;
+  color: var(--card-foreground);
+}
+
+.footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: flex-end; /* Align buttons to the right */
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* ... existing styles ... */
+.noSkills {
+    font-size: 0.9rem;
+    color: var(--muted-foreground);
+    font-style: italic;
+}
+
+.skillsTitle {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+    margin-bottom: 0.5rem;
+}

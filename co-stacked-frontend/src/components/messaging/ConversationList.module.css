@@ -1,0 +1,70 @@
+/* src/components/messaging/ConversationList.module.css */
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-right: 1px solid var(--border);
+  background-color: var(--card-background);
+}
+.title {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.list {
+  overflow-y: auto;
+  flex-grow: 1;
+}
+.convoDetails {
+  overflow: hidden; /* This is key for text truncation */
+}
+/* NEW style for the empty state */
+.emptyState {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--muted-foreground);
+}
+.convoItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  width: 100%;
+  border: none;
+  background: none;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  text-align: left;
+}
+.convoItem:hover {
+  background-color: var(--background);
+}
+.convoItem.active {
+  background-color: hsl(221, 83%, 95%);
+}
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.userName {
+  font-weight: 600;
+}
+.lastMessage {
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+.header {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+}

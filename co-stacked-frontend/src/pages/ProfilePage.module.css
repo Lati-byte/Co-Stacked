@@ -1,0 +1,108 @@
+/* src/pages/ProfilePage.module.css */
+.pageContainer {
+  padding: 3rem 0;
+  min-height: calc(100vh - 65px);
+}
+.contentWrapper {
+  max-width: 896px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 1rem;
+  margin-bottom: 2rem;
+}
+/* NEW class for the button group */
+.headerActions {
+  display: flex;
+  gap: 0.75rem;
+  flex-shrink: 0; /* Prevents buttons from wrapping on small screens */
+}
+.title {
+  font-size: 2.25rem;
+  font-weight: 800;
+}
+.subtitle {
+  font-size: 1.125rem;
+  color: var(--muted-foreground);
+  text-transform: capitalize;
+}
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.sectionTitle {
+  font-weight: 600;
+  font-size: 1rem;
+}
+.skillsContainer, .infoGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+@media (min-width: 768px) {
+  .infoGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.infoItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--foreground);
+}
+.infoItem a {
+  color: var(--primary);
+}
+.separator {
+  height: 1px;
+  background-color: var(--border);
+  margin: 1.5rem 0;
+}
+.projectsGrid, .connectionsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+@media (min-width: 768px) {
+  .projectsGrid, .connectionsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.connectionCard {
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.connectionCard p { margin: 0; }
+.connectionProject { font-weight: 600; }
+.connectionStatus { font-size: 0.9rem; color: var(--muted-foreground); }
+
+.aggregateRating {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+.reviewsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}

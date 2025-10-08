@@ -1,0 +1,107 @@
+/* src/pages/ProjectDetailPage.module.css */
+.pageContainer {
+  padding: 3rem 0;
+}
+
+.contentWrapper {
+  max-width: 900px; /* A bit narrower for a focused reading experience */
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 2rem;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  max-width: 80%;
+}
+
+.contentGrid {
+  display: grid;
+  grid-template-columns: 1fr; /* Default to single column */
+  gap: 3rem;
+  margin-bottom: 2rem;
+}
+
+/* On larger screens, switch to a 2-column layout */
+@media (min-width: 768px) {
+  .contentGrid {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+.mainContent .sectionTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  margin-bottom: 1rem;
+}
+
+.mainContent p {
+  line-height: 1.7;
+  color: var(--foreground);
+  margin-bottom: 2rem;
+}
+
+.skillsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.detailsSidebar ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  background-color: var(--background); /* Slightly different bg */
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.detailItem {
+  font-size: 0.95rem;
+  color: var(--muted-foreground);
+}
+
+.detailItem strong {
+  font-weight: 600;
+  color: var(--foreground);
+  display: block; /* Puts label on its own line */
+}
+
+.actions {
+  text-align: left;
+  margin-top: 2rem;
+}
+
+.footer {
+  padding-top: 1.5rem;
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  text-align: right;
+}
+.reportButton {
+  background: none;
+  border: none;
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.reportButton:hover {
+  color: var(--primary);
+}

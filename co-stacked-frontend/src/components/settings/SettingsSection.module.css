@@ -1,0 +1,40 @@
+/* src/components/settings/SettingsSection.module.css */
+.section {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  padding: 2rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+@media (min-width: 768px) {
+  .section {
+    grid-template-columns: 1fr 2fr;
+  }
+}
+
+.header {
+  padding-right: 1.5rem;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.description {
+  margin-top: 0.5rem;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+}
+
+.content {
+  background-color: var(--card-background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}

@@ -1,0 +1,18 @@
+/* src/components/shared/Dialog.module.css */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+.dialog {
+  background-color: var(--card-background);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  padding: 1.5rem;
+  max-width: 500px;
+  width: 90%;
+}

@@ -1,0 +1,59 @@
+/* src/pages/LoginPage.module.css */
+.pageContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  min-height: calc(100vh - 65px);
+}
+
+.card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.header {
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.description {
+  color: var(--muted-foreground);
+  margin-top: 0.5rem;
+}
+
+.content {
+  padding: 0 1.5rem 1.5rem;
+}
+
+.form, .formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form {
+  gap: 1.25rem;
+}
+
+.footer {
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.error {
+  color: hsl(0, 70%, 50%);
+  background-color: hsl(0, 80%, 97%);
+  border: 1px solid hsl(0, 70%, 80%);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  text-align: center;
+  font-weight: 500;
+  font-size: 0.9rem;
+}

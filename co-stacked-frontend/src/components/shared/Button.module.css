@@ -1,0 +1,38 @@
+/* src/components/shared/Button.module.css */
+
+.button {
+  /* Base styles for all buttons */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.75rem 1.25rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 150ms ease-in-out, border-color 150ms ease-in-out;
+  text-decoration: none; /* For when we use 'a' tags */
+  white-space: nowrap;
+}
+
+/* Variant Styles */
+.primary {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
+.primary:hover {
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+
+.secondary {
+  background-color: var(--secondary-button-background); /* Use the new variable */
+  color: var(--secondary-foreground);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+.secondary:hover {
+  background-color: var(--secondary-button-hover); /* Use the new variable */
+}

@@ -1,0 +1,17 @@
+/* src/pages/UserManagementPage.module.css */
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  color: var(--foreground);
+}
+
+.error {
+  /* You can add your standard error style here */
+  color: red;
+  padding: 1rem;
+  border: 1px solid red;
+  border-radius: var(--radius);
+  background-color: #fff5f5;
+}

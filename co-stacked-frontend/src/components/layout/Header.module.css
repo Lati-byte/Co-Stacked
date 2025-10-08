@@ -1,0 +1,115 @@
+/* src/components/layout/Header.module.css */
+
+.header {
+  background-color: var(--card-background);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  padding: 0 2rem; /* Remove vertical padding to rely on flex alignment */
+  height: 65px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  
+  /* --- Core Layout --- */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* --- Section Definitions --- */
+.leftSection, .userActions {
+  display: flex;
+  align-items: center;
+}
+
+.leftSection {
+  flex: 1 0 auto; /* Allow this section to take available space */
+}
+
+.userActions {
+  flex: 1 0 auto; /* Allow this section to take available space */
+  justify-content: flex-end; /* Align items to the right */
+  gap: 1.5rem;
+  position: relative;
+}
+
+/* --- Logo --- */
+.logoContainer {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: var(--foreground);
+}
+
+.logoImage {
+  height: 32px;
+  width: auto;
+}
+
+.logoText {
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+}
+
+/* --- Middle Navigation Links --- */
+.navLinks {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2.5rem;
+}
+
+.navLink {
+  text-decoration: none;
+  color: var(--foreground);
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 0.5rem 0;
+  position: relative;
+  transition: color 200ms ease-in-out;
+}
+
+.navLink:hover {
+  color: var(--primary);
+}
+
+.activeLink {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.activeLink::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--primary);
+}
+
+/* --- Profile Icon/Dropdown --- */
+.profileLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 50%;
+  color: var(--muted-foreground);
+  transition: background-color 150ms ease, color 150ms ease;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.profileLink:hover {
+  background-color: var(--secondary-button-hover);
+  color: var(--foreground);
+}
+
+.authButtons {
+  display: flex;
+  gap: 0.75rem;
+}

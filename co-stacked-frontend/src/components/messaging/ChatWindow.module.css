@@ -1,0 +1,75 @@
+/* src/components/messaging/ChatWindow.module.css */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background-color: var(--card-background); /* Use a clean white background for the chat */
+}
+
+.header {
+  padding: 1rem 1.5rem; /* More horizontal padding */
+  border-bottom: 1px solid var(--border);
+  background-color: var(--card-background);
+  flex-shrink: 0; /* Prevents header from shrinking */
+}
+
+.userName {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.messageArea {
+  flex-grow: 1; /* Allows this area to expand and fill available space */
+  padding: 1.5rem;
+  overflow-y: auto; /* Adds a scrollbar only when needed */
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.messageBubble {
+  max-width: 75%; /* Allow bubbles to be a bit wider */
+  padding: 0.75rem 1rem;
+  line-height: 1.6; /* Improved readability */
+  width: fit-content; /* Bubble is only as wide as its text content */
+}
+
+.sender {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  /* The CRITICAL FIX: Aligns this bubble to the right */
+  align-self: flex-end; 
+  /* Custom border-radius for a classic "sent" message bubble shape */
+  border-radius: 1.25rem 1.25rem 0.25rem 1.25rem;
+}
+
+.receiver {
+  background-color: var(--secondary-button-hover);
+  color: var(--foreground);
+  /* The CRITICAL FIX: Aligns this bubble to the left */
+  align-self: flex-start;
+  /* Custom border-radius for a classic "received" message bubble shape */
+  border-radius: 1.25rem 1.25rem 1.25rem 0.25rem;
+}
+
+.footer {
+  padding: 1rem 1.5rem;
+  display: flex;
+  gap: 1rem;
+  border-top: 1px solid var(--border);
+  background-color: var(--background); /* Match the overall page background */
+  flex-shrink: 0; /* Prevents footer from shrinking */
+}
+
+.messageInput {
+  flex-grow: 1;
+}
+.loader {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

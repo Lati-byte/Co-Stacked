@@ -1,0 +1,65 @@
+/* src/components/shared/UserCard.module.css */
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.name {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.role {
+  text-transform: capitalize;
+  color: var(--muted-foreground);
+}
+.bio {
+  color: var(--foreground);
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  flex-grow: 1;
+  /* Truncate long bios */
+  display: -webkit-box;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.skillsSection {
+  margin-bottom: 1rem;
+}
+.skillsTitle {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  margin-bottom: 0.5rem;
+}
+.skillsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.footer {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.availability {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.noSkills {
+    font-size: 0.9rem;
+    color: var(--muted-foreground);
+    font-style: italic;
+}

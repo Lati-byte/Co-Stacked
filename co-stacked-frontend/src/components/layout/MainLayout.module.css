@@ -1,0 +1,10 @@
+/* src/components/layout/MainLayout.module.css */
+.layoutWrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.mainContent {
+  flex-grow: 1; /* This is the key property */
+}

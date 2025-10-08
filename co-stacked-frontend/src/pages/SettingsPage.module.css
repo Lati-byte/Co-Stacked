@@ -1,0 +1,45 @@
+/* src/pages/SettingsPage.module.css */
+.pageContainer {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 3rem 1rem;
+}
+.header {
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.title { font-size: 2.25rem; font-weight: 800; }
+.subtitle { margin-top: 0.5rem; color: var(--muted-foreground); }
+.settingsContent { margin-bottom: 2rem; }
+.formGroup { display: flex; flex-direction: column; gap: 0.5rem; }
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+/* NEW styles for the verification section */
+.verificationContent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+@media (min-width: 640px) {
+  .verificationContent {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+.verifiedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  background-color: hsl(140, 80%, 96%);
+  color: hsl(140, 60%, 40%);
+  border: 1px solid hsl(140, 70%, 90%);
+  border-radius: var(--radius);
+  font-weight: 600;
+}

@@ -1,0 +1,56 @@
+/* src/pages/BrowseUsersPage.module.css */
+
+/* --- Page Layout --- */
+.pageContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 1rem;
+}
+
+/* --- Header & Title --- */
+.header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 2rem;
+}
+
+/* --- Content Sections --- */
+.mainContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4rem; /* This creates the space between the "local" and "global" sections */
+}
+
+.sectionTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.75rem;
+}
+
+/* --- Grid Layout for Cards --- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+/* --- Empty State --- */
+.noResults {
+  text-align: center;
+  color: var(--muted-foreground);
+  font-size: 1.1rem;
+  padding: 3rem 0;
+}
+.loader {
+  font-size: 1.2rem;
+  color: var(--muted-foreground);
+  text-align: center;
+  padding: 4rem 0;
+}

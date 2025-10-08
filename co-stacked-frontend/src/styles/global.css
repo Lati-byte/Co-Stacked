@@ -1,0 +1,85 @@
+/* ==========================================================================
+   Co-Stacked Global Stylesheet
+   ========================================================================== */
+
+/* 1. DESIGN TOKENS (VARIABLES)
+   This is the single source of truth for all colors, fonts, spacing, etc.
+   Changing a value here will update it across the entire application.
+   ========================================================================== */
+:root {
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+
+  /* Light Theme Color Palette */
+  --background: hsl(210, 40%, 98%);         /* Light Grayish Blue Background */
+  --foreground: hsl(222, 47%, 11%);         /* Almost Black Text */
+
+  --card-background: hsl(0, 0%, 100%);     /* Pure White for Cards, Modals, Header */
+  --card-foreground: var(--foreground);
+
+  --primary: hsl(221, 83%, 53%);             /* Vibrant Blue for interactive elements */
+  --primary-hover: hsl(221, 83%, 48%);       /* Darker blue for hover states */
+  --primary-foreground: hsl(0, 0%, 100%);   /* White text on top of primary color */
+
+  --secondary-button-background: hsl(0, 0%, 100%);
+  --secondary-button-hover: hsl(210, 40%, 98%);
+  
+  --muted-foreground: hsl(215, 20%, 65%);     /* For subtitles and placeholder text */
+
+  --border: hsl(214, 32%, 91%);             /* Light gray for borders on cards/inputs */
+  --input-background: hsl(0, 0%, 100%);    /* White background for inputs */
+  
+  /* Sizing & Effects */
+  --radius: 0.5rem;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+
+/* 2. MODERN CSS RESET
+   This removes default browser styling inconsistencies (like the body margin).
+   ========================================================================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+
+/* 3. GLOBAL ELEMENT STYLES
+   Base styles applied to common HTML elements for consistency.
+   ========================================================================== */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--background);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  text-wrap: balance; /* Prevents awkward single-word line breaks in headlines */
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: opacity 150ms ease-in-out;
+}
+
+a:hover {
+  opacity: 0.8;
+}
+
+/* Professional Polish: Better Focus States for Accessibility */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}

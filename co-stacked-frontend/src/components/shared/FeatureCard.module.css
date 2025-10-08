@@ -1,0 +1,44 @@
+/* src/components/shared/FeatureCard.module.css */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.5rem;
+  background-color: var(--card-background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  height: 100%; /* Make cards in a row equal height */
+}
+
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60px;
+  width: 60px;
+  border-radius: 50%;
+  background-color: hsl(221, 83%, 95%); /* Very light blue */
+  margin-bottom: 1.5rem;
+}
+
+.icon {
+  color: var(--primary);
+  height: 28px;
+  width: 28px;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 0.75rem;
+}
+
+.description {
+  font-size: 1rem;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+}
