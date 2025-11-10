@@ -6,9 +6,7 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
 
-// --- THIS IS THE FIX ---
 // Only load environment variables from the .env file if we are in development mode.
-// In production (like on Render), variables will be loaded from the host environment.
 if (process.env.NODE_ENV !== 'production') {
   dotenv.config();
 }
@@ -36,18 +34,27 @@ const app = express();
 // --- 5. CORE MIDDLEWARE ---
 // Production-ready CORS configuration
 const allowedOrigins = [
-    'http://localhost:5173', // Your local user-frontend
-    'http://localhost:3000', // Your local admin-dashboard
-    process.env.FRONTEND_URL, // Your LIVE user-frontend URL from .env
-    process.env.ADMIN_URL    // Your LIVE admin-dashboard URL (you should add this to Render)
-].filter(Boolean); // Filter out undefined values if they are not set
+    'http://localhost:5173', // Local user-frontend
+    'http://localhost:3000', // Local admin-dashboard
+    
+    // --- THIS IS THE FIX ---
+    // The URLs from Render must be strings (wrapped in quotes).
+    // It's also better to read these from environment variables.
+    process.env.FRONTEND_URL, // e.g., 'https://co-stacked-userfrontend.onrender.com'
+    process.env.ADMIN_URL     // e.g., 'https://co-stacked-admin.onrender.com'
+].filter(Boolean); // This safely removes any undefined entries if the .env variables aren't set
 
 app.use(cors({
     origin: function (origin, callback) {
-        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        // Allow requests with no origin (like Postman, mobile apps, etc.)
+        if (!origin) return callback(null, true);
+
+        // If the origin is in our allowed list, allow it.
+        if (allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true);
         } else {
-            callback(new Error('Not allowed by CORS'));
+            // Otherwise, block it.
+            callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'));
         }
     }
 }));
@@ -72,7 +79,6 @@ app.use('/api/notifications', notificationRoutes);
 
 
 // --- 7. SERVER STARTUP ---
-// Render provides its own PORT environment variable.
 const PORT = process.env.PORT || 5001;
 
 app.listen(PORT, () => console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`));
