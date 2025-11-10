@@ -6,8 +6,14 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
 
+// --- THIS IS THE FIX ---
+// Only load environment variables from the .env file if we are in development mode.
+// In production (like on Render), variables will be loaded from the host environment.
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config();
+}
+
 // --- 2. ROUTE IMPORTS ---
-// Modular routing: Each feature of the API has its own dedicated route file.
 const userRoutes = require('./routes/userRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const interestRoutes = require('./routes/interestRoutes');
@@ -20,10 +26,6 @@ const notificationRoutes = require('./routes/notificationRoutes');
 
 
 // --- 3. INITIAL CONFIGURATION ---
-// Load environment variables from the .env file into process.env
-dotenv.config();
-
-// Initiate the connection to the MongoDB database
 connectDB();
 
 
@@ -32,23 +34,32 @@ const app = express();
 
 
 // --- 5. CORE MIDDLEWARE ---
-// Enable Cross-Origin Resource Sharing (CORS) to allow your frontend
-// to make requests to this backend from a different origin (URL).
-app.use(cors());
+// Production-ready CORS configuration
+const allowedOrigins = [
+    'http://localhost:5173', // Your local user-frontend
+    'http://localhost:3000', // Your local admin-dashboard
+    process.env.FRONTEND_URL, // Your LIVE user-frontend URL from .env
+    process.env.ADMIN_URL    // Your LIVE admin-dashboard URL (you should add this to Render)
+].filter(Boolean); // Filter out undefined values if they are not set
 
-// Enable the Express app to parse incoming request bodies with JSON payloads.
-// This is essential for handling POST and PUT requests.
+app.use(cors({
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    }
+}));
+
 app.use(express.json());
 
 
 // --- 6. API ROUTE MOUNTING ---
-// A simple health-check endpoint to confirm the API is running.
 app.get('/', (req, res) => {
   res.send('API is running successfully...');
 });
 
-// Mount the modular routers on their respective API base paths.
-// For example, any request starting with '/api/users' will be handled by userRoutes.
 app.use('/api/users', userRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/admin', adminRoutes);
@@ -59,12 +70,9 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/notifications', notificationRoutes);
 
-// In the future, we would add centralized error handling middleware here.
-// e.g., app.use(notFound); app.use(errorHandler);
-
 
 // --- 7. SERVER STARTUP ---
-// Use the port from environment variables for deployment, with a fallback for local dev.
+// Render provides its own PORT environment variable.
 const PORT = process.env.PORT || 5001;
 
-app.listen(PORT, () => console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`));
