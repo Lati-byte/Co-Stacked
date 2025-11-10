@@ -1,6 +1,6 @@
-# Co-Stacked: The Collaborative Project Platform
+# CoStacked: The Collaborative Project Platform
 
-**Co-Stacked** is a full-stack web platform designed to be the nexus for innovation, connecting ambitious founders with talented developers. Founders can post their project ideas, and developers can browse, connect, and collaborate on building the next big thing.
+**CoStacked** is a full-stack web platform designed to be the nexus for innovation, connecting ambitious founders with talented developers. Founders can post their project ideas, and developers can browse, connect, and collaborate on building the next big thing.
 
 This repository contains the complete source code for both the **modern React frontend** and the **secure Node.js/Express backend API**.
 
