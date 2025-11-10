@@ -1,108 +1,153 @@
 /* src/pages/ProfilePage.module.css */
+
 .pageContainer {
-  padding: 3rem 0;
-  min-height: calc(100vh - 65px);
-}
-.contentWrapper {
-  max-width: 896px;
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 3rem 1.5rem;
 }
+
+.loader {
+  text-align: center;
+  font-size: 1.2rem;
+  color: var(--muted-foreground);
+  padding: 4rem 0;
+}
+
+
+/* --- Header Section (Name, Role, Badges, Buttons) --- */
 .header {
   display: flex;
+  flex-wrap: wrap; /* Allows buttons to wrap below on narrow screens */
+  gap: 1.5rem;
   justify-content: space-between;
   align-items: flex-start;
-  padding-bottom: 1rem;
+  padding-bottom: 1.5rem;
   margin-bottom: 2rem;
+  border-bottom: 1px solid var(--border);
 }
-/* NEW class for the button group */
+
 .headerActions {
   display: flex;
   gap: 0.75rem;
-  flex-shrink: 0; /* Prevents buttons from wrapping on small screens */
+  flex-shrink: 0;
+  padding-top: 0.25rem; /* Helps align with the main title */
 }
+
+.nameWrapper {
+  display: flex;
+  align-items: baseline; 
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 .title {
   font-size: 2.25rem;
   font-weight: 800;
+  line-height: 1.2;
 }
+
+/* Style for the custom PNG verified badge */
+.verifiedBadge {
+  display: inline-flex;
+  align-items: center; /* Vertically center the icon and text */
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  background-color: hsl(211, 100%, 97%); /* Light blue */
+  color: var(--primary);
+  border: 1px solid hsl(211, 100%, 92%);
+  border-radius: 9999px; /* Pill shape */
+  white-space: nowrap;
+}
+
+.badgeIcon {
+    height: 20px; /* Adjust size as needed */
+    width: auto;
+}
+
 .subtitle {
+  margin-top: 0.25rem;
   font-size: 1.125rem;
   color: var(--muted-foreground);
   text-transform: capitalize;
 }
-.content {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-.sectionTitle {
-  font-weight: 600;
-  font-size: 1rem;
-}
-.skillsContainer, .infoGrid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-.infoGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-}
-@media (min-width: 768px) {
-  .infoGrid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-.infoItem {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--foreground);
-}
-.infoItem a {
-  color: var(--primary);
-}
-.separator {
-  height: 1px;
-  background-color: var(--border);
-  margin: 1.5rem 0;
-}
-.projectsGrid, .connectionsGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-}
-@media (min-width: 768px) {
-  .projectsGrid, .connectionsGrid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-.connectionCard {
-  padding: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-.connectionCard p { margin: 0; }
-.connectionProject { font-weight: 600; }
-.connectionStatus { font-size: 0.9rem; color: var(--muted-foreground); }
 
 .aggregateRating {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 0.5rem;
+  margin-top: 0.75rem;
   color: var(--muted-foreground);
   font-size: 0.9rem;
 }
-.reviewsGrid {
+
+/* --- Main Content Body --- */
+.content {
   display: flex;
   flex-direction: column;
+  gap: 3rem; /* Adds significant space between content sections */
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sectionTitle {
+  font-weight: 600;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.5rem;
+}
+
+.skillsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.25rem;
+}
+.infoItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--foreground);
+}
+.infoItem a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.infoItem a:hover {
+    opacity: 0.8;
+}
+
+.separator {
+  height: 1px;
+  background-color: var(--border);
+  margin-top: 1rem; /* Added margin for better visual separation */
+}
+
+/* Shared grid styles for Projects and Reviews */
+.projectsGrid, .reviewsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 1.5rem;
+}
+
+/* Make the project grid 2-column on larger screens */
+@media (min-width: 768px) {
+  .projectsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
 }

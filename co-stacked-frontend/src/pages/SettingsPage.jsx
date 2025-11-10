@@ -1,58 +1,112 @@
 // src/pages/SettingsPage.jsx
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+
+// Import all necessary Redux Actions for this page
+import { updateUserProfile, getUserProfile } from '../features/auth/authSlice';
+import { verifySubscription, cancelSubscription } from '../features/payments/paymentSlice';
+
+// Import all required UI Components
 import { Button } from '../components/shared/Button';
 import { Input } from '../components/shared/Input';
 import { Label } from '../components/shared/Label';
 import { RadioGroup } from '../components/shared/RadioGroup';
 import { SettingsSection } from '../components/settings/SettingsSection';
+import { ConfirmationModal } from '../components/shared/ConfirmationModal';
 import { PricingCard } from '../components/billing/PricingCard';
 import { SubscriptionModal } from '../components/billing/SubscriptionModal';
+import { ChangePasswordModal } from '../components/auth/ChangePasswordModal';
 import { CheckCircle } from 'lucide-react';
 import styles from './SettingsPage.module.css';
 
+/**
+ * The main page for managing user account settings, preferences, and subscriptions.
+ */
 export const SettingsPage = () => {
-  // Main state for all user settings.
-  // In a real app, this would be fetched from your API.
-  const [settings, setSettings] = useState({
-    email: 'alice.smith@example.com',
-    profileVisibility: 'public',
-    notificationEmails: 'essential',
-    isVerified: false, // <-- Change to 'true' to test the verified state
+  const dispatch = useDispatch();
+  
+  const { user, status: authStatus } = useSelector(state => state.auth);
+  const { status: paymentStatus } = useSelector(state => state.payment);
+  
+  const [formData, setFormData] = useState({
+    profileVisibility: '',
+    notificationEmails: '',
   });
-
-  // State to control the visibility of the subscription modal
+  
   const [isSubModalOpen, setSubModalOpen] = useState(false);
-  // State to manage the loading status of the save button
-  const [isSaving, setIsSaving] = useState(false);
+  const [isPasswordModalOpen, setPasswordModalOpen] = useState(false);
+  const [isCancelModalOpen, setCancelModalOpen] = useState(false); // State for the cancellation confirmation
 
-  // Generic handler for form input changes
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        profileVisibility: user.profileVisibility || 'public', 
+        notificationEmails: user.notificationEmails || 'essential',
+      });
+    }
+  }, [user]);
+
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setSettings(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+  
+  const handleSave = async () => {
+    const resultAction = await dispatch(updateUserProfile(formData));
+    if (updateUserProfile.fulfilled.match(resultAction)) {
+      alert("Settings saved successfully!");
+    } else {
+      alert("Failed to save settings.");
+    }
+  };
+  
+  const handleVerification = async (chargeToken) => {
+    if (!chargeToken) return;
+    setSubModalOpen(false); // Close the modal immediately after payment
+    alert("Payment successful! Verifying your subscription...");
+    const resultAction = await dispatch(verifySubscription(chargeToken));
+    
+    if (verifySubscription.fulfilled.match(resultAction)) {
+      alert(resultAction.payload.message);
+    } else {
+      alert(`Verification Failed: ${resultAction.payload?.message || 'Please contact support.'}`);
+    }
   };
 
-  // Handler for the main save button at the bottom of the page
-  const handleSave = () => {
-    setIsSaving(true);
-    console.log("Saving settings:", settings);
-    
-    // Simulate an API call to update the settings
-    setTimeout(() => {
-      setIsSaving(false);
-      alert("Settings saved successfully!");
-    }, 1500);
+  // Handler for confirming the subscription cancellation
+  const handleCancelSubscription = async () => {
+    const resultAction = await dispatch(cancelSubscription());
+    if (cancelSubscription.fulfilled.match(resultAction)) {
+      alert(resultAction.payload.message);
+    } else {
+      alert(`Cancellation failed: ${resultAction.payload?.message || 'Please contact support.'}`);
+    }
+    setCancelModalOpen(false);
   };
+
+  if (!user) {
+    return <div>Loading your settings...</div>;
+  }
 
   return (
     <>
-      {/* The SubscriptionModal is always in the DOM but only visible when `isSubModalOpen` is true */}
       <SubscriptionModal 
         open={isSubModalOpen}
         onClose={() => setSubModalOpen(false)}
+        onConfirm={handleVerification}
+      />
+      <ChangePasswordModal 
+        open={isPasswordModalOpen}
+        onClose={() => setPasswordModalOpen(false)}
+      />
+      <ConfirmationModal
+        open={isCancelModalOpen}
+        onClose={() => setCancelModalOpen(false)}
+        onConfirm={handleCancelSubscription}
+        title="Cancel Subscription"
+        message="Are you sure you want to cancel your verification subscription? Your verified badge will be removed immediately."
+        confirmText="Yes, Cancel"
+        isDestructive={true}
       />
 
       <div className={styles.pageContainer}>
@@ -62,84 +116,48 @@ export const SettingsPage = () => {
         </header>
 
         <div className={styles.settingsContent}>
-          {/* === ACCOUNT SECTION === */}
-          <SettingsSection
-            title="Account"
-            description="Update your email address and manage your password."
-          >
+          <SettingsSection title="Account" description="Your account's email address.">
             <div className={styles.formGroup}>
               <Label htmlFor="email">Email Address</Label>
-              <Input id="email" name="email" value={settings.email} onChange={handleChange} />
+              <Input id="email" name="email" value={user.email} disabled />
             </div>
-            <Button variant="secondary">Change Password</Button>
+            <Button variant="secondary" onClick={() => setPasswordModalOpen(true)}>
+              Change Password
+            </Button>
           </SettingsSection>
           
-          {/* === PROFILE VISIBILITY SECTION === */}
-          <SettingsSection
-            title="Profile Visibility"
-            description="Control who can see your detailed profile information."
-          >
-            <RadioGroup
-              name="profileVisibility"
-              selectedValue={settings.profileVisibility}
-              onChange={handleChange}
-              options={[
-                { value: 'public', label: 'Public (Visible to everyone)' },
-                { value: 'connections-only', label: 'Connections Only (Visible to approved collaborators)' }
-              ]}
-            />
+          <SettingsSection title="Profile Visibility" description="Control who sees your profile.">
+            <RadioGroup name="profileVisibility" selectedValue={formData.profileVisibility} onChange={handleChange}
+              options={[{ value: 'public', label: 'Public' }, { value: 'connections-only', label: 'Connections Only' }]}/>
           </SettingsSection>
-
-          {/* === NEW VERIFICATION SECTION === */}
-          <SettingsSection
-            title="Verification Status"
-            description="Get a verified badge on your profile to increase trust and attract higher quality collaborators."
-          >
-            {settings.isVerified ? (
-              // If the user IS verified, show the confirmation badge.
-              <div className={styles.verifiedBadge}>
-                <CheckCircle size={20} />
-                <span>Your account is verified.</span>
+          
+          <SettingsSection title="Verification Status" description="Get a verified badge on your profile.">
+            {user.isVerified ? (
+              <div className={styles.verifiedContainer}>
+                <div className={styles.verifiedBadge}>
+                  <CheckCircle size={20} /><span>Your account is verified.</span>
+                </div>
+                <Button variant="destructive" onClick={() => setCancelModalOpen(true)} disabled={paymentStatus === 'loading'}>
+                  {paymentStatus === 'loading' ? 'Canceling...' : 'Cancel Subscription'}
+                </Button>
               </div>
             ) : (
-              // If the user is NOT verified, show the subscription prompt.
               <div className={styles.verificationContent}>
-                <PricingCard
-                  title="Verified Subscription"
-                  price="R200 / month"
-                  selected={true} // 'selected' style helps it stand out
-                />
-                <Button onClick={() => setSubModalOpen(true)}>
-                  Subscribe Now
-                </Button>
+                <p>Subscribe to get a verified badge and priority support.</p>
+                <Button onClick={() => setSubModalOpen(true)}>Subscribe Now (R200/month)</Button>
               </div>
             )}
           </SettingsSection>
           
-          {/* === NOTIFICATIONS SECTION === */}
-          <SettingsSection
-            title="Email Notifications"
-            description="Choose which emails you receive from CoStacked."
-          >
-            <div className={styles.formGroup}>
-              <Label>Notification Frequency</Label>
-               <RadioGroup
-                name="notificationEmails"
-                selectedValue={settings.notificationEmails}
-                onChange={handleChange}
-                options={[
-                  { value: 'all', label: 'All new project and message notifications' },
-                  { value: 'essential', label: 'Only essential account updates' },
-                  { value: 'none', label: 'None' }
-                ]}
-              />
-            </div>
+          <SettingsSection title="Email Notifications" description="Choose which emails you receive.">
+            <RadioGroup name="notificationEmails" selectedValue={formData.notificationEmails} onChange={handleChange}
+              options={[{ value: 'all', label: 'All notifications' }, { value: 'essential', label: 'Only essential updates' }, { value: 'none', label: 'None' }]}/>
           </SettingsSection>
         </div>
 
         <footer className={styles.footer}>
-          <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? 'Saving...' : 'Save All Settings'}
+          <Button onClick={handleSave} disabled={authStatus === 'loading'}>
+            {authStatus === 'loading' ? 'Saving...' : 'Save Changes'}
           </Button>
         </footer>
       </div>

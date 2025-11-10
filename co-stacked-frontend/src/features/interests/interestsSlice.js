@@ -73,11 +73,30 @@ export const respondToInterest = createAsyncThunk(
 // THE INTERESTS SLICE
 // ===================================================================
 
+/**
+ * Deletes an interest/connection by its ID. Can be initiated by either participant.
+ */
+export const deleteInterest = createAsyncThunk(
+  'interests/delete',
+  async (interestId, { rejectWithValue }) => {
+    try {
+      await API.delete(`/interests/${interestId}`);
+      return interestId; // Return the ID of the deleted interest on success
+    } catch (error) {
+      return rejectWithValue(error.response.data?.message || 'Failed to remove connection.');
+    }
+  }
+);
+
+// ===================================================================
+// THE (SINGLE) INTERESTS SLICE
+// ===================================================================
+
 const initialState = {
-  receivedItems: [], // Interests a user (founder) has received
-  sentItems: [],     // Interests a user (developer) has sent
-  status: 'idle',      // For tracking actions like send/respond
-  fetchStatus: 'idle', // For tracking the status of fetching lists
+  receivedItems: [],
+  sentItems: [],
+  status: 'idle',
+  fetchStatus: 'idle',
   error: null,
 };
 
@@ -85,6 +104,7 @@ const interestsSlice = createSlice({
   name: 'interests',
   initialState,
   reducers: {},
+  // The extraReducers builder handles ALL our async thunks
   extraReducers: (builder) => {
     builder
       // Cases for SENDING a request
@@ -95,7 +115,7 @@ const interestsSlice = createSlice({
       })
       .addCase(sendInterestRequest.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload; })
 
-      // Cases for FETCHING received requests (for Founders)
+      // Cases for FETCHING received requests
       .addCase(fetchReceivedInterests.pending, (state) => { state.fetchStatus = 'loading'; })
       .addCase(fetchReceivedInterests.fulfilled, (state, action) => {
         state.fetchStatus = 'succeeded';
@@ -103,7 +123,7 @@ const interestsSlice = createSlice({
       })
       .addCase(fetchReceivedInterests.rejected, (state, action) => { state.fetchStatus = 'failed'; state.error = action.payload; })
 
-      // Cases for FETCHING sent requests (for Developers)
+      // Cases for FETCHING sent requests
       .addCase(fetchSentInterests.pending, (state) => { state.fetchStatus = 'loading'; })
       .addCase(fetchSentInterests.fulfilled, (state, action) => {
         state.fetchStatus = 'succeeded';
@@ -116,13 +136,26 @@ const interestsSlice = createSlice({
       .addCase(respondToInterest.fulfilled, (state, action) => {
         state.status = 'succeeded';
         const updatedInterest = action.payload;
-        // Find the request in our list and update its data
         const index = state.receivedItems.findIndex(i => i._id === updatedInterest._id);
-        if (index !== -1) {
-          state.receivedItems[index] = updatedInterest;
-        }
+        if (index !== -1) { state.receivedItems[index] = updatedInterest; }
       })
-      .addCase(respondToInterest.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload; });
+      .addCase(respondToInterest.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload; })
+
+      // === MERGED: Cases for DELETING a connection ===
+      .addCase(deleteInterest.pending, (state) => { 
+        state.status = 'loading'; 
+        state.error = null;
+      })
+      .addCase(deleteInterest.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        const deletedId = action.payload;
+        state.receivedItems = state.receivedItems.filter(i => i._id !== deletedId);
+        state.sentItems = state.sentItems.filter(i => i._id !== deletedId);
+      })
+      .addCase(deleteInterest.rejected, (state, action) => { 
+        state.status = 'failed'; 
+        state.error = action.payload; 
+      });
   },
 });
 

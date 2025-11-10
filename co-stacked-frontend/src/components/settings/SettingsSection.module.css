@@ -1,25 +1,34 @@
 /* src/components/settings/SettingsSection.module.css */
+
+/* --- The entire section is now a styled "card" --- */
 .section {
-  display: grid;
-  grid-template-columns: 1fr;
+  background-color: var(--card-background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.5rem; /* Creates space between setting cards */
+
+  /* Mobile-first: Default to a single-column layout inside the card */
+  display: flex;
+  flex-direction: column;
   gap: 1.5rem;
-  padding: 2rem 0;
-  border-bottom: 1px solid var(--border);
 }
 
+/* On larger screens, the card switches to a two-column grid layout */
 @media (min-width: 768px) {
   .section {
+    display: grid;
     grid-template-columns: 1fr 2fr;
+    gap: 2rem;
+    padding: 2rem;
   }
-}
-
-.header {
-  padding-right: 1.5rem;
 }
 
 .title {
   font-size: 1.25rem;
   font-weight: 600;
+  color: var(--foreground);
 }
 
 .description {
@@ -28,13 +37,10 @@
   line-height: 1.6;
 }
 
+/* --- The content div is now a simple, unstyled container --- */
 .content {
-  background-color: var(--card-background);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1.5rem;
-  box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  /* All the card styles (background, border, padding, etc.) have been removed */
 }

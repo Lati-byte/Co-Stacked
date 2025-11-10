@@ -1,58 +1,98 @@
 // src/components/reviews/LeaveReviewModal.jsx
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { createReview } from '../../features/reviews/reviewsSlice';
+
 import { Dialog } from '../shared/Dialog';
 import { Button } from '../shared/Button';
+import { Label } from '../shared/Label';
+import { Select } from '../shared/Select';
 import { Textarea } from '../shared/Textarea';
-import { Star } from 'lucide-react';
+import { StarRating } from '../shared/StarRating';
+import { Loader2 } from 'lucide-react';
 import styles from './LeaveReviewModal.module.css';
+import PropTypes from 'prop-types';
 
-export const LeaveReviewModal = ({ developer, open, onClose }) => {
+export const LeaveReviewModal = ({ open, onClose, developer, reviewableProjects }) => {
+  const dispatch = useDispatch();
+  const { createStatus, error } = useSelector(state => state.reviews);
+  
   const [rating, setRating] = useState(0);
-  const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState('');
+  const [projectId, setProjectId] = useState('');
 
-  const handleSubmit = () => {
-    if (rating === 0) {
-      alert("Please select a star rating.");
-      return;
+  useEffect(() => {
+    if (open) {
+      setRating(0);
+      setComment('');
+      // Set the default selected project to the first one in the list
+      if (reviewableProjects.length > 0) {
+        setProjectId(reviewableProjects[0]?.projectId?._id || '');
+      }
     }
-    console.log(`Submitting review for ${developer.name}:`, { rating, comment });
-    alert("Review submitted successfully!");
-    onClose();
+  }, [open, reviewableProjects]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (rating === 0 || !projectId) {
+        alert("Please select a project and provide a star rating.");
+        return;
+    }
+    const reviewData = { rating, comment, developerId: developer._id, projectId };
+    const resultAction = await dispatch(createReview(reviewData));
+    if (createReview.fulfilled.match(resultAction)) {
+      setTimeout(() => onClose(), 1500); // Close modal on success
+    }
   };
   
+  const projectOptions = reviewableProjects.map(conn => ({
+      value: conn.projectId._id,
+      label: conn.projectId.title,
+  }));
+
+  if (!open) return null;
+
   return (
     <Dialog open={open} onClose={onClose}>
-      <h2 className={styles.title}>Leave a Review for {developer.name}</h2>
-      <div className={styles.ratingInput}>
-        {[...Array(5)].map((_, index) => {
-          const starValue = index + 1;
-          return (
-            <button
-              key={starValue}
-              onMouseEnter={() => setHoverRating(starValue)}
-              onMouseLeave={() => setHoverRating(0)}
-              onClick={() => setRating(starValue)}
-              className={styles.starButton}
-            >
-              <Star
-                size={28}
-                className={(hoverRating || rating) >= starValue ? styles.filled : styles.empty}
-              />
-            </button>
-          );
-        })}
-      </div>
-      <Textarea 
-        value={comment}
-        onChange={(e) => setComment(e.target.value)}
-        placeholder="Share your experience working with this developer..."
-        rows={5}
-      />
-      <footer className={styles.footer}>
-        <Button variant="secondary" onClick={onClose}>Cancel</Button>
-        <Button onClick={handleSubmit}>Submit Review</Button>
-      </footer>
+      <header className={styles.header}>
+        <h1 className={styles.title}>Leave a Review for {developer.name}</h1>
+      </header>
+      
+      {createStatus === 'succeeded' ? (
+        <div className={styles.successMessage}>Thank you for your feedback!</div>
+      ) : (
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <div className={styles.formGroup}>
+            <Label>Select Project</Label>
+            <Select value={projectId} onChange={(e) => setProjectId(e.target.value)} options={projectOptions} />
+          </div>
+          <div className={styles.formGroup}>
+            <Label>Your Rating</Label>
+            <StarRating rating={rating} onRatingChange={setRating} isEditable={true} />
+          </div>
+          <div className={styles.formGroup}>
+            <Label htmlFor="comment">Comment</Label>
+            <Textarea id="comment" value={comment} onChange={(e) => setComment(e.target.value)} rows={4} required />
+          </div>
+
+          {createStatus === 'failed' && <p className={styles.error}>{error}</p>}
+          
+          <footer className={styles.footer}>
+            <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+            <Button type="submit" disabled={createStatus === 'loading'}>
+              {createStatus === 'loading' ? <Loader2 className="animate-spin" /> : 'Submit Review'}
+            </Button>
+          </footer>
+        </form>
+      )}
     </Dialog>
   );
+};
+
+LeaveReviewModal.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  developer: PropTypes.object.isRequired,
+  reviewableProjects: PropTypes.array.isRequired,
 };

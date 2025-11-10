@@ -1,0 +1,63 @@
+/* src/pages/AboutPage.module.css */
+.pageContainer {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 4rem 1.5rem;
+}
+.hero {
+  text-align: center;
+  margin-bottom: 5rem;
+}
+.hero h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 1.5rem;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.hero p {
+  font-size: 1.1rem;
+  color: var(--muted-foreground);
+  max-width: 650px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.storySection, .teamSection, .ctaSection {
+  padding: 4rem 0;
+  border-top: 1px solid var(--border);
+}
+.storyContent h2, .teamSection h2, .ctaSection h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+.storyContent {
+  max-width: 700px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  line-height: 1.8;
+  color: var(--muted-foreground);
+}
+.teamGrid {
+  display: flex;
+  justify-content: center;
+}
+.ctaSection {
+  text-align: center;
+}
+.ctaSection p {
+  font-size: 1.1rem;
+  color: var(--muted-foreground);
+  margin-bottom: 2rem;
+}
+.ctaButtons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}

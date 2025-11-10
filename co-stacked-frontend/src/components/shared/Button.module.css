@@ -36,3 +36,15 @@
 .secondary:hover {
   background-color: var(--secondary-button-hover); /* Use the new variable */
 }
+
+.outline {
+  background-color: white; /* Transparent background */
+  color: #000000;                 /* White text for dark backgrounds */
+  border-color: #FFFFFF;           /* White border */
+  transition: all 150ms ease-in-out;
+}
+
+.outline:hover {
+  background-color: rgba(255, 255, 255, 0.1); /* Subtle white glow on hover */
+  color: #FFFFFF;
+}

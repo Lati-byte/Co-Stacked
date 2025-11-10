@@ -3,7 +3,7 @@
 const express = require('express');
 const router = express.Router();
 
-// 1. Import ALL necessary controller functions, including the new project management ones.
+// 1. Import all necessary controller functions, including the new notification ones.
 const { 
     getPlatformStats, 
     registerAdmin, 
@@ -13,32 +13,39 @@ const {
     getProjectsForAdmin,
     updateProjectByAdmin,
     deleteProjectByAdmin,
-    getReports
+    getReports,
+    getTransactions,
+    getAdminNotifications,
+    markAdminNotificationsAsRead,
+    updateReportStatus
 } = require('../controllers/adminController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
 // === Dashboard & Auth Routes ===
 router.route('/stats').get(protect, admin, getPlatformStats);
 router.route('/register').post(registerAdmin);
-router.route('/reports').get(protect, admin, getReports);
+router.route('/reports')
+  .get(protect, admin, getReports);
 
+router.route('/reports/:id')
+  .put(protect, admin, updateReportStatus);
+  
+// === Transactions Route ===
+router.route('/transactions').get(protect, admin, getTransactions);
+
+// === NEW: Admin Notifications Routes ===
+router.route('/notifications').get(protect, admin, getAdminNotifications);
+router.route('/notifications/mark-read').put(protect, admin, markAdminNotificationsAsRead);
 
 // === User Management Routes ===
-// Handles GET /api/admin/users
 router.route('/users').get(protect, admin, getUsersForAdmin);
-
-// Handles PUT and DELETE for /api/admin/users/:id
 router
   .route('/users/:id')
   .put(protect, admin, updateUserByAdmin)
   .delete(protect, admin, deleteUserByAdmin);
 
-
-// === NEW: Project Management Routes ===
-// Handles GET /api/admin/projects
+// === Project Management Routes ===
 router.route('/projects').get(protect, admin, getProjectsForAdmin);
-
-// Handles PUT and DELETE for /api/admin/projects/:id
 router
   .route('/projects/:id')
   .put(protect, admin, updateProjectByAdmin)

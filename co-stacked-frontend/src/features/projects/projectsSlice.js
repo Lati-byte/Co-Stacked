@@ -3,6 +3,9 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import API from '../../api/axios';
 
+// --- 1. IMPORT the action from the payment slice to listen for it ---
+import { verifyPayment } from '../payments/paymentSlice';
+
 // ===================================================================
 // ASYNC THUNKS
 // ===================================================================
@@ -25,7 +28,7 @@ export const fetchMyProjects = createAsyncThunk(
   'projects/fetchMyProjects',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await API.get('/projects/myprojects'); // Calls the new protected endpoint
+      const response = await API.get('/projects/myprojects');
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Could not fetch your projects');
@@ -109,7 +112,6 @@ const projectsSlice = createSlice({
       .addCase(createProject.pending, (state) => { state.status = 'loading'; })
       .addCase(createProject.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        // Add to both lists to keep the UI in sync
         state.items.unshift(action.payload);
         state.myItems.unshift(action.payload);
       })
@@ -120,7 +122,6 @@ const projectsSlice = createSlice({
       .addCase(updateProject.fulfilled, (state, action) => {
           state.status = 'succeeded';
           const updatedProject = action.payload;
-          // Find and update the project in both lists
           const itemsIndex = state.items.findIndex(p => p._id === updatedProject._id);
           if (itemsIndex !== -1) state.items[itemsIndex] = updatedProject;
           const myItemsIndex = state.myItems.findIndex(p => p._id === updatedProject._id);
@@ -133,11 +134,28 @@ const projectsSlice = createSlice({
       .addCase(deleteProject.fulfilled, (state, action) => {
           state.status = 'succeeded';
           const deletedProjectId = action.payload;
-          // Remove the project from both lists
           state.items = state.items.filter(p => p._id !== deletedProjectId);
           state.myItems = state.myItems.filter(p => p._id !== deletedProjectId);
       })
-      .addCase(deleteProject.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload.message || 'Failed to delete project.'; });
+      .addCase(deleteProject.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload.message || 'Failed to delete project.'; })
+      
+      // --- 2. ADD THE NEW INTER-SLICE REDUCER for Project Boost ---
+      .addCase(verifyPayment.fulfilled, (state, action) => {
+        // The payload from the payment verification now contains the updated project object
+        const updatedProject = action.payload.project;
+        if (updatedProject) {
+          // Find and update the project in both state arrays to keep the UI perfectly in sync
+          const itemsIndex = state.items.findIndex(p => p._id === updatedProject._id);
+          if (itemsIndex !== -1) {
+            state.items[itemsIndex] = updatedProject;
+          }
+          
+          const myItemsIndex = state.myItems.findIndex(p => p._id === updatedProject._id);
+          if (myItemsIndex !== -1) {
+            state.myItems[myItemsIndex] = updatedProject;
+          }
+        }
+      });
   },
 });
 

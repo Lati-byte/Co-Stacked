@@ -3,34 +3,27 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { deleteProject } from '../../features/projects/projectManagementSlice';
-import styles from '../users/UserTable.module.css'; // Reusing UserTable styles
+// --- 1. IMPORT its own dedicated stylesheet ---
+import styles from './ProjectTable.module.css';
 
 // Import all necessary UI components
 import { Badge } from '../ui/Badge';
 import { ConfirmationModal } from '../shared/ConfirmationModal';
-import { EditProjectModal } from './EditProjectModal'; // <-- Import the Edit Modal
+import { EditProjectModal } from './EditProjectModal';
 import { Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import PropTypes from 'prop-types';
 
-/**
- * A table component for displaying and managing all projects in the admin panel.
- * It handles both project editing and deletion flows via modals.
- */
 export const ProjectTable = ({ projects }) => {
   const dispatch = useDispatch();
   const { status } = useSelector(state => state.projectManagement);
 
-  // === State Management for Modals ===
-  // State for the DELETE confirmation modal
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState(null);
   
-  // State for the EDIT modal
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [projectToEdit, setProjectToEdit] = useState(null);
 
-  // === Handlers for Actions ===
   const handleDeleteClick = (project) => {
     setProjectToDelete(project);
     setDeleteModalOpen(true);
@@ -51,7 +44,6 @@ export const ProjectTable = ({ projects }) => {
 
   return (
     <>
-      {/* Both modals are rendered here, ready to be displayed */}
       <ConfirmationModal
         open={isDeleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
@@ -80,12 +72,12 @@ export const ProjectTable = ({ projects }) => {
           <tbody>
             {projects.map(project => (
               <tr key={project._id}>
-                <td className={styles.titleCell}>{project.title || 'Untitled'}</td>
-                <td>{project.founderId?.name || <span className={styles.deletedUser}>[Deleted User]</span>}</td>
-                <td><Badge text={project.stage || 'N/A'} variant="secondary" /></td>
-                <td>{project.createdAt ? format(new Date(project.createdAt), 'dd MMM, yyyy') : 'N/A'}</td>
-                <td className={styles.actions}>
-                  {/* The "Edit" button is now functional */}
+                {/* --- 2. ADD data-label attributes to each cell --- */}
+                <td data-label="Title" className={styles.titleCell}>{project.title || 'Untitled'}</td>
+                <td data-label="Founder">{project.founderId?.name || <span className={styles.deletedUser}>[Deleted User]</span>}</td>
+                <td data-label="Stage"><Badge text={project.stage || 'N/A'} variant="secondary" /></td>
+                <td data-label="Date Posted">{project.createdAt ? format(new Date(project.createdAt), 'dd MMM, yyyy') : 'N/A'}</td>
+                <td data-label="Actions" className={styles.actionsCell}>
                   <button onClick={() => handleEditClick(project)}>Edit</button>
                   <button
                     className={styles.deleteBtn}

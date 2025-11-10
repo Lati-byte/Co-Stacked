@@ -1,43 +1,98 @@
 // src/components/layout/Header.jsx
 
-import { useState, useRef } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { useState, useRef, useEffect } from 'react';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 
-// Import the logout action from your auth slice
+// Import Redux actions
 import { logout } from '../../features/auth/authSlice';
+import { fetchNotifications, markNotificationsAsRead } from '../../features/notifications/notificationsSlice';
 
 // Import components and assets
 import { Button } from '../shared/Button';
 import { DropdownMenu } from '../shared/DropdownMenu';
+import { NotificationDropdown } from '../notifications/NotificationDropdown';
 import { useClickOutside } from '../../hooks/useClickOutside';
-import { User } from 'lucide-react';
+import { User, Bell, Menu, X } from 'lucide-react';
 import logoSrc from '../../assets/logo.png';
 import styles from './Header.module.css';
 
 export const Header = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // 1. Get the LIVE authentication state from the Redux store
   const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const { items: notifications } = useSelector(state => state.notifications);
 
-  // Local state for controlling the dropdown menu UI
   const [isDropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const [isNotifOpen, setNotifOpen] = useState(false);
+  const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Hook to close the dropdown when clicking outside of it
+  const dropdownRef = useRef(null);
+  const notifRef = useRef(null);
+
   useClickOutside(dropdownRef, () => setDropdownOpen(false));
   
-  // Handler for the logout action
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchNotifications());
+    }
+  }, [isAuthenticated, dispatch]);
+  
+  useEffect(() => {
+    setDropdownOpen(false);
+    setNotifOpen(false);
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 768) {
+        setMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
+  useEffect(() => {
+    if (isMobileMenuOpen || isNotifOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [isMobileMenuOpen, isNotifOpen]);
+
   const handleLogout = () => {
       dispatch(logout());
-      setDropdownOpen(false); // Close the dropdown menu
-      navigate('/login'); // Redirect the user to the login page
+      setDropdownOpen(false);
+      navigate('/login');
+  };
+
+  /**
+   * This function ONLY closes the notification modal without changing data.
+   * It's used for the 'X' button and the backdrop click.
+   */
+  const handleCloseNotifications = () => {
+    setNotifOpen(false);
   };
   
-  // Navigation links are now built dynamically based on the live 'isAuthenticated' state
+  /**
+   * This function performs the primary action: marking notifications as read
+   * AND then closing the modal.
+   */
+  const handleMarkAsRead = () => {
+    if (notifications.length > 0) {
+      dispatch(markNotificationsAsRead());
+    }
+    setNotifOpen(false); // Close the modal after the action
+  };
+  
   const navigationLinks = [
     { label: 'Discover', path: '/projects' },
     { label: 'Find Talent', path: '/users' },
@@ -45,61 +100,135 @@ export const Header = () => {
   ];
 
   return (
-    <header className={styles.header}>
-      {/* ===== LEFT SECTION: LOGO ===== */}
-      <div className={styles.leftSection}>
-        <Link to="/" className={styles.logoContainer}>
-          <img src={logoSrc} alt="CoStacked Logo" className={styles.logoImage} />
-          <span className={styles.logoText}>CoStacked</span>
-        </Link>
-      </div>
+    <>
+      <header className={styles.header}>
+        <div className={styles.leftSection}>
+          <Link to="/" className={styles.logoContainer}>
+            <img src={logoSrc} alt="CoStacked Logo" className={styles.logoImage} />
+            <span className={styles.logoText}>CoStacked</span>
+          </Link>
+        </div>
 
-      {/* ===== MIDDLE SECTION: NAVIGATION LINKS ===== */}
-      <nav className={styles.navLinks}>
-        {navigationLinks.map((link) => (
-          <NavLink
-            key={link.path}
-            to={link.path}
-            className={({ isActive }) => 
-              isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-            }
-          >
-            {link.label}
-          </NavLink>
-        ))}
-      </nav>
-
-      {/* ===== RIGHT SECTION: USER ACTIONS ===== */}
-      <div className={styles.userActions} ref={dropdownRef}>
-        {isAuthenticated && user?.role === 'founder' && (
-          <Button variant="primary" to="/post-project">
-            Post Project
-          </Button>
-        )}
-        
-        {isAuthenticated ? (
-          // If the user IS authenticated, show the profile icon and dropdown
-          <>
-            <button 
-              className={styles.profileLink} 
-              onClick={() => setDropdownOpen(prev => !prev)}
-              aria-label="Toggle user menu"
+        <nav className={styles.navLinks}>
+          {navigationLinks.map((link) => (
+            <NavLink
+              key={link.path}
+              to={link.path}
+              className={({ isActive }) => 
+                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+              }
             >
-              {/* You could eventually show a real avatar here */}
-              <User size={24} />
-            </button>
-            <AnimatePresence>
-              {isDropdownOpen && <DropdownMenu onLogout={handleLogout} />}
-            </AnimatePresence>
-          </>
-        ) : (
-          // If the user is NOT authenticated, show Login and Sign Up buttons
-          <div className={styles.authButtons}>
-            <Button variant="secondary" to="/login">Login</Button>
-            <Button variant="primary" to="/signup">Sign Up</Button>
-          </div>
+              {link.label}
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className={styles.userActions}>
+          {isAuthenticated && user?.role === 'founder' && (
+            <div className={styles.desktopPostProject}>
+              <Button variant="primary" to="/post-project">
+                Post Project
+              </Button>
+            </div>
+          )}
+          
+          {isAuthenticated ? (
+            <>
+              <div ref={notifRef} className={styles.notificationWrapper}>
+                <button className={styles.notificationButton} onClick={() => setNotifOpen(prev => !prev)} aria-label="Toggle notifications">
+                  <Bell size={24} />
+                  {notifications.length > 0 && (
+                    <span className={styles.notificationCount}>{notifications.length}</span>
+                  )}
+                </button>
+                <AnimatePresence>
+                  {isNotifOpen && 
+                    <NotificationDropdown 
+                      notifications={notifications} 
+                      onClose={handleCloseNotifications}
+                      onMarkAsRead={handleMarkAsRead}
+                    />
+                  }
+                </AnimatePresence>
+              </div>
+              
+              <div ref={dropdownRef}>
+                <button className={styles.profileLink} onClick={() => setDropdownOpen(prev => !prev)} aria-label="Toggle user menu">
+                  <span className={styles.userName}>{user?.name}</span>
+                  <User size={24} />
+                </button>
+                <AnimatePresence>
+                  {isDropdownOpen && <DropdownMenu onLogout={handleLogout} />}
+                </AnimatePresence>
+              </div>
+            </>
+          ) : (
+            <div className={styles.authButtons}>
+              <Button variant="secondary" to="/login">Login</Button>
+              <Button variant="primary" to="/signup">Sign Up</Button>
+            </div>
+          )}
+
+          <button 
+            className={styles.hamburgerMenu} 
+            onClick={() => setMobileMenuOpen(true)}
+            aria-label="Open navigation menu"
+          >
+            <Menu size={28} />
+          </button>
+        </div>
+      </header>
+
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.nav 
+            className={styles.mobileMenu}
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          >
+            <div className={styles.mobileMenuHeader}>
+              <span className={styles.mobileMenuTitle}>Navigation</span>
+              <button 
+                className={styles.closeMenuButton} 
+                onClick={() => setMobileMenuOpen(false)}
+                aria-label="Close navigation menu"
+              >
+                <X size={28} />
+              </button>
+            </div>
+            
+            <div className={styles.mobileLinksContainer}>
+              {navigationLinks.map((link) => (
+                <NavLink
+                  key={link.path}
+                  to={link.path}
+                  className={({ isActive }) => 
+                    isActive ? `${styles.mobileNavLink} ${styles.activeMobileLink}` : styles.mobileNavLink
+                  }
+                >
+                  {link.label}
+                </NavLink>
+              ))}
+            </div>
+
+            <div className={styles.mobileActionsContainer}>
+              {isAuthenticated && user?.role === 'founder' && (
+                <Button variant="primary" to="/post-project" fullWidth>
+                  Post Project
+                </Button>
+              )}
+              {!isAuthenticated && (
+                <>
+                  <Button variant="secondary" to="/login" fullWidth>Login</Button>
+                  <Button variant="primary" to="/signup" fullWidth>Sign Up</Button>
+                </>
+              )}
+            </div>
+          </motion.nav>
         )}
-      </div>
-    </header>
+      </AnimatePresence>
+    </>
   );
 };

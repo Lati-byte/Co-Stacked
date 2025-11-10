@@ -48,7 +48,15 @@ const projectSchema = mongoose.Schema(
     founder: {
       type: String,
       required: true,
-    }
+    },
+    // --- NEW FIELDS FOR PROJECT BOOSTING ---
+    isBoosted: {
+      type: Boolean,
+      default: false,
+    },
+    boostExpiresAt: {
+      type: Date,
+    },
   },
   {
     // Mongoose option to automatically add `createdAt` and `updatedAt` timestamps

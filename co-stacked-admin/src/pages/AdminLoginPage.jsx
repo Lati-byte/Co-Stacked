@@ -1,9 +1,9 @@
 // src/pages/AdminLoginPage.jsx
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
-import { loginAdmin } from '../features/auth/adminAuthSlice';
+import { loginAdmin, clearAuthState } from '../features/auth/adminAuthSlice';
 import styles from './AdminLoginPage.module.css';
 import { Loader2 } from 'lucide-react';
 
@@ -16,30 +16,31 @@ export const AdminLoginPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // Subscribe to the status and error from the adminAuthSlice.
-  // The UI will reactively update based on these values.
   const { status, error } = useSelector((state) => state.auth);
 
-  // Local state for managing the email and password input fields.
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  // Clear any previous error messages when the component loads
+  useEffect(() => {
+    dispatch(clearAuthState());
+  }, [dispatch]);
 
   // Handler for form submission.
   const handleSubmit = async (e) => {
     e.preventDefault();
     const credentials = { email, password };
     
-    // Dispatch our loginAdmin async thunk. This triggers the API call.
     const resultAction = await dispatch(loginAdmin(credentials));
     
-    // If the thunk's promise is 'fulfilled', it means the API call
-    // and the `isAdmin` check were both successful.
     if (loginAdmin.fulfilled.match(resultAction)) {
-      // On success, redirect the user to the main dashboard page.
       navigate('/');
+    } else if (loginAdmin.rejected.match(resultAction) && resultAction.payload?.emailNotVerified) {
+      // --- THIS IS THE NEW LOGIC ---
+      // If the login failed specifically because the email is not verified,
+      // redirect the user to the verification page.
+      navigate('/verify-email');
     }
-    // If the thunk is 'rejected', the `status` in the Redux store will
-    // become 'failed', and the error message will be displayed automatically.
   };
 
   return (
@@ -76,7 +77,6 @@ export const AdminLoginPage = () => {
             />
           </div>
 
-          {/* This error message comes directly from the Redux state after a failed API call */}
           {status === 'failed' && error && <p className={styles.error}>{error}</p>}
           
           <button type="submit" className={styles.button} disabled={status === 'loading'}>

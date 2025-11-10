@@ -1,15 +1,17 @@
 // src/pages/SupportPage.jsx
 import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { submitReport } from '../features/reports/reportsSlice';
 import { Accordion } from '../components/shared/Accordion';
 import { Card } from '../components/shared/Card';
-import { Input } from '../components/shared/Input';
 import { Label } from '../components/shared/Label';
 import { Select } from '../components/shared/Select';
 import { Textarea } from '../components/shared/Textarea';
 import { Button } from '../components/shared/Button';
+import { Loader2 } from 'lucide-react';
 import styles from './SupportPage.module.css';
 
-// What's important for Co-Stacked: Clear, helpful FAQs
+// The FAQ data remains unchanged.
 const faqs = [
   {
     question: "How do I post a project?",
@@ -21,7 +23,7 @@ const faqs = [
   },
   {
     question: "How do I report a user or project?",
-    answer: "If you encounter a user or project that violates our community guidelines, please use the contact form below with the subject 'User/Project Report'. Include the user's name, project title, and a description of the issue."
+    answer: "On any project detail page or user profile, you will find a 'Report' button. If you have a general concern, you can also use the contact form on this page with the subject 'User/Project Report Inquiry'."
   },
   {
     question: "How can I delete my account?",
@@ -30,17 +32,38 @@ const faqs = [
 ];
 
 export const SupportPage = () => {
+  const dispatch = useDispatch();
+  const { status, error } = useSelector(state => state.reports); 
+  const { isAuthenticated } = useSelector(state => state.auth);
+
   const [formData, setFormData] = useState({ subject: 'general', message: '' });
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleChange = (e) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submitting support ticket:", formData);
-    alert("Your support request has been sent. We'll get back to you shortly!");
-    setFormData({ subject: 'general', message: '' }); // Reset form
+    setSuccessMessage(''); // Clear previous success messages
+
+    if (!isAuthenticated) {
+      alert("Please log in or sign up to submit a support request.");
+      return;
+    }
+
+    const reportData = {
+      type: 'support_ticket', // A general support ticket
+      reason: formData.subject,
+      comment: formData.message,
+    };
+    
+    const resultAction = await dispatch(submitReport(reportData));
+    
+    if (submitReport.fulfilled.match(resultAction)) {
+      setSuccessMessage(resultAction.payload.message);
+      setFormData({ subject: 'general', message: '' }); // Reset form on success
+    }
   };
 
   return (
@@ -56,7 +79,6 @@ export const SupportPage = () => {
         <div className={styles.faqContainer}>
           {faqs.map((faq) => (
             <Accordion key={faq.question} title={faq.question}>
-              {/* This extra div ensures proper padding inside the animated content */}
               <div>{faq.answer}</div> 
             </Accordion>
           ))}
@@ -75,7 +97,7 @@ export const SupportPage = () => {
                 options={[
                   { value: 'general', label: 'General Inquiry' },
                   { value: 'technical', label: 'Technical Issue' },
-                  { value: 'report', label: 'User/Project Report' },
+                  { value: 'report', label: 'User/Project Report Inquiry' },
                   { value: 'account', label: 'Account Help' }
                 ]}
               />
@@ -84,7 +106,15 @@ export const SupportPage = () => {
               <Label htmlFor="message">Your Message</Label>
               <Textarea id="message" name="message" value={formData.message} onChange={handleChange} rows={6} required placeholder="Please describe your issue in detail..."/>
             </div>
-            <Button type="submit">Send Message</Button>
+
+            {/* --- Feedback Messages --- */}
+            {status === 'failed' && <p className={styles.error}>{error}</p>}
+            {successMessage && <p className={styles.success}>{successMessage}</p>}
+            
+            <Button type="submit" disabled={status === 'loading' || !isAuthenticated}>
+              {status === 'loading' ? <Loader2 className="animate-spin" /> : 'Send Message'}
+            </Button>
+            {!isAuthenticated && <p className={styles.loginNote}>You must be logged in to send a message.</p>}
           </form>
         </Card>
       </section>

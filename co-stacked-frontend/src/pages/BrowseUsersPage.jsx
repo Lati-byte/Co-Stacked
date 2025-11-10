@@ -1,6 +1,6 @@
 // src/pages/BrowseUsersPage.jsx
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUsers } from '../features/users/usersSlice';
 import styles from './BrowseUsersPage.module.css';
@@ -8,56 +8,59 @@ import styles from './BrowseUsersPage.module.css';
 import { UserCard } from '../components/shared/UserCard';
 import { CombinedSearchInput } from '../components/shared/CombinedSearchInput';
 
-// A simple loading component, similar to the one in DiscoverProjectsPage
 const LoadingSpinner = () => <div className={styles.loader}>Loading talent...</div>;
+const ErrorDisplay = ({ error }) => <p className={styles.error}>Error: {error}</p>;
 
 export const BrowseUsersPage = () => {
   const dispatch = useDispatch();
   
-  // 1. Get the LIVE data from the Redux store
-  // We get the list of all users, the data fetching status, and any potential error
   const { items: allUsers, status, error } = useSelector((state) => state.users);
-  // We also need the current logged-in user's data for location comparison
-  const { user: currentUser } = useSelector((state) => state.auth);
 
-  // Local state for the search and filter inputs
   const [searchQuery, setSearchQuery] = useState('');
   const [locationQuery, setLocationQuery] = useState('');
   
-  // Fetch the users when the component first mounts
   useEffect(() => {
-    // Only fetch if the data hasn't been fetched yet
     if (status === 'idle') {
       dispatch(fetchUsers());
     }
-  }, [status, dispatch]);
+  }, [dispatch, status]);
   
-  // --- Client-Side Filtering Logic ---
-  // This logic runs on every re-render, so it's always up-to-date with the search queries
-  const filteredUsers = allUsers.filter(user => {
-    const searchLower = searchQuery.toLowerCase();
-    const locationLower = locationQuery.toLowerCase();
-    
-    const matchesSearch = 
-      user.name.toLowerCase().includes(searchLower) ||
-      user.role.toLowerCase().includes(searchLower) ||
-      (user.skills && user.skills.some(skill => skill.toLowerCase().includes(searchLower)));
+  // Memoized calculation to sort and filter the user list
+  const sortedAndFilteredUsers = useMemo(() => {
+    if (!Array.isArray(allUsers)) return [];
 
-    const matchesLocation = user.location ? user.location.toLowerCase().includes(locationLower) : true;
-    
-    return matchesSearch && matchesLocation;
-  });
-  
-  const localUsers = currentUser 
-    ? filteredUsers.filter(user => user.location === currentUser.location && user._id !== currentUser.id)
-    : [];
-  
-  const globalUsers = currentUser
-    ? filteredUsers.filter(user => user.location !== currentUser.location && user._id !== currentUser.id)
-    : filteredUsers; // If no user is logged in, all users are "global"
+    const now = new Date();
 
+    return [...allUsers]
+      .sort((a, b) => {
+        const aIsBoosted = a.isBoosted && new Date(a.boostExpiresAt) > now;
+        const bIsBoosted = b.isBoosted && new Date(b.boostExpiresAt) > now;
 
-  // --- Conditional Rendering Logic ---
+        if (aIsBoosted && !bIsBoosted) return -1;
+        if (!aIsBoosted && bIsBoosted) return 1;
+
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      })
+      .filter(user => {
+        const searchLower = searchQuery.toLowerCase();
+        const locationLower = locationQuery.toLowerCase();
+        
+        const matchesSearch = 
+          user.name?.toLowerCase().includes(searchLower) ||
+          user.role?.toLowerCase().includes(searchLower) ||
+          (Array.isArray(user.skills) && user.skills.some(skill => skill.toLowerCase().includes(searchLower)));
+
+        const matchesLocation = user.location ? user.location.toLowerCase().includes(locationLower) : true;
+        
+        return matchesSearch && matchesLocation;
+      });
+  }, [allUsers, searchQuery, locationQuery]);
+
+  // --- NEW LOGIC: Split the prepared list into two distinct groups ---
+  const now = new Date();
+  const featuredUsers = sortedAndFilteredUsers.filter(user => user.isBoosted && new Date(user.boostExpiresAt) > now);
+  const latestUsers = sortedAndFilteredUsers.filter(user => !user.isBoosted || new Date(user.boostExpiresAt) <= now);
+
   let content;
 
   if (status === 'loading' || status === 'idle') {
@@ -65,31 +68,35 @@ export const BrowseUsersPage = () => {
   } else if (status === 'succeeded') {
     content = (
       <>
-        {localUsers.length > 0 && (
+        {/* --- Section 1: Featured Talent --- */}
+        {featuredUsers.length > 0 && (
           <section>
-            <h2 className={styles.sectionTitle}>Developers in your area</h2>
+            <h2 className={styles.sectionTitle}>Featured Talent</h2>
             <div className={styles.grid}>
-              {localUsers.map((user) => <UserCard key={user._id} user={user} />)}
+              {featuredUsers.map((user) => <UserCard key={user._id} user={user} />)}
             </div>
           </section>
         )}
-        {globalUsers.length > 0 && (
+
+        {/* --- Section 2: Latest Profiles --- */}
+        {latestUsers.length > 0 && (
           <section>
-            <h2 className={styles.sectionTitle}>Global Developers</h2>
+            <h2 className={styles.sectionTitle}>Latest Profiles</h2>
             <div className={styles.grid}>
-              {globalUsers.map((user) => <UserCard key={user._id} user={user} />)}
+              {latestUsers.map((user) => <UserCard key={user._id} user={user} />)}
             </div>
           </section>
         )}
-        {filteredUsers.length === 0 && (
-          <p className={styles.noResults}>No developers found matching your criteria.</p>
+        
+        {/* --- Empty State Message --- */}
+        {sortedAndFilteredUsers.length === 0 && (
+          <p className={styles.noResults}>No talent found matching your criteria.</p>
         )}
       </>
     );
   } else if (status === 'failed') {
-    content = <p className={styles.error}>{error}</p>;
+    content = <ErrorDisplay error={error} />;
   }
-
 
   return (
     <div className={styles.pageContainer}>

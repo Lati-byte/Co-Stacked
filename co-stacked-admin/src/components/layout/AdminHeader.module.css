@@ -1,21 +1,145 @@
 /* src/components/layout/AdminHeader.module.css */
+
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem;
-  background-color: var(--sidebar-background);
-  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
   height: 65px;
+  background-color: #fff;
+  border-bottom: 1px solid var(--border);
+  position: sticky; /* Make header sticky */
+  top: 0;
+  z-index: 40; /* Lower z-index than sidebar */
 }
-.title { font-size: 1.5rem; font-weight: 700; }
-.userMenu { display: flex; align-items: center; gap: 1rem; }
-.userProfile { display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
-.avatar {
-  width: 36px; height: 36px; border-radius: 50%; background-color: var(--primary);
-  color: var(--primary-foreground); display: flex; align-items: center; justify-content: center;
+
+/* NEW: Wrapper for left-aligned content */
+.leftContent {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* NEW: Sidebar Toggle Button (hidden on desktop) */
+.sidebarToggleButton {
+  display: none; /* Hidden by default */
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--foreground);
+  padding: 0.5rem;
+  margin-left: -0.5rem; /* Align icon nicely */
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+.sidebarToggleButton:hover {
+  background-color: var(--muted);
+}
+
+.title {
+  font-size: 1.5rem;
   font-weight: 600;
 }
-.userInfo { display: flex; flex-direction: column; }
-.userName { font-weight: 600; }
-.userRole { font-size: 0.8rem; color: var(--muted-foreground); }
+
+.userMenu {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.notificationWrapper {
+  position: relative;
+}
+
+.notificationButton {
+  position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted-foreground);
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.notificationButton:hover {
+  background-color: var(--background);
+}
+.notificationCount {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background-color: #dc2626;
+  color: white;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+}
+
+.userProfile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.userName {
+  font-weight: 600;
+}
+
+.userRole {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+
+/* ======================================== */
+/*            RESPONSIVE QUERIES            */
+/* ======================================== */
+
+@media (max-width: 768px) {
+  .header {
+    padding: 0 1rem; /* Reduce padding on mobile */
+  }
+
+  /* Show the sidebar toggle button */
+  .sidebarToggleButton {
+    display: flex;
+  }
+
+  .title {
+    font-size: 1.25rem; /* Slightly smaller title */
+  }
+
+  /* Hide the detailed user info and chevron on mobile */
+  .userInfo,
+  .chevronIcon {
+    display: none;
+  }
+
+  .userMenu {
+    gap: 0.75rem; /* Reduce gap between bell and avatar */
+  }
+}

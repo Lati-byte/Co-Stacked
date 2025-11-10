@@ -1,23 +1,17 @@
 // src/api/axios.js
 import axios from 'axios';
 
-// The base URL for our backend API. All requests will be prefixed with this.
-const API_BASE_URL = 'http://localhost:5001/api';
-
 const API = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: 'http://localhost:5001/api', // Make sure this is your correct backend URL
 });
 
-// We will add an interceptor here to automatically attach the admin's auth token
-// once we build the admin login system.
+// This interceptor automatically attaches the token to every request.
 API.interceptors.request.use((config) => {
-  // We will name the admin token something different to avoid conflicts with the user app
-  const token = localStorage.getItem('adminToken');
-  
+  // We use a unique name for the admin token to avoid conflicts.
+  const token = localStorage.getItem('costacked-admin-token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  
   return config;
 });
 

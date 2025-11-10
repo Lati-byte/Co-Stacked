@@ -22,6 +22,23 @@ export const fetchUsers = createAsyncThunk(
 );
 
 /**
+ * NEW: Async Thunk to record a profile view.
+ */
+export const recordProfileView = createAsyncThunk(
+  'users/recordView',
+  async (userId, { rejectWithValue }) => {
+    try {
+      const response = await API.put(`/users/${userId}/view`);
+      return response.data; // Returns the full updated user object from the backend
+    } catch (error) {
+      // We don't need to show a big error for this, so we can fail silently
+      // but still reject the promise for debugging purposes.
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+/**
  * The Redux state slice for managing the public list of users.
  */
 const usersSlice = createSlice({
@@ -50,16 +67,24 @@ const usersSlice = createSlice({
       })
 
       // Case for synchronizing state after a user updates their own profile
-      // This listener ensures our public user list stays up-to-date without a full refetch.
       .addCase(updateUserProfile.fulfilled, (state, action) => {
           const updatedUser = action.payload;
-          // The updated user object from the API uses '_id' from MongoDB
           const userIndex = state.items.findIndex(user => user._id === updatedUser._id);
 
           if (userIndex !== -1) {
-              // Replace the old user data with the fresh data from the server
               state.items[userIndex] = updatedUser;
           }
+      })
+
+      // NEW: Case for synchronizing state after a profile view is recorded
+      .addCase(recordProfileView.fulfilled, (state, action) => {
+        const updatedUser = action.payload;
+        const userIndex = state.items.findIndex(user => user._id === updatedUser._id);
+
+        // Replace the old user data with the new data containing the incremented view count
+        if (userIndex !== -1) {
+          state.items[userIndex] = updatedUser;
+        }
       });
   },
 });

@@ -12,7 +12,7 @@
   margin: 0 auto;
   padding: 3rem 1.5rem;
   display: flex;
-  flex-wrap: wrap; /* Allows sections to wrap on smaller screens */
+  flex-wrap: wrap; 
   justify-content: space-between;
   gap: 2rem;
 }
@@ -73,4 +73,64 @@
   text-align: center;
   font-size: 0.9rem;
   color: var(--muted-foreground);
+}
+
+
+/* ======================================== */
+/*            RESPONSIVE QUERIES            */
+/* ======================================== */
+
+/* --- Medium Screens / Tablets --- */
+@media (max-width: 768px) {
+  .container {
+    /* Stack brand and links vertically */
+    flex-direction: column;
+    /* Center the stacked items */
+    align-items: center;
+    text-align: center;
+    gap: 3rem; /* Increase gap for vertical stacking */
+    padding: 2.5rem 1rem;
+  }
+
+  .brandSection {
+    /* Ensure brand section aligns its content centrally */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .tagline {
+    /* Allow tagline to use more width if needed */
+    max-width: 400px;
+  }
+
+  .linksSection {
+    /* Center the link columns container */
+    justify-content: center;
+    width: 100%; /* Ensure it takes full width to center its content properly */
+  }
+
+  .linkColumn {
+    /* Align text inside link columns to the center */
+    text-align: center;
+  }
+
+  .bottomBar {
+    padding: 1.5rem 1rem;
+  }
+}
+
+/* --- Small Screens / Mobile --- */
+@media (max-width: 480px) {
+  .linksSection {
+    /* Stack the link columns themselves vertically */
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+  }
+  
+  .linkColumn {
+    /* Ensure each column aligns centrally */
+    align-items: center;
+  }
 }

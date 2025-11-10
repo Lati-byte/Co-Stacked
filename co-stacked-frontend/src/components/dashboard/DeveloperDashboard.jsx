@@ -1,14 +1,20 @@
 // src/components/dashboard/DeveloperDashboard.jsx
 
+// --- ALL IMPORTS ARE CONSOLIDATED AT THE TOP ---
+import { useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
-import styles from '../../pages/DashboardPage.module.css'; // Uses the shared dashboard styles
+import { deleteInterest } from '../../features/interests/interestsSlice';
+import styles from '../../pages/DashboardPage.module.css';
 import { Card } from '../shared/Card';
+import { Button } from '../shared/Button';
 import { ProjectCard } from '../shared/ProjectCard';
-import { MessageSquare, Search, Eye, Star, Send } from 'lucide-react'; // Swapped Icon for consistency
+import { ConfirmationModal } from '../shared/ConfirmationModal';
+import { MessageSquare, Search, Eye, Star, Send } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 /**
- * A local, reusable sub-component for the dashboard's summary statistics cards.
+ * A local sub-component for the dashboard's summary statistics cards.
  */
 const StatCard = ({ title, value, description, Icon, to }) => {
   const cardContent = (
@@ -30,23 +36,62 @@ const StatCard = ({ title, value, description, Icon, to }) => {
 
 /**
  * The main UI component for the Developer's dashboard view.
- * It is a "presentational" component that receives all its data via props.
  */
-export const DeveloperDashboard = ({ currentUser, sentItems }) => {
-  // Derive the list of approved connections from the 'sentItems' prop.
-  // This assumes 'sentItems' contains populated project data.
+// --- 1. ACCEPT the new `developerReviews` prop ---
+export const DeveloperDashboard = ({ currentUser, sentItems, developerReviews }) => {
+  const dispatch = useDispatch();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [connectionToDelete, setConnectionToDelete] = useState(null);
+
+  const handleDeleteClick = (connection) => {
+    setConnectionToDelete(connection);
+    setIsModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (connectionToDelete) {
+      dispatch(deleteInterest(connectionToDelete._id));
+    }
+    setIsModalOpen(false);
+    setConnectionToDelete(null);
+  };
+
   const approvedConnections = sentItems.filter(i => i.status === 'approved');
 
   return (
     <>
+      <ConfirmationModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Cut Connection"
+        message={`Are you sure you want to end your collaboration on the project "${connectionToDelete?.projectId.title}"? This cannot be undone.`}
+        confirmText="Yes, Cut Connection"
+      />
+
       <h2 className={styles.title}>Developer Dashboard</h2>
       
       {/* --- Stat Cards Section --- */}
       <div className={styles.grid}>
         <StatCard to="/projects" title="Discover Projects" value="Browse Latest" Icon={Search} />
-        <StatCard to="/my-applications" title="My Applications" value={sentItems.length} description="Track your sent requests" Icon={Send} />
-        <StatCard to="/profile" title="Profile Views" value="28" description="(Mock data)" Icon={Eye} />
-        <StatCard to="/profile" title="Your Reviews" value="3" description="(Mock data)" Icon={Star} />
+        <StatCard to="/my-applications" title="My Applications" value={sentItems.length} description="Track sent requests" Icon={Send} />
+        
+        <StatCard 
+          to="/profile" 
+          title="Profile Views" 
+          value={currentUser.profileViews || 0} 
+          description="Total views from other users" 
+          Icon={Eye} 
+        />
+        {/* --- 2. USE the live data for the review count --- */}
+        <StatCard 
+          to="/profile" 
+          title="Your Reviews" 
+          value={developerReviews.length} 
+          description="Total feedback received" 
+          Icon={Star} 
+        />
       </div>
 
       {/* --- Active Collaborations Section --- */}
@@ -56,18 +101,14 @@ export const DeveloperDashboard = ({ currentUser, sentItems }) => {
           <h3 className={styles.title}>Your Active Collaborations</h3>
           <div className={styles.grid}>
             {approvedConnections.map(connection => { 
-              const project = connection.projectId; // Backend populates this object.
-              
-              // Defensive check to ensure project data exists before rendering.
+              const project = connection.projectId;
               return project ? (
-                // === THIS IS THE CRITICAL UPDATE ===
-                // We pass the `connectionStatus` prop to the ProjectCard
-                // to make it render a "Message" button instead of a "Connect" button.
-                <ProjectCard 
-                  key={project._id} 
-                  project={project} 
-                  connectionStatus="approved" 
-                />
+                <div key={connection._id}>
+                  <ProjectCard 
+                    project={project} 
+                    connection={connection} 
+                  />
+                </div>
               ) : null; 
             })}
           </div>
@@ -91,8 +132,12 @@ export const DeveloperDashboard = ({ currentUser, sentItems }) => {
   );
 };
 
-// Add PropTypes for better type-checking and component documentation
+// --- 3. UPDATE PropTypes to include the new prop ---
 DeveloperDashboard.propTypes = {
-  currentUser: PropTypes.object.isRequired,
+  currentUser: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+    profileViews: PropTypes.number,
+  }).isRequired,
   sentItems: PropTypes.array.isRequired,
+  developerReviews: PropTypes.array.isRequired,
 };

@@ -1,39 +1,37 @@
 /* src/components/layout/Header.module.css */
 
+/* ======================================== */
+/*          BASE & DESKTOP STYLES           */
+/* ======================================== */
 .header {
   background-color: var(--card-background);
   border-bottom: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
-  padding: 0 2rem; /* Remove vertical padding to rely on flex alignment */
+  padding: 0 2rem;
   height: 65px;
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 50;
   
-  /* --- Core Layout --- */
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-/* --- Section Definitions --- */
 .leftSection, .userActions {
   display: flex;
   align-items: center;
 }
 
 .leftSection {
-  flex: 1 0 auto; /* Allow this section to take available space */
+  flex-shrink: 0;
 }
 
 .userActions {
-  flex: 1 0 auto; /* Allow this section to take available space */
-  justify-content: flex-end; /* Align items to the right */
+  justify-content: flex-end;
   gap: 1.5rem;
-  position: relative;
 }
 
-/* --- Logo --- */
 .logoContainer {
   display: inline-flex;
   align-items: center;
@@ -51,9 +49,9 @@
   font-size: 1.3rem;
   font-weight: 700;
   letter-spacing: -0.05em;
+  transition: opacity 0.2s ease-in-out;
 }
 
-/* --- Middle Navigation Links --- */
 .navLinks {
   display: flex;
   justify-content: center;
@@ -90,26 +88,232 @@
   background-color: var(--primary);
 }
 
-/* --- Profile Icon/Dropdown --- */
-.profileLink {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem;
-  border-radius: 50%;
-  color: var(--muted-foreground);
-  transition: background-color 150ms ease, color 150ms ease;
+.notificationWrapper {
+  position: relative;
+}
+
+.notificationButton {
   background: none;
   border: none;
   cursor: pointer;
+  color: var(--foreground);
+  padding: 0.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+  
+  /* CRITICAL: Establishes a positioning context for the child count badge */
+  position: relative;
+}
+.notificationButton:hover {
+  background-color: var(--muted);
+}
+
+/* --- Styles for the notification count badge --- */
+.notificationCount {
+  /* Position the badge within its parent button */
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  
+  /* Visual styling */
+  background-color: #dc3545; /* A standard, vibrant red */
+  color: white;
+  border-radius: 50%; /* Makes it a circle */
+  
+  /* Sizing */
+  width: 16px;
+  height: 16px;
+  font-size: 0.65rem; /* Small font for a small circle */
+  font-weight: bold;
+  
+  /* Centering the number inside the circle */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Prevents the number from being selected */
+  user-select: none;
+}
+
+
+.profileLink {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--foreground);
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
 }
 
 .profileLink:hover {
-  background-color: var(--secondary-button-hover);
-  color: var(--foreground);
+  background-color: var(--muted);
+}
+
+.userName {
+  font-weight: 600;
+  font-size: 0.9rem;
 }
 
 .authButtons {
   display: flex;
   gap: 0.75rem;
+}
+
+.hamburgerMenu {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--foreground);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+.hamburgerMenu:hover {
+  background-color: var(--muted);
+}
+
+
+/* ======================================== */
+/*           MOBILE MENU STYLES             */
+/* ======================================== */
+
+.mobileMenu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  max-width: 320px;
+  background-color: var(--card-background);
+  z-index: 100;
+  box-shadow: -10px 0px 30px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+}
+
+.mobileMenuHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+}
+
+.mobileMenuTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.closeMenuButton {
+  background: none;
+  border: none;
+  color: var(--foreground);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+.closeMenuButton:hover {
+  background-color: var(--muted);
+}
+
+.mobileLinksContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex-grow: 1;
+}
+
+.mobileNavLink {
+  text-decoration: none;
+  color: var(--foreground);
+  font-weight: 500;
+  font-size: 1.1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.mobileNavLink:hover {
+  background-color: var(--muted);
+}
+.activeMobileLink {
+  color: var(--primary);
+  background-color: var(--muted);
+  font-weight: 600;
+}
+
+.mobileActionsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+
+/* ======================================== */
+/*            RESPONSIVE QUERIES            */
+/* ======================================== */
+
+/* --- Medium Screens / Tablets (e.g., iPads) --- */
+@media (max-width: 1024px) {
+  .header {
+    padding: 0 1.5rem;
+  }
+  .navLinks {
+    gap: 1.5rem;
+  }
+  .userActions {
+    gap: 1rem;
+  }
+  .logoText {
+    display: none; 
+  }
+}
+
+
+/* --- Small Screens / Mobile --- */
+@media (max-width: 768px) {
+  .header {
+    padding: 0 1rem;
+  }
+
+  .navLinks,
+  .authButtons,
+  .desktopPostProject {
+    display: none;
+  }
+
+  .logoText {
+    display: block;
+    font-size: 1.15rem;
+  }
+
+  .logoContainer {
+    gap: 0.5rem;
+  }
+
+  .userName {
+    display: none;
+  }
+
+  .hamburgerMenu {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .userActions {
+    gap: 0.5rem;
+  }
 }

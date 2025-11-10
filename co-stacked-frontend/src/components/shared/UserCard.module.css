@@ -1,49 +1,82 @@
 /* src/components/shared/UserCard.module.css */
+
 .card {
   display: flex;
   flex-direction: column;
   height: 100%;
 }
+
 .header {
   display: flex;
   align-items: center;
   gap: 1rem;
   margin-bottom: 1rem;
 }
+
+/* === NEW: Wrapper for the name and verified icon === */
+.nameWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .name {
   font-size: 1.25rem;
   font-weight: 700;
+  line-height: 1.2;
 }
+
+/* === NEW: Style for the small verified PNG badge === */
+.verifiedIcon {
+  height: 20px; /* Control the size of your badge on the card */
+  width: auto;
+  flex-shrink: 0; /* Prevents the icon from being squished */
+}
+
 .role {
   text-transform: capitalize;
   color: var(--muted-foreground);
+  margin-top: 0.1rem;
 }
+
 .bio {
   color: var(--foreground);
   line-height: 1.6;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   flex-grow: 1;
-  /* Truncate long bios */
+  /* CSS to truncate text to 3 lines */
   display: -webkit-box;
-  line-clamp: 3;
   -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
+
 .skillsSection {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
+
 .skillsTitle {
   font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
   color: var(--muted-foreground);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
+
 .skillsContainer {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+
+.noSkills {
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+
 .footer {
   margin-top: auto;
   padding-top: 1rem;
@@ -52,14 +85,29 @@
   justify-content: space-between;
   align-items: center;
 }
+
 .availability {
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--muted-foreground);
 }
 
-.noSkills {
-    font-size: 0.9rem;
-    color: var(--muted-foreground);
-    font-style: italic;
+.boostedCard {
+  border: 2px solid var(--primary);
+  position: relative; /* This is crucial for positioning the badge */
+}
+
+.boostBadge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--primary);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
 }

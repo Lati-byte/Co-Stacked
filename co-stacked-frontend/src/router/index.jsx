@@ -4,7 +4,9 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 // Import Layouts and Protection
 import { MainLayout } from "../components/layout/MainLayout";
-import { ProtectedRoute } from "../components/auth/ProtectedRoute"; // Using the simpler children-based one
+import { ProtectedRoute } from "../components/auth/ProtectedRoute";
+// The ScrollToTop import can be removed from here as it's no longer used in this file.
+// import ScrollToTop from "../utils/ScrollToTop";
 
 // Import All Page Components
 import { HomePage } from "../pages/HomePage";
@@ -14,6 +16,9 @@ import { BrowseUsersPage } from "../pages/BrowseUsersPage";
 import { ProfilePage } from "../pages/ProfilePage";
 import { SignUpPage } from "../pages/SignUpPage";
 import { LoginPage } from "../pages/LoginPage";
+import { VerifyEmailPage } from "../pages/VerifyEmailPage";
+import { ForgotPasswordPage } from "../pages/ForgotPasswordPage";
+import { ResetPasswordPage } from "../pages/ResetPasswordPage";
 import { DashboardPage } from "../pages/DashboardPage";
 import { MessagesPage } from "../pages/MessagesPage";
 import { PostProjectPage } from "../pages/PostProjectPage";
@@ -22,7 +27,10 @@ import { SettingsPage } from "../pages/SettingsPage";
 import { SupportPage } from "../pages/SupportPage";
 import { MyProjectsPage } from "../pages/MyProjectsPage";
 import { EditProjectPage } from "../pages/EditProjectPage";
-import { SentRequestsPage } from "../pages/SentRequestsPage"; // <-- 1. IMPORT THE NEW PAGE
+import { SentRequestsPage } from "../pages/SentRequestsPage";
+import { AboutPage } from "../pages/AboutPage";
+import { PrivacyPolicyPage } from "../pages/PrivacyPolicyPage";
+import { TermsOfServicePage } from "../pages/TermsOfServicePage";
 
 const router = createBrowserRouter([
   // --- PUBLIC ROUTES ---
@@ -83,6 +91,30 @@ const router = createBrowserRouter([
     ),
   },
   {
+    path: "/verify-email",
+    element: (
+      <MainLayout>
+        <VerifyEmailPage />
+      </MainLayout>
+    ),
+  },
+  {
+    path: "/forgot-password",
+    element: (
+      <MainLayout>
+        <ForgotPasswordPage />
+      </MainLayout>
+    ),
+  },
+  {
+    path: "/reset-password/:token",
+    element: (
+      <MainLayout>
+        <ResetPasswordPage />
+      </MainLayout>
+    ),
+  },
+  {
     path: "/support",
     element: (
       <MainLayout>
@@ -90,7 +122,30 @@ const router = createBrowserRouter([
       </MainLayout>
     ),
   },
-  { path: "my-applications", element: <SentRequestsPage /> },
+  {
+    path: "/about",
+    element: (
+      <MainLayout>
+        <AboutPage />
+      </MainLayout>
+    ),
+  },
+  {
+    path: "/privacy",
+    element: (
+      <MainLayout>
+        <PrivacyPolicyPage />
+      </MainLayout>
+    ),
+  },
+  {
+    path: "/terms",
+    element: (
+      <MainLayout>
+        <TermsOfServicePage />
+      </MainLayout>
+    ),
+  },
 
   // --- PROTECTED ROUTES ---
   {
@@ -144,7 +199,17 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "messages",
+    path: "/my-applications",
+    element: (
+      <ProtectedRoute>
+        <MainLayout>
+          <SentRequestsPage />
+        </MainLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/messages",
     element: (
       <ProtectedRoute>
         <MainLayout>
@@ -173,14 +238,13 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-
-  // You can add a 404 Not Found Page later
-  // {
-  //   path: '*',
-  //   element: <MainLayout><NotFoundPage /></MainLayout>
-  // }
 ]);
 
 export const AppRouter = () => {
-  return <RouterProvider router={router} />;
+  return (
+    // --- THIS IS THE FIX ---
+    // The <ScrollToTop /> component has been removed from here.
+    // It is now correctly located inside the MainLayout component.
+    <RouterProvider router={router} />
+  );
 };

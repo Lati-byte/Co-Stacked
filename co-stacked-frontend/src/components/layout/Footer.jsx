@@ -33,7 +33,6 @@ export const Footer = () => {
             <h4 className={styles.columnTitle}>Company</h4>
             <Link to="/about" className={styles.link}>About Us</Link>
             <Link to="/support" className={styles.link}>Support</Link>
-            <Link to="/blog" className={styles.link}>Blog</Link>
           </div>
           <div className={styles.linkColumn}>
             <h4 className={styles.columnTitle}>Legal</h4>

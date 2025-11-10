@@ -1,12 +1,21 @@
 /* src/components/shared/StarRating.module.css */
+
 .starContainer {
   display: flex;
-  gap: 0.25rem;
+  gap: 4px;
 }
+
+.editable .empty:hover,
+.editable .filled:hover {
+  transform: scale(1.1);
+  cursor: pointer;
+}
+
 .filled {
-  color: #f59e0b; /* A nice amber color */
+  color: #f59e0b; /* A nice gold/yellow color */
   fill: #f59e0b;
 }
+
 .empty {
   color: var(--border);
 }

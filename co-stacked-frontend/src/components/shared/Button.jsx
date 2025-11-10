@@ -1,21 +1,25 @@
 // src/components/shared/Button.jsx
 
 import PropTypes from 'prop-types';
-import { Link } from 'react-router-dom'; // 1. Import Link
+import { Link } from 'react-router-dom';
 import styles from './Button.module.css';
 
+/**
+ * A versatile, reusable button component that can render as a standard <button>
+ * or as a React Router <Link> for navigation if a 'to' prop is provided.
+ */
 export const Button = ({
   children,
   onClick,
   type = 'button',
   variant = 'primary',
   className = '',
-  to = null, // 2. Add a 'to' prop for navigation
+  to = null, // If a 'to' string is passed, it becomes a Link
 }) => {
-  // Combine the base button class with the variant and any extra classes
-  const buttonClasses = `${styles.button} ${styles[variant]} ${className}`;
+  // Combine the base class, the variant class, and any custom classes
+  const buttonClasses = `${styles.button} ${styles[variant] || ''} ${className}`;
 
-  // 3. If the 'to' prop is provided, render a Link.
+  // If the 'to' prop exists, render the button as a navigational Link
   if (to) {
     return (
       <Link to={to} className={buttonClasses}>
@@ -24,7 +28,7 @@ export const Button = ({
     );
   }
 
-  // Otherwise, render a regular button.
+  // Otherwise, render a standard HTML button element
   return (
     <button
       type={type}
@@ -36,11 +40,16 @@ export const Button = ({
   );
 };
 
+// PropTypes for component validation and documentation
 Button.propTypes = {
   children: PropTypes.node.isRequired,
   onClick: PropTypes.func,
   type: PropTypes.oneOf(['button', 'submit', 'reset']),
-  variant: PropTypes.oneOf(['primary', 'secondary']),
+  
+  // === THIS IS THE UPDATE ===
+  // Add 'outline' to the list of allowed variants
+  variant: PropTypes.oneOf(['primary', 'secondary', 'outline']),
+
   className: PropTypes.string,
-  to: PropTypes.string, // 4. Add 'to' to our prop validation
+  to: PropTypes.string,
 };

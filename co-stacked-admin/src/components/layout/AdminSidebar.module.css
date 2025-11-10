@@ -1,12 +1,16 @@
 /* src/components/layout/AdminSidebar.module.css */
+
+/* --- Base styles (Desktop-first) --- */
 .sidebar {
-  display: flex; flex-direction: column;
+  display: flex;
+  flex-direction: column;
   background-color: var(--sidebar-background);
   border-right: 1px solid var(--border);
   width: 260px;
   flex-shrink: 0;
+  /* Add a transition for when it reappears on desktop from mobile */
+  transition: margin-left 0.3s ease-in-out;
 }
-
 
 .header {
   display: flex;
@@ -15,13 +19,12 @@
   padding: 1rem 1.5rem;
   height: 65px;
   border-bottom: 1px solid var(--border);
-  text-decoration: none; /* Remove underline from the link */
-  color: inherit; /* Inherit the text color */
+  text-decoration: none;
+  color: inherit;
 }
 
-/* NEW: Add this style for the logo image */
 .logoImage {
-  height: 32px; /* Adjust as needed */
+  height: 32px;
   width: auto;
 }
 
@@ -30,20 +33,97 @@
   font-weight: 700; 
 }
 
-/* ... (rest of your CSS file) ... */
 .nav {
-  flex-grow: 1; display: flex; flex-direction: column;
-  justify-content: space-between; padding: 1rem 0;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1rem 0;
 }
-.navList { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; padding: 0 1rem; }
+
+.navList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0 1rem;
+}
+
 .navLink {
-  display: flex; align-items: center; gap: 1rem; width: 100%;
-  padding: 0.75rem 1rem; border-radius: var(--radius);
-  color: var(--foreground); text-decoration: none; font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  color: var(--foreground);
+  text-decoration: none;
+  font-weight: 500;
   transition: background-color 0.2s, color 0.2s;
-  background: none; border: none; cursor: pointer; font-family: inherit; font-size: 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 1rem;
 }
-.navLink:hover { background-color: var(--background); }
-.activeLink { background-color: var(--primary); color: var(--primary-foreground); }
-.activeLink:hover { background-color: var(--primary); }
-.footer { padding: 0 1rem; }
+
+.navLink:hover {
+  background-color: var(--background);
+}
+
+.activeLink {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.activeLink:hover {
+  background-color: var(--primary);
+}
+
+.footer {
+  padding: 0 1rem;
+}
+
+/* NEW: Hide backdrop on desktop by default */
+.sidebarBackdrop {
+  display: none;
+}
+
+
+/* ======================================== */
+/*            RESPONSIVE QUERIES            */
+/* ======================================== */
+
+@media (max-width: 768px) {
+  /* --- On mobile, the sidebar becomes a fixed overlay --- */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    height: 100vh;
+    z-index: 100;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    
+    /* Hide it off-screen by default */
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+  }
+
+  /* --- When open, slide it into view --- */
+  .sidebar.isOpen {
+    transform: translateX(0);
+  }
+
+  /* --- Style the backdrop overlay --- */
+  .sidebarBackdrop {
+    display: block; /* Make it visible on mobile */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 99; /* Below sidebar but above content */
+  }
+}

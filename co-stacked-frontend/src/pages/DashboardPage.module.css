@@ -1,60 +1,76 @@
 /* src/pages/DashboardPage.module.css */
+
 .pageContainer {
   max-width: 1200px;
   margin: 0 auto;
   padding: 3rem 1rem;
 }
+
 .title {
   font-size: 2.25rem;
   font-weight: 800;
   margin-bottom: 2rem;
 }
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.5rem;
 }
+
+/* === Stat Card Styles === */
 .statCardContent {
-  padding: 1rem;
+  padding: 1rem 1.25rem;
 }
+
 .statCardLink {
   text-decoration: none;
+  display: block; /* Ensures the entire area is clickable */
+  border-radius: var(--radius); /* So the hover shadow matches card shape */
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 .statCardLink:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-md);
 }
+
 .statHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+
 .statCardTitle {
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--muted-foreground);
   margin-bottom: 0.5rem;
 }
+
 .statValue {
   font-size: 2rem;
   font-weight: 700;
 }
+
 .statDescription {
   font-size: 0.8rem;
   color: var(--muted-foreground);
 }
+
 .separator {
   height: 1px;
   background-color: var(--border);
   margin: 3rem 0;
 }
+
+/* === Quick Action Card Styles === */
 .quickActionCard {
   padding: 1.5rem;
   text-align: center;
 }
 .quickActionCard a {
   font-weight: 600;
+  text-decoration: none;
 }
 .quickActionCard p {
   font-size: 0.9rem;
@@ -62,6 +78,7 @@
   margin-top: 0.25rem;
 }
 
+/* === Founder's "My Projects" List Styles === */
 .projectList {
   display: flex;
   flex-direction: column;
@@ -84,4 +101,24 @@
 .projectActions {
   display: flex;
   gap: 0.75rem;
+}
+
+
+/* === NEW STYLES for "Cut Connection" === */
+.cardActions {
+    margin-top: -1.5rem; /* Visually pulls the button up against the card */
+    padding: 0 1rem 1rem;
+    position: relative; /* Sits on top of the card's box-shadow */
+    z-index: 1;
+    display: flex;
+    justify-content: flex-end; /* Align button to the right */
+}
+.cutConnectionBtn {
+    background-color: #fef2f2; /* Light red */
+    color: #b91c1c; /* Dark red */
+    border-color: #fecaca; /* Softer red border */
+    font-weight: 600;
+}
+.cutConnectionBtn:hover {
+    background-color: #fee2e2; /* Slightly darker red on hover */
 }

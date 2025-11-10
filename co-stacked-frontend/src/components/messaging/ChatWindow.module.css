@@ -1,75 +1,119 @@
 /* src/components/messaging/ChatWindow.module.css */
 
+/* --- Main Layout --- */
 .container {
   display: flex;
   flex-direction: column;
   height: 100%;
-  width: 100%;
-  background-color: var(--card-background); /* Use a clean white background for the chat */
+  background-color: var(--background);
 }
 
+/* --- Header --- */
 .header {
-  padding: 1rem 1.5rem; /* More horizontal padding */
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
   border-bottom: 1px solid var(--border);
-  background-color: var(--card-background);
   flex-shrink: 0; /* Prevents header from shrinking */
+  background-color: var(--card-background);
 }
 
 .userName {
   font-weight: 600;
-  font-size: 1.1rem;
+  color: var(--foreground);
 }
 
+/* --- Back Button (Mobile Only) --- */
+.backButton {
+  display: none; /* Hidden by default on desktop */
+  background: none;
+  border: none;
+  color: var(--foreground);
+  cursor: pointer;
+  padding: 0.5rem;
+  margin-left: -0.5rem; /* Align icon nicely with padding */
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+.backButton:hover {
+  background-color: var(--muted);
+}
+
+/* --- Message Area (Scrollable) --- */
 .messageArea {
-  flex-grow: 1; /* Allows this area to expand and fill available space */
+  flex-grow: 1; /* This is the key: makes the area fill available space */
+  overflow-y: auto; /* Enables scrolling when content overflows */
   padding: 1.5rem;
-  overflow-y: auto; /* Adds a scrollbar only when needed */
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
 .messageBubble {
-  max-width: 75%; /* Allow bubbles to be a bit wider */
   padding: 0.75rem 1rem;
-  line-height: 1.6; /* Improved readability */
-  width: fit-content; /* Bubble is only as wide as its text content */
+  border-radius: 18px;
+  max-width: 75%;
+  line-height: 1.5;
+  word-wrap: break-word; /* Prevents long words from overflowing */
 }
 
 .sender {
   background-color: var(--primary);
   color: var(--primary-foreground);
-  /* The CRITICAL FIX: Aligns this bubble to the right */
-  align-self: flex-end; 
-  /* Custom border-radius for a classic "sent" message bubble shape */
-  border-radius: 1.25rem 1.25rem 0.25rem 1.25rem;
+  align-self: flex-end; /* Aligns to the right */
+  border-bottom-right-radius: 4px; /* Classic chat bubble tail effect */
 }
 
 .receiver {
-  background-color: var(--secondary-button-hover);
+  background-color: var(--muted);
   color: var(--foreground);
-  /* The CRITICAL FIX: Aligns this bubble to the left */
-  align-self: flex-start;
-  /* Custom border-radius for a classic "received" message bubble shape */
-  border-radius: 1.25rem 1.25rem 1.25rem 0.25rem;
+  align-self: flex-start; /* Aligns to the left */
+  border-bottom-left-radius: 4px; /* Classic chat bubble tail effect */
 }
 
+/* --- Footer (Input Form) --- */
 .footer {
-  padding: 1rem 1.5rem;
   display: flex;
-  gap: 1rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
   border-top: 1px solid var(--border);
-  background-color: var(--background); /* Match the overall page background */
   flex-shrink: 0; /* Prevents footer from shrinking */
+  background-color: var(--card-background);
 }
 
 .messageInput {
-  flex-grow: 1;
+  flex-grow: 1; /* Makes input field take up available horizontal space */
 }
+
 .loader {
   animation: spin 1s linear infinite;
 }
+
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+
+/* ======================================== */
+/*            RESPONSIVE QUERIES            */
+/* ======================================== */
+
+@media (max-width: 768px) {
+  /* Show the back button on mobile */
+  .backButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Adjust padding for smaller screens */
+  .header, .footer {
+    padding: 0.75rem 1rem;
+  }
+  .messageArea {
+    padding: 1rem;
+  }
 }

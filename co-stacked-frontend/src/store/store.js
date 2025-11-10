@@ -6,7 +6,10 @@ import projectsReducer from '../features/projects/projectsSlice';
 import usersReducer from '../features/users/usersSlice';
 import interestsReducer from '../features/interests/interestsSlice';
 import messagesReducer from '../features/messages/messagesSlice';
-import reportsReducer from '../features/reports/reportsSlice'; // <-- 1. IMPORT the new reducer
+import reportsReducer from '../features/reports/reportsSlice';
+import paymentReducer from '../features/payments/paymentSlice'; // <-- 1. IMPORT the new reducer
+import reviewsReducer from '../features/reviews/reviewsSlice';
+import notificationsReducer from '../features/notifications/notificationsSlice';
 
 /**
  * The central Redux store for the main user-facing application.
@@ -21,6 +24,11 @@ export const store = configureStore({
     users: usersReducer,
     interests: interestsReducer,
     messages: messagesReducer,
-    reports: reportsReducer, // <-- 2. ADD the new slice to the store
+    reports: reportsReducer,
+    payment: paymentReducer, // <-- 2. ADD the new payment slice
+    reviews: reviewsReducer,
+    notifications: notificationsReducer, 
   },
+  // Recommended: Disable serializableCheck middleware if using non-serializable values (like functions),
+  // but for our current setup, the default is fine.
 });

@@ -1,4 +1,11 @@
 /* src/components/shared/ProjectCard.module.css */
+
+.card {
+  /* This ensures the card content respects the border and badge */
+  display: flex;
+  flex-direction: column;
+}
+
 .contentWrapper {
   display: flex;
   flex-direction: column;
@@ -8,61 +15,107 @@
 .title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--card-foreground);
   margin-bottom: 0.5rem;
 }
 
 .description {
-  font-size: 0.9rem;
-  color: var(--card-muted-foreground);
-  margin-bottom: 1.25rem;
+  color: var(--muted-foreground);
   line-height: 1.6;
+  margin-bottom: 1rem;
+  flex-grow: 1; /* Pushes the footer down */
+}
+
+.skillsTitle {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  margin-bottom: 0.5rem;
 }
 
 .tagsContainer {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-bottom: 1.25rem;
+}
+
+.noSkills {
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+  font-style: italic;
 }
 
 .detailsList {
-  margin-bottom: 1.25rem;
-  flex-grow: 1; /* Pushes footer down */
+  margin-top: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
 .detailItem {
-  font-size: 0.875rem;
-  color: var(--card-muted-foreground);
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
 }
 
 .detailLabel {
   font-weight: 600;
-  color: var(--card-foreground);
+  color: var(--foreground);
 }
 
-.footer {
-  margin-top: auto;
+/* --- NEW: Styles for Boosted/Featured Cards --- */
+.boostedCard {
+  border: 2px solid var(--primary);
+  position: relative; /* Crucial for positioning the badge */
+}
+
+.boostBadge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
   display: flex;
-  justify-content: flex-end; /* Align buttons to the right */
   align-items: center;
+  gap: 6px;
+  background-color: var(--primary);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  z-index: 10;
+}
+
+
+/* --- REFACTORED FOOTER SECTION --- */
+.footer {
+  margin-top: auto; /* Ensures footer is always at the bottom */
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+
+  display: flex;
+  justify-content: flex-end; /* Pushes buttons to the right */
   gap: 0.75rem;
 }
 
-/* ... existing styles ... */
-.noSkills {
-    font-size: 0.9rem;
-    color: var(--muted-foreground);
-    font-style: italic;
+/* Style for the single "View Details & Connect" button */
+.viewDetailsButton {
+  width: 100%;
 }
 
-.skillsTitle {
-    font-size: 0.8rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: var(--muted-foreground);
-    margin-bottom: 0.5rem;
+/* Common styles for the contextual action buttons (Message, Disconnect) */
+.actionButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-grow: 1; /* Makes the buttons take available space on mobile */
+}
+
+/* Specific styling for the 'Disconnect' button */
+.disconnectButton {
+  background-color: var(--card-background);
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+}
+
+.disconnectButton:hover {
+  background-color: #fef2f2;
 }

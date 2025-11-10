@@ -2,14 +2,22 @@
 const mongoose = require('mongoose');
 
 const reportSchema = mongoose.Schema({
-  // Who was reported
+  // Who was reported (optional for support tickets)
   reportedUser: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   reportedProject: { type: mongoose.Schema.Types.ObjectId, ref: 'Project' },
   
   // Who made the report
   reporter: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 
-  reason: { type: String, required: true },
+  reason: { 
+    type: String, 
+    required: true,
+    // --- NEW: Add the new reasons from the support form ---
+    enum: [
+      'spam', 'harassment', 'copyright', 'inappropriate_content', 'other', // Existing reasons
+      'general', 'technical', 'report', 'account' // New reasons from support form
+    ]
+  },
   comment: { type: String },
 
   status: {

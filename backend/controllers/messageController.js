@@ -1,6 +1,7 @@
 // backend/controllers/messageController.js
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
+const Notification = require('../models/Notification'); // <-- 1. IMPORT
 
 /**
  * @desc    Get all conversations for the logged-in user
@@ -29,13 +30,12 @@ const getMessages = async (req, res) => {
     const { conversationId } = req.params;
     const conversation = await Conversation.findById(conversationId);
     
-    // Security check: Ensure user is a participant
     if (!conversation || !conversation.participants.includes(req.user._id)) {
       return res.status(401).json({ message: 'Not authorized to view this conversation.' });
     }
 
     const messages = await Message.find({ conversationId })
-      .populate('sender', 'name avatarUrl'); // Populate sender with name and avatar
+      .populate('sender', 'name avatarUrl');
     res.json(messages);
   } catch (error) {
     console.error(`[GET MESSAGES ERROR]: ${error.message}`);
@@ -62,22 +62,33 @@ const sendMessage = async (req, res) => {
       return res.status(401).json({ message: 'Not authorized to send messages to this conversation.' });
     }
 
-    // Create the message in the database
     const message = await Message.create({
       conversationId,
       text,
       sender: req.user._id,
     });
     
-    // Asynchronously update the conversation's timestamp to sort it as most recent
     conversation.updatedAt = new Date();
     await conversation.save();
 
-    // --- THIS IS THE CRITICAL FIX ---
-    // Re-fetch the message we just created and populate the sender's details
-    // This ensures the data structure is IDENTICAL to messages from getMessages.
     const populatedMessage = await Message.findById(message._id)
                                           .populate('sender', 'name avatarUrl');
+
+    // --- 2. CREATE A NOTIFICATION for the other user in the conversation ---
+    // Find the recipient (the participant who is NOT the current user)
+    const recipientId = conversation.participants.find(p => p.toString() !== req.user._id.toString());
+
+    if (recipientId) {
+      await Notification.create({
+        recipient: recipientId,
+        sender: req.user._id,
+        type: 'NEW_MESSAGE',
+        conversationId: conversation._id,
+        // We can add a projectId if the conversation is linked to one
+        projectId: conversation.projectId 
+      });
+    }
+    // --- END NOTIFICATION LOGIC ---
 
     res.status(201).json(populatedMessage);
   } catch (error) {

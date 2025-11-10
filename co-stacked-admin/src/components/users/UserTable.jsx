@@ -13,19 +13,13 @@ import { Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import PropTypes from 'prop-types';
 
-/**
- * A table component for displaying and managing all users in the admin panel.
- * It handles both the user editing and user deletion flows via modals.
- */
 export const UserTable = ({ users }) => {
   const dispatch = useDispatch();
   const { status } = useSelector(state => state.userManagement);
   
-  // State for the DELETE confirmation modal
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   
-  // State for the EDIT modal
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState(null);
 
@@ -78,20 +72,19 @@ export const UserTable = ({ users }) => {
           <tbody>
             {users.map(user => (
               <tr key={user._id}>
-                <td>{user.name || 'N/A'}</td>
-                <td>{user.email || 'N/A'}</td>
-                <td>
+                {/* --- MODIFIED: Added data-label attributes to each cell --- */}
+                <td data-label="Name">{user.name || 'N/A'}</td>
+                <td data-label="Email">{user.email || 'N/A'}</td>
+                <td data-label="Role">
                   <Badge text={user.role} variant={user.role === 'founder' ? 'primary' : 'secondary'} />
                 </td>
-                <td>
+                <td data-label="Admin">
                   {user.isAdmin ? <Badge text="Admin" variant="danger" /> : 'No'}
                 </td>
-                <td>
-                  {/* --- THIS IS THE FIX --- */}
-                  {/* Defensively check if 'createdAt' exists before trying to format it */}
+                <td data-label="Date Joined">
                   {user.createdAt ? format(new Date(user.createdAt), 'dd MMM, yyyy') : 'N/A'}
                 </td>
-                <td className={styles.actions}>
+                <td data-label="Actions" className={styles.actionsCell}>
                   <button onClick={() => handleEditClick(user)}>Edit</button>
                   <button 
                     className={styles.deleteBtn}

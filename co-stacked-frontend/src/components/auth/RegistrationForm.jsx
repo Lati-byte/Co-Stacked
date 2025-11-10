@@ -14,9 +14,7 @@ import { Button } from '../shared/Button';
 import { RadioGroup } from '../shared/RadioGroup';
 import { Textarea } from '../shared/Textarea';
 import { Loader2 } from 'lucide-react';
-// CLEANUP: Removed unused icon/logo imports
 
-// REFACTOR: Moved roleOptions outside the component so it's not redefined on every render.
 const roleOptions = [
   { value: 'developer', label: 'Developer' },
   { value: 'founder', label: 'Founder / Creative' }
@@ -27,7 +25,6 @@ export const RegistrationForm = () => {
   const dispatch = useDispatch();
   const { status, error } = useSelector((state) => state.auth);
 
-  // Expanded state that includes all profile fields, ready for the backend
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -48,9 +45,11 @@ export const RegistrationForm = () => {
     e.preventDefault();
     const resultAction = await dispatch(registerUser(formData));
 
+    // --- THIS IS THE UPDATED LOGIC ---
+    // If the registration is successful, redirect the user to the
+    // new email verification page instead of the login page.
     if (registerUser.fulfilled.match(resultAction)) {
-      alert("Sign Up Successful! Please log in to continue.");
-      navigate('/login');
+      navigate('/verify-email');
     }
   };
 
@@ -75,7 +74,7 @@ export const RegistrationForm = () => {
             </div>
             <div className={styles.formGroup}>
               <Label htmlFor="password">Password</Label>
-              <Input id="password" name="password" type="password" autoComplete="new-password" value={formData.password} onChange={handleChange} required />
+              <Input id="password" name="password" type="password" autoComplete="new-password" value={formData.password} onChange={handleChange} required minLength="6" />
             </div>
             <div className={styles.formGroup}>
               <Label>Your Role</Label>

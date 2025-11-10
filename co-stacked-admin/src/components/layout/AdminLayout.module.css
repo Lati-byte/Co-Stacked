@@ -1,6 +1,8 @@
 /* src/components/layout/AdminLayout.module.css */
+
 .appLayout {
   display: grid;
+  /* Desktop: Sidebar takes its own width, content takes the rest */
   grid-template-columns: auto 1fr;
   height: 100vh;
   overflow: hidden;
@@ -8,14 +10,31 @@
 
 .contentWrapper {
   display: grid;
-  /* Define a layout with a fixed-height header and content that fills the rest */
+  /* A fixed-height header and content that fills the rest */
   grid-template-rows: auto 1fr;
   height: 100vh;
   overflow: hidden;
 }
 
 .mainContent {
-  overflow-y: auto;
+  overflow-y: auto; /* This makes ONLY the content area scrollable */
   padding: 2rem;
   background-color: var(--background);
+}
+
+
+/* ======================================== */
+/*            RESPONSIVE QUERIES            */
+/* ======================================== */
+
+@media (max-width: 768px) {
+  .appLayout {
+    /* Mobile: The layout becomes a single column, as the sidebar is now a fixed overlay */
+    grid-template-columns: 1fr;
+  }
+
+  .mainContent {
+    /* Reduce padding on mobile for more content space */
+    padding: 1.5rem 1rem;
+  }
 }

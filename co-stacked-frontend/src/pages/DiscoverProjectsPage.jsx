@@ -1,48 +1,99 @@
 // src/pages/DiscoverProjectsPage.jsx
 
-import { useEffect } from 'react';
+import { useEffect, useState, useMemo } from 'react'; // Import useMemo
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProjects } from '../features/projects/projectsSlice';
 
+// Import necessary UI components
 import { ProjectCard } from '../components/shared/ProjectCard';
+import { CombinedSearchInput } from '../components/shared/CombinedSearchInput';
 import styles from './DiscoverProjectsPage.module.css';
 
-// We can create a simple loading component for now
 const LoadingSpinner = () => <div className={styles.loader}>Loading projects...</div>;
+const ErrorDisplay = ({ error }) => <p className={styles.error}>Error: {error}</p>;
 
 export const DiscoverProjectsPage = () => {
   const dispatch = useDispatch();
 
-  // 1. Get the projects data, status, and error from the Redux store
-  const { items: projects, status, error } = useSelector((state) => state.projects);
-  // We rename 'items' to 'projects' for clarity in this component.
+  const { items: allProjects, status, error } = useSelector((state) => state.projects);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [locationQuery, setLocationQuery] = useState('');
   
-  // 2. Use the useEffect hook to fetch data when the component first mounts
   useEffect(() => {
-    // We only want to fetch if the status is 'idle', to prevent re-fetching on every render.
+    // Fetch projects only if the state is idle to prevent redundant calls
     if (status === 'idle') {
       dispatch(fetchProjects());
     }
-  }, [status, dispatch]); // The effect depends on status and dispatch
+  }, [dispatch, status]);
 
-  // 3. Create a variable to hold the content based on the current status
+  // Memoized hook to efficiently sort and filter projects
+  const sortedAndFilteredProjects = useMemo(() => {
+    if (!Array.isArray(allProjects)) return [];
+    
+    const now = new Date();
+
+    return [...allProjects]
+      .sort((a, b) => {
+        // Sort logic: boosted projects first, then by creation date
+        const aIsBoosted = a.isBoosted && new Date(a.boostExpiresAt) > now;
+        const bIsBoosted = b.isBoosted && new Date(b.boostExpiresAt) > now;
+
+        if (aIsBoosted && !bIsBoosted) return -1; // a comes first
+        if (!aIsBoosted && bIsBoosted) return 1;  // b comes first
+
+        return new Date(b.createdAt) - new Date(a.createdAt); // newest first
+      })
+      .filter(project => {
+        // Filtering logic runs after sorting
+        const searchLower = searchQuery.toLowerCase();
+        const locationLower = locationQuery.toLowerCase();
+        const matchesSearch = project.title.toLowerCase().includes(searchLower) || 
+                              (project.skillsNeeded && project.skillsNeeded.some(skill => skill.toLowerCase().includes(searchLower)));
+        const matchesLocation = project.location ? project.location.toLowerCase().includes(locationLower) : true;
+        return matchesSearch && matchesLocation;
+      });
+  }, [allProjects, searchQuery, locationQuery]);
+
+  // Split the final list into two sections for rendering
+  const now = new Date();
+  const featuredProjects = sortedAndFilteredProjects.filter(p => p.isBoosted && new Date(p.boostExpiresAt) > now);
+  const latestProjects = sortedAndFilteredProjects.filter(p => !p.isBoosted || new Date(p.boostExpiresAt) <= now);
+
   let content;
 
-  if (status === 'loading') {
+  if (status === 'loading' || status === 'idle') {
     content = <LoadingSpinner />;
   } else if (status === 'succeeded') {
-    // If we have projects, render the grid. Otherwise, show a 'not found' message.
-    content = projects.length > 0 ? (
-      <div className={styles.grid}>
-        {projects.map((project) => (
-          <ProjectCard key={project._id} project={project} /> // Use _id from MongoDB
-        ))}
-      </div>
-    ) : (
-      <p className={styles.noResults}>No projects found. Be the first to post one!</p>
+    content = (
+      <>
+        {/* Section 1: Featured Projects (only renders if there are any) */}
+        {featuredProjects.length > 0 && (
+          <section>
+            <h2 className={styles.sectionTitle}>Featured Projects</h2>
+            <div className={styles.grid}>
+              {featuredProjects.map((project) => <ProjectCard key={project._id} project={project} />)}
+            </div>
+          </section>
+        )}
+        
+        {/* Section 2: Latest Projects */}
+        {latestProjects.length > 0 && (
+          <section>
+            <h2 className={styles.sectionTitle}>Latest Projects</h2>
+            <div className={styles.grid}>
+              {latestProjects.map((project) => <ProjectCard key={project._id} project={project} />)}
+            </div>
+          </section>
+        )}
+        
+        {/* Empty state message if no projects match filters */}
+        {sortedAndFilteredProjects.length === 0 && (
+          <p className={styles.noResults}>No projects found matching your criteria. Be the first to post one!</p>
+        )}
+      </>
     );
   } else if (status === 'failed') {
-    content = <p className={styles.error}>Error: {error}</p>;
+    content = <ErrorDisplay error={error} />;
   }
 
   return (
@@ -50,7 +101,17 @@ export const DiscoverProjectsPage = () => {
       <header className={styles.header}>
         <h1 className={styles.title}>Discover Projects</h1>
         <p className={styles.subtitle}>Find your next challenge. Connect with founders and build the future.</p>
-        {/* The search component can be re-integrated here. We'll add client-side filtering next. */}
+        
+        <div className={styles.filtersWrapper}>
+            <CombinedSearchInput
+              searchValue={searchQuery}
+              onSearchChange={(e) => setSearchQuery(e.target.value)}
+              locationValue={locationQuery}
+              onLocationChange={(e) => setLocationQuery(e.target.value)}
+              searchPlaceholder="Search by title or skill..."
+              locationPlaceholder="e.g., Cape Town, WC or Remote"
+            />
+        </div>
       </header>
 
       <main className={styles.mainContent}>

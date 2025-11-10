@@ -4,58 +4,64 @@ import { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchReceivedInterests, fetchSentInterests } from '../features/interests/interestsSlice';
 import { fetchMyProjects } from '../features/projects/projectsSlice';
+import { fetchReviewsForUser } from '../features/reviews/reviewsSlice'; // <-- 1. IMPORT
 import styles from './DashboardPage.module.css';
 
-// 1. Import our new, specialized dashboard components
+// Import our specialized dashboard components
 import { FounderDashboard } from '../components/dashboard/FounderDashboard';
 import { DeveloperDashboard } from '../components/dashboard/DeveloperDashboard';
 
-// We still need mock data for conversations
-import { mockConversations } from '../data/mock.js';
-
+/**
+ * The DashboardPage is a "smart" container component that fetches all necessary
+ * data for the logged-in user and passes it to the appropriate sub-component.
+ */
 export const DashboardPage = () => {
   const dispatch = useDispatch();
 
-  // === FETCH ALL NECESSARY DATA FROM REDUX ===
+  // === FETCH ALL NECESSARY DATA FROM REDUX STATE ===
   const { user: currentUser } = useSelector((state) => state.auth);
-  const { receivedItems, sentItems, fetchStatus: interestsStatus } = useSelector(state => state.interests);
-  const { myItems: userProjects, status: projectsStatus } = useSelector(state => state.projects);
+  const { receivedItems, sentItems } = useSelector(state => state.interests);
+  const { myItems: userProjects } = useSelector(state => state.projects);
+  const { reviewsByUser } = useSelector(state => state.reviews); // <-- 2. SELECT reviews state
 
-  // Fetch all necessary data for both roles
+  // This effect runs when the user is available and dispatches all necessary data-fetching actions.
   useEffect(() => {
     if (currentUser) {
-      if (interestsStatus === 'idle') {
-        if (currentUser.role === 'founder') dispatch(fetchReceivedInterests());
-        if (currentUser.role === 'developer') dispatch(fetchSentInterests());
-      }
-      if (currentUser.role === 'founder' && projectsStatus === 'idle') {
+      if (currentUser.role === 'founder') {
+        dispatch(fetchReceivedInterests());
         dispatch(fetchMyProjects());
+      } 
+      else if (currentUser.role === 'developer') {
+        dispatch(fetchSentInterests());
+        // --- 3. FETCH reviews specifically for the logged-in developer ---
+        dispatch(fetchReviewsForUser(currentUser._id));
       }
     }
-  }, [currentUser, interestsStatus, projectsStatus, dispatch]);
+  }, [currentUser, dispatch]);
   
-  // Loading state
+  // Show a loading state while the user object is being authenticated.
   if (!currentUser) {
     return <div className={styles.pageContainer}><h2 className={styles.title}>Loading Dashboard...</h2></div>;
   }
   
-  // Data for the Founder view
-  const activeConversations = mockConversations.filter(c => c.participants.includes(currentUser._id));
+  // --- 4. GET the specific reviews for the current user from the Redux state ---
+  const developerReviews = reviewsByUser[currentUser._id] || [];
   
   return (
     <div className={styles.pageContainer}>
-      {/* 2. THE NEW, CLEAN SWITCHER LOGIC */}
+      {/* This switcher logic cleanly separates the UI for each role */}
       {currentUser.role === 'founder' ? (
         <FounderDashboard
           currentUser={currentUser}
           interests={receivedItems}
           userProjects={userProjects}
-          activeConversations={activeConversations}
         />
       ) : (
         <DeveloperDashboard
           currentUser={currentUser}
           sentItems={sentItems}
+          // --- 5. PASS the live reviews data as a prop ---
+          developerReviews={developerReviews}
         />
       )}
     </div>

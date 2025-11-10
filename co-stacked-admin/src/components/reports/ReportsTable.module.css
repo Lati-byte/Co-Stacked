@@ -1,0 +1,149 @@
+/* src/components/reports/ReportsTable.module.css */
+
+.tableWrapper {
+  background-color: var(--card-background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow-x: auto;
+  box-shadow: var(--shadow-sm);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.table th, .table td {
+  padding: 0.8rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.table thead th {
+  background-color: #f8fafc;
+  color: var(--muted-foreground);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.table tbody tr:hover {
+  background-color: var(--background);
+}
+
+.table td {
+  color: var(--foreground);
+}
+
+/* Specific styles for this table's content */
+.itemNameLink {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+.itemNameLink:hover {
+  text-decoration: underline;
+}
+
+.commentCell {
+  max-width: 350px; /* Limit width on desktop */
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.actionsCell {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.actionsCell button {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+.actionsCell button:hover {
+  background-color: var(--background);
+}
+
+.dismissBtn {
+  color: #b91c1c; /* red 700 */
+}
+.dismissBtn:hover {
+  border-color: #fecaca; /* red 200 */
+  background-color: #fee2e2; /* red 100 */
+}
+
+
+/* ======================================== */
+/*            RESPONSIVE QUERIES            */
+/* ======================================== */
+
+@media (max-width: 768px) {
+  .tableWrapper {
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+  }
+  
+  .table thead {
+    display: none;
+  }
+
+  .table, .table tbody, .table tr, .table td {
+    display: block;
+    width: 100%;
+  }
+
+  .table tr {
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background-color: var(--card-background);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    text-align: right;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--foreground);
+    text-align: left;
+    margin-right: 1rem;
+    flex-shrink: 0; /* Prevents the label from shrinking */
+  }
+  
+  .commentCell {
+    /* On mobile, allow the comment to wrap below the label if needed */
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .commentCell::before {
+    margin-bottom: 0.25rem;
+  }
+
+  .table tr td:last-child {
+    border-bottom: none;
+  }
+
+  .actionsCell {
+    justify-content: flex-start;
+  }
+}

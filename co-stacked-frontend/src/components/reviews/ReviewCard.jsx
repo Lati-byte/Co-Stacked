@@ -1,31 +1,54 @@
 // src/components/reviews/ReviewCard.jsx
-import styles from './ReviewCard.module.css';
+
 import { Card } from '../shared/Card';
 import { Avatar } from '../shared/Avatar';
 import { StarRating } from '../shared/StarRating';
-import { allUsers } from '../../data/mock.js';
-import { format } from 'date-fns';
+import styles from './ReviewCard.module.css';
+import PropTypes from 'prop-types';
 
 export const ReviewCard = ({ review }) => {
-  const founder = allUsers.find(u => u.id === review.founderId);
-  if (!founder) return null;
+  // Guard clause to prevent rendering if review data is incomplete
+  if (!review || !review.founderId || !review.projectId) {
+    return null;
+  }
+
+  const { rating, comment, founderId, projectId, createdAt } = review;
+  const reviewDate = new Date(createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
   return (
     <Card className={styles.card}>
-      <header className={styles.header}>
-        <Avatar src={founder.avatarUrl} fallback={founder.name.charAt(0)} alt={founder.name} />
-        <div>
-          <p className={styles.founderName}>{founder.name}</p>
-          <p className={styles.role}>Founder</p>
+      <div className={styles.header}>
+        <Avatar 
+          src={founderId.avatarUrl} 
+          fallback={(founderId.name || '?').charAt(0)}
+          size="small"
+        />
+        <div className={styles.headerInfo}>
+          <span className={styles.founderName}>{founderId.name}</span>
+          <span className={styles.projectName}>on "{projectId.title}"</span>
         </div>
-        <div className={styles.rating}>
-          <StarRating rating={review.rating} />
+        <div className={styles.headerRight}>
+          <StarRating rating={rating} size={16} />
+          <span className={styles.date}>{reviewDate}</span>
         </div>
-      </header>
-      <p className={styles.comment}>{review.comment}</p>
-      <footer className={styles.footer}>
-        {format(new Date(review.timestamp), 'MMMM d, yyyy')}
-      </footer>
+      </div>
+      <p className={styles.comment}>"{comment}"</p>
     </Card>
   );
+};
+
+ReviewCard.propTypes = {
+  review: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+    rating: PropTypes.number.isRequired,
+    comment: PropTypes.string.isRequired,
+    createdAt: PropTypes.string.isRequired,
+    founderId: PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      avatarUrl: PropTypes.string,
+    }).isRequired,
+    projectId: PropTypes.shape({
+      title: PropTypes.string.isRequired,
+    }).isRequired,
+  }).isRequired,
 };

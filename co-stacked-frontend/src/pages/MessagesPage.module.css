@@ -1,28 +1,74 @@
 /* src/pages/MessagesPage.module.css */
+
 .pageContainer {
   display: flex;
-  height: calc(100vh - 65px); /* Full screen height minus header */
+  height: calc(100vh - 65px);
+  /* NEW: Add relative positioning for the slide effect */
+  position: relative;
+  overflow: hidden;
 }
+
 .conversationListWrapper {
   width: 320px;
   flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  height: 100%;
 }
+
 .chatWindowWrapper {
   flex-grow: 1;
+  height: 100%;
 }
+
 .placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 100%;
   color: var(--muted-foreground);
+  text-align: center;
+  padding: 1rem;
 }
-/* Basic responsive handling - a better solution would use a 'useState' to toggle visibility */
+
+
+/* ======================================== */
+/*            RESPONSIVE QUERIES            */
+/* ======================================== */
+
 @media (max-width: 768px) {
-  .conversationListWrapper {
-    width: 100%;
-  }
+  /* On mobile, both panes take up the full screen width and are positioned absolutely */
+  .conversationListWrapper,
   .chatWindowWrapper {
-    display: none; /* Hide chat window by default on mobile */
+    width: 100%;
+    position: absolute;
+    top: 0;
+    height: 100%;
+    transition: transform 0.3s ease-in-out; /* This creates the slide animation */
+  }
+
+  /* The conversation list is visible by default */
+  .conversationListWrapper {
+    transform: translateX(0%);
+    z-index: 2; /* Sits on top initially */
+  }
+
+  /* The chat window is hidden off-screen to the right by default */
+  .chatWindowWrapper {
+    transform: translateX(100%);
+    z-index: 1;
+  }
+  
+  /* --- THE ACTIVE STATE --- */
+  /* When the .chatActive class is added to .pageContainer... */
+
+  /* ...slide the conversation list off-screen to the left */
+  .pageContainer.chatActive .conversationListWrapper {
+    transform: translateX(-100%);
+  }
+  
+  /* ...and slide the chat window into view from the right */
+  .pageContainer.chatActive .chatWindowWrapper {
+    transform: translateX(0%);
+    z-index: 3; /* Bring chat window to the very top */
   }
 }

@@ -10,24 +10,34 @@
 /* --- The Grid for Stat Cards --- */
 .grid {
   display: grid;
-  /* Start with 1 column on the smallest screens */
+  /* Mobile-first: Default to a single column on the smallest screens */
   grid-template-columns: 1fr;
   gap: 1.5rem;
 }
 
-/* At a small breakpoint, switch to 2 columns */
+/* --- REFINED BREAKPOINTS FOR A SMOOTHER TRANSITION --- */
+
+/* At a small breakpoint (e.g., large phones), switch to 2 columns */
 @media (min-width: 640px) {
   .grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-/* At a larger breakpoint, switch to 3 or 4 columns */
-@media (min-width: 1024px) {
+/* At a medium/tablet breakpoint, switch to 3 columns for better space utilization */
+@media (min-width: 960px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* At a large desktop breakpoint, switch to the full 4 columns */
+@media (min-width: 1280px) {
   .grid {
     grid-template-columns: repeat(4, 1fr);
   }
 }
+
 
 /* --- Main Content Area for Charts & Feeds --- */
 .mainContent {
@@ -50,4 +60,18 @@
     padding: 1rem;
     text-align: center;
     font-weight: 500;
+}
+
+/* --- Card Link Hover Effect --- */
+.statLink {
+  text-decoration: none;
+  /* Use a more robust border for the card itself to apply transitions */
+  border-radius: var(--radius); /* Match this to your AdminStatCard's border-radius */
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.statLink:hover,
+.statLink:focus-visible { /* Add focus-visible for accessibility */
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg); /* Use a consistent shadow from your theme */
 }

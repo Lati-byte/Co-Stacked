@@ -12,14 +12,16 @@ export const AdminProtectedRoute = () => {
   // Get the real isAuthenticated flag and status from our adminAuthSlice
   const { isAuthenticated, status } = useSelector(state => state.auth);
 
-  // While we are verifying the token on app load, show a loading state.
-  // This prevents a "flicker" to the login page for already logged-in admins.
-  if (status === 'loading' || status === 'idle') {
+  // --- THIS IS THE FIX ---
+  // We only show the loading state when we are ACTIVELY verifying a token
+  // (i.e., when getAdminProfile is pending). We should NOT block on 'idle'.
+  if (status === 'loading') {
     return <div>Authenticating...</div>; // You can replace this with a full-page spinner
   }
   
-  // If authenticated, render the nested content via the <Outlet />.
+  // If the status is 'idle', 'succeeded', or 'failed', this logic will now correctly execute.
   // If not authenticated, navigate the user to the /login page.
+  // If authenticated, render the nested content via the <Outlet />.
   return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
 };
 

@@ -1,0 +1,134 @@
+/* src/components/notifications/NotificationDropdown.module.css */
+
+/* --- DESKTOP FIRST: Default styles are for the dropdown --- */
+.dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 350px;
+  background-color: var(--card-background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  z-index: 20;
+  /* NEW: Required for flex layout inside */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Hide the modal overlay on desktop */
+.modalOverlay {
+  position: static;
+}
+
+.header {
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* Hide the X button on desktop */
+.closeButton {
+  display: none;
+}
+
+.list {
+  max-height: 400px;
+  overflow-y: auto;
+  flex-grow: 1; /* Allow list to take up available space */
+}
+
+.notificationItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  text-decoration: none;
+  color: var(--foreground);
+  transition: background-color 0.2s;
+}
+
+.notificationItem:hover {
+  background-color: var(--muted);
+}
+.notificationItem p { margin: 0; font-size: 0.9rem; line-height: 1.4; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background-color: var(--primary); flex-shrink: 0; }
+.emptyMessage { padding: 1.5rem 1rem; text-align: center; color: var(--muted-foreground); }
+
+/* NEW: Footer for the action button */
+.footer {
+  padding: 0.5rem 1rem;
+  border-top: 1px solid var(--border);
+  text-align: right;
+}
+
+.markReadButton {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px;
+}
+.markReadButton:hover {
+  text-decoration: underline;
+}
+
+/* ======================================== */
+/*            MOBILE MODAL STYLES           */
+/* ======================================== */
+
+@media (max-width: 640px) {
+  /* --- 1. Style the backdrop overlay --- */
+  .modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* --- 2. Convert the dropdown into a centered modal --- */
+  .dropdown {
+    position: static; /* Unset the absolute positioning */
+    width: 90vw;
+    max-width: 400px;
+    max-height: 80vh; /* Ensure it doesn't take up the whole screen height */
+    overflow: hidden; /* Let the inner list handle scrolling */
+  }
+
+  /* --- 3. Style the new mobile-only elements --- */
+  .closeButton {
+    display: flex; /* Show the X button */
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--foreground);
+    padding: 0.25rem;
+    border-radius: 50%;
+  }
+  .closeButton:hover {
+    background-color: var(--muted);
+  }
+
+  .notificationItem p {
+    font-size: 0.85rem;
+  }
+}

@@ -1,0 +1,29 @@
+/* src/components/about/TeamMemberCard.module.css */
+.card {
+  text-align: center;
+  padding: 2rem;
+}
+.avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto 1.5rem auto;
+  border: 3px solid var(--border);
+}
+.name {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.role {
+  color: var(--primary);
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+.socialLink {
+  color: var(--muted-foreground);
+  transition: color 0.2s ease;
+}
+.socialLink:hover {
+  color: var(--primary);
+}

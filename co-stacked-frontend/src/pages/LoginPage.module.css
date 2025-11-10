@@ -57,3 +57,37 @@
   font-weight: 500;
   font-size: 0.9rem;
 }
+.success {
+  color: #15803d; /* A success green color */
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 0.75rem;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.passwordHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.forgotLink {
+  font-size: 0.85rem;
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.forgotLink:hover {
+  text-decoration: underline;
+}
+
+/* You probably already have a .link class, but ensure it's there */
+.link {
+  font-weight: 600;
+  color: var(--primary);
+}
+.link:hover {
+  text-decoration: underline;
+}

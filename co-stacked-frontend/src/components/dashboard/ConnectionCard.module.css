@@ -1,0 +1,10 @@
+/* src/components/dashboard/ConnectionCard.module.css */
+.card { padding: 1rem; }
+.header { display: flex; align-items: center; gap: 1rem; }
+.name { font-weight: 600; }
+.role { font-size: 0.9rem; color: var(--muted-foreground); }
+.role strong { color: var(--foreground); }
+.actions { display: flex; gap: 0.5rem; margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+.actionButton { flex: 1; justify-content: center; gap: 0.5rem; font-weight: 500; }
+.disconnectButton { background-color: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+.disconnectButton:hover { background-color: #fee2e2; }

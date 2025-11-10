@@ -1,12 +1,52 @@
 /* src/components/reviews/LeaveReviewModal.module.css */
-.title { font-size: 1.5rem; font-weight: 700; text-align: center; margin-bottom: 1.5rem; }
-.ratingInput {
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
+
+.header {
+  padding: 1.5rem 1.5rem 1rem;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
 }
-.starButton { background: none; border: none; padding: 0.25rem; cursor: pointer; }
-.filled { color: #f59e0b; fill: #f59e0b; transform: scale(1.1); transition: transform 0.1s; }
-.empty { color: var(--border); transition: color 0.1s; }
-.footer { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem; }
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.form {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem 1.5rem;
+  border-top: 1px solid var(--border);
+  margin-top: 0.5rem;
+}
+
+.error {
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  text-align: center;
+  background-color: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.successMessage {
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #15803d; /* A success green color */
+}

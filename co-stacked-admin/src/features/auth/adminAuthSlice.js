@@ -1,15 +1,27 @@
 // src/features/auth/adminAuthSlice.js
-
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import API from '../../api/axios';
 
-// ===================================================================
-// ASYNC THUNKS
-// ===================================================================
+const TOKEN_NAME = 'costacked-admin-token';
 
-/**
- * Handles Admin Registration by calling the secret-key-protected backend endpoint.
- */
+// --- Thunk for Admin LOGIN ---
+export const loginAdmin = createAsyncThunk(
+  'auth/loginAdmin',
+  async (credentials, { rejectWithValue }) => {
+    try {
+      const response = await API.post('/users/login', credentials);
+      const { user, token } = response.data;
+      if (!user?.isAdmin) {
+        return rejectWithValue({ message: 'Access Denied: Not an administrator.' });
+      }
+      return { user, token };
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+// --- Thunk for Admin REGISTRATION ---
 export const registerAdmin = createAsyncThunk(
   'auth/registerAdmin',
   async (adminData, { rejectWithValue }) => {
@@ -22,62 +34,45 @@ export const registerAdmin = createAsyncThunk(
   }
 );
 
-/**
- * Handles Admin Login, including a client-side check for the 'isAdmin' flag.
- */
-export const loginAdmin = createAsyncThunk(
-  'auth/loginAdmin',
-  async (credentials, { rejectWithValue }) => {
+// --- NEW: Thunk for Admin Email Verification ---
+export const verifyAdminEmail = createAsyncThunk(
+  'auth/verifyAdminEmail',
+  async ({ email, token }, { rejectWithValue }) => {
     try {
-      const response = await API.post('/users/login', credentials);
-      const { user, token } = response.data;
-      
-      if (!user || !user.isAdmin) {
-        return rejectWithValue({ message: 'Access Denied. Not an administrator.' });
-      }
-      
-      localStorage.setItem('adminToken', token);
-      return { user, token };
+      // This uses the same public endpoint as the user-frontend
+      const response = await API.post('/users/verify-email', { email, token });
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
     }
   }
 );
 
-/**
- * Handles fetching the admin's profile using a stored token.
- * This is essential for maintaining a persistent login session.
- */
+// --- Thunk for VERIFYING a session ---
 export const getAdminProfile = createAsyncThunk(
   'auth/getAdminProfile',
-  async (_, { rejectWithValue, getState }) => {
+  async (_, { rejectWithValue }) => {
     try {
-        const { token } = getState().auth;
-        if (!token) return rejectWithValue({ message: 'No token found' });
-        
-        const response = await API.get('/users/profile'); // Token is sent automatically
-        
-        if (!response.data || !response.data.isAdmin) {
-             return rejectWithValue({ message: 'User is not an administrator.' });
-        }
-        return response.data;
+      const response = await API.get('/users/profile');
+      if (!response.data?.isAdmin) {
+        return rejectWithValue({ message: 'Access Denied: Not an administrator.' });
+      }
+      return response.data;
     } catch (error) {
-        return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response.data);
     }
   }
 );
 
-
-// ===================================================================
-// THE ADMIN AUTH SLICE
-// ===================================================================
-
+// --- The Slice Definition ---
 const initialState = {
   user: null,
-  token: localStorage.getItem('adminToken') || null,
-  isAuthenticated: !!localStorage.getItem('adminToken'),
+  token: localStorage.getItem(TOKEN_NAME) || null,
+  isAuthenticated: !!localStorage.getItem(TOKEN_NAME),
   status: 'idle',
   error: null,
+  successMessage: null,
+  unverifiedEmail: null, // <-- NEW state field to track who needs verification
 };
 
 const adminAuthSlice = createSlice({
@@ -85,37 +80,77 @@ const adminAuthSlice = createSlice({
   initialState,
   reducers: {
     logoutAdmin: (state) => {
-      localStorage.removeItem('adminToken');
+      localStorage.removeItem(TOKEN_NAME);
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
       state.status = 'idle';
-      state.error = null;
+      state.unverifiedEmail = null; // Clear on logout
     },
+    clearAuthState: (state) => {
+        state.error = null;
+        state.successMessage = null;
+    }
   },
   extraReducers: (builder) => {
     builder
-      // --- Registration Cases ---
-      .addCase(registerAdmin.pending, (state) => { state.status = 'loading'; state.error = null; })
-      .addCase(registerAdmin.fulfilled, (state) => { state.status = 'succeeded'; })
-      .addCase(registerAdmin.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload?.message || 'Admin registration failed.'; })
-
-      // --- Login Cases ---
-      .addCase(loginAdmin.pending, (state) => { state.status = 'loading'; state.error = null; })
+      // Login
+      .addCase(loginAdmin.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+        state.unverifiedEmail = null; // Clear on new login attempt
+      })
       .addCase(loginAdmin.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.isAuthenticated = true;
         state.user = action.payload.user;
         state.token = action.payload.token;
+        localStorage.setItem(TOKEN_NAME, action.payload.token);
       })
       .addCase(loginAdmin.rejected, (state, action) => {
         state.status = 'failed';
-        state.isAuthenticated = false;
-        state.user = null;
-        state.error = action.payload?.message || 'Login failed. Please try again.';
+        state.error = action.payload?.message || 'Login failed.';
+        // If the backend flag exists, store the email to prompt for verification
+        if (action.payload?.emailNotVerified) {
+          state.unverifiedEmail = action.meta.arg.email;
+        }
       })
 
-      // --- Get Admin Profile Cases (for persistent session) ---
+      // Register Admin
+      .addCase(registerAdmin.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+        state.successMessage = null;
+        state.unverifiedEmail = null; // Clear on new registration attempt
+      })
+      .addCase(registerAdmin.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.successMessage = action.payload.message;
+        // Store the email from the form data to use on the verify page
+        state.unverifiedEmail = action.meta.arg.email;
+      })
+      .addCase(registerAdmin.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload?.message || 'Registration failed.';
+      })
+      
+      // NEW: Email Verification cases
+      .addCase(verifyAdminEmail.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+        state.successMessage = null;
+      })
+      .addCase(verifyAdminEmail.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.successMessage = action.payload.message;
+        state.unverifiedEmail = null; // Clear on success
+      })
+      .addCase(verifyAdminEmail.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload.message || 'Verification failed.';
+      })
+
+      // Get Profile (for persistent session)
       .addCase(getAdminProfile.pending, (state) => {
         state.status = 'loading';
       })
@@ -124,17 +159,15 @@ const adminAuthSlice = createSlice({
         state.isAuthenticated = true;
         state.user = action.payload;
       })
-      .addCase(getAdminProfile.rejected, (state, action) => {
-        // If the token is invalid or user is not an admin, perform a full logout.
-        state.status = 'failed';
-        state.error = action.payload?.message || 'Session expired or invalid.';
+      .addCase(getAdminProfile.rejected, (state) => {
+        localStorage.removeItem(TOKEN_NAME);
+        state.isAuthenticated = false;
         state.user = null;
         state.token = null;
-        state.isAuthenticated = false;
-        localStorage.removeItem('adminToken');
+        state.status = 'failed';
       });
   },
 });
 
-export const { logoutAdmin } = adminAuthSlice.actions;
+export const { logoutAdmin, clearAuthState } = adminAuthSlice.actions;
 export default adminAuthSlice.reducer;

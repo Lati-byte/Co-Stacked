@@ -4,14 +4,37 @@
   margin: 0 auto;
   padding: 3rem 1rem;
 }
+
 .header {
   padding-bottom: 1.5rem;
   border-bottom: 1px solid var(--border);
 }
-.title { font-size: 2.25rem; font-weight: 800; }
-.subtitle { margin-top: 0.5rem; color: var(--muted-foreground); }
-.settingsContent { margin-bottom: 2rem; }
-.formGroup { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.title {
+  font-size: 2.25rem;
+  font-weight: 800;
+}
+
+.subtitle {
+  margin-top: 0.5rem;
+  color: var(--muted-foreground);
+}
+
+.settingsContent {
+  margin-bottom: 2rem;
+}
+
+/* Remove the first section's top padding for better alignment */
+.settingsContent > section:first-of-type {
+  padding-top: 0;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .footer {
   display: flex;
   justify-content: flex-end;
@@ -19,19 +42,14 @@
   border-top: 1px solid var(--border);
 }
 
-/* NEW styles for the verification section */
-.verificationContent {
+/* --- Verification Section Styles --- */
+.verificationContent, .verifiedContainer {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   gap: 1.5rem;
+  flex-wrap: wrap; /* Allows items to wrap on smaller screens */
 }
-@media (min-width: 640px) {
-  .verificationContent {
-    flex-direction: row;
-    align-items: center;
-  }
-}
+
 .verifiedBadge {
   display: inline-flex;
   align-items: center;
@@ -42,4 +60,36 @@
   border: 1px solid hsl(140, 70%, 90%);
   border-radius: var(--radius);
   font-weight: 600;
+}
+
+/* ======================================== */
+/*            RESPONSIVE QUERIES            */
+/* ======================================== */
+
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: 2rem 1rem; /* Reduce vertical padding */
+  }
+
+  .title {
+    font-size: 1.75rem; /* Scale down title */
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+  }
+
+  /* Make the footer button full width for easy tapping */
+  .footer {
+    justify-content: stretch;
+  }
+  .footer > * {
+    width: 100%;
+  }
+
+  /* Stack verification items vertically */
+  .verificationContent, .verifiedContainer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
