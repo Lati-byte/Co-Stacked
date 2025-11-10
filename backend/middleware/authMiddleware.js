@@ -1,6 +1,6 @@
 // backend/middleware/authMiddleware.js
 const jwt = require('jsonwebtoken');
-const User = require('../models/user'); // Ensure this matches your file's casing
+const User = require('../models/User'); // Ensure this matches your file's casing
 
 /**
  * This middleware function checks for a valid JWT in the request headers.
