@@ -27,11 +27,10 @@ const registerUser = async (req, res) => {
       name, email, password, role, bio, skills: skills ? skills.split(',').map(skill => skill.trim()) : [], location, availability, portfolioLink
     });
 
-    // --- CREATE ADMIN NOTIFICATION ---
     await AdminNotification.create({
       type: 'NEW_USER_REGISTERED',
       message: `${user.name} has just signed up as a ${user.role}.`,
-      link: `/users`, // Links to the user management page in the admin dashboard
+      link: `/users`,
       refId: user._id
     });
 
@@ -43,6 +42,19 @@ const registerUser = async (req, res) => {
     const message = `Welcome to CoStacked!\n\nYour verification code is: ${verificationToken}\n\nThis code will expire in 10 minutes.`;
     
     try {
+      // ==========================================================
+      // START OF DIAGNOSTIC LOGGING
+      // ==========================================================
+      console.log('--- ATTEMPTING TO SEND VERIFICATION EMAIL ---');
+      console.log('Recipient:', user.email);
+      console.log('EMAIL_HOST:', process.env.EMAIL_HOST);
+      console.log('EMAIL_PORT:', process.env.EMAIL_PORT);
+      console.log('EMAIL_USER:', process.env.EMAIL_USER);
+      console.log('EMAIL_PASS is present:', !!process.env.EMAIL_PASS);
+      // ==========================================================
+      // END OF DIAGNOSTIC LOGGING
+      // ==========================================================
+
       await sendEmail({
         to: user.email,
         subject: 'CoStacked - Verify Your Email Address',
@@ -55,7 +67,13 @@ const registerUser = async (req, res) => {
       });
 
     } catch (emailError) {
-      console.error('Email sending error:', emailError);
+      // ==========================================================
+      // THIS LOG IS CRITICAL FOR DEBUGGING
+      // ==========================================================
+      console.error('!!! EMAIL SENDING FAILED !!!');
+      console.error(emailError); // This will log the actual detailed error from nodemailer
+      // ==========================================================
+      
       return res.status(500).json({ message: 'User registered, but could not send verification email. Please try resending.' });
     }
 
