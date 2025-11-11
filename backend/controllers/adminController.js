@@ -419,6 +419,29 @@ const updateReportStatus = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Get the logged-in admin's profile data
+ * @route   GET /api/admin/profile
+ * @access  Private/Admin
+ */
+const getAdminProfile = async (req, res) => {
+  try {
+    // The `protect` and `admin` middleware have already fetched the user and
+    // verified they are an admin. We just need to send it back.
+    // The user data is available on the `req.user` object.
+    const adminUser = await User.findById(req.user.id).select('-password');
+
+    if (adminUser) {
+      res.json(adminUser);
+    } else {
+      res.status(404).json({ message: 'Admin user not found' });
+    }
+  } catch (error) {
+    console.error('Get Admin Profile Error:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
 
 module.exports = { 
   loginAdmin, // <-- ADD THE NEW FUNCTION TO YOUR EXPORTS
@@ -435,4 +458,5 @@ module.exports = {
   getAdminNotifications,
   markAdminNotificationsAsRead,
   updateReportStatus,
+  getAdminProfile,
 };
