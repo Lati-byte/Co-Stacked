@@ -2,19 +2,32 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import API from '../../api/axios';
 
-const TOKEN_NAME = 'costacked-admin-token';
+// ===================================================================
+// UTILITY: Get admin profile from localStorage
+// ===================================================================
+const adminProfile = JSON.parse(localStorage.getItem('adminProfile'));
 
-// --- Thunk for Admin LOGIN ---
+// ===================================================================
+// ASYNC THUNKS
+// ===================================================================
+
+// --- Thunk for Admin LOGIN (Corrected) ---
 export const loginAdmin = createAsyncThunk(
   'auth/loginAdmin',
   async (credentials, { rejectWithValue }) => {
     try {
-      const response = await API.post('/users/login', credentials);
-      const { user, token } = response.data;
-      if (!user?.isAdmin) {
-        return rejectWithValue({ message: 'Access Denied: Not an administrator.' });
+      // Use a dedicated admin login endpoint for better security and logic separation
+      const response = await API.post('/admin/login', credentials);
+      
+      // THE FIX: Check for response data and store the entire profile object
+      if (response.data && response.data.token) {
+        localStorage.setItem('adminProfile', JSON.stringify(response.data));
+      } else {
+        // This case handles unexpected API responses gracefully
+        return rejectWithValue({ message: 'Invalid server response.' });
       }
-      return { user, token };
+
+      return response.data; // This will contain { user, token }
     } catch (error) {
       return rejectWithValue(error.response.data);
     }
@@ -34,12 +47,11 @@ export const registerAdmin = createAsyncThunk(
   }
 );
 
-// --- NEW: Thunk for Admin Email Verification ---
+// --- Thunk for Admin Email Verification ---
 export const verifyAdminEmail = createAsyncThunk(
   'auth/verifyAdminEmail',
   async ({ email, token }, { rejectWithValue }) => {
     try {
-      // This uses the same public endpoint as the user-frontend
       const response = await API.post('/users/verify-email', { email, token });
       return response.data;
     } catch (error) {
@@ -53,10 +65,8 @@ export const getAdminProfile = createAsyncThunk(
   'auth/getAdminProfile',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await API.get('/users/profile');
-      if (!response.data?.isAdmin) {
-        return rejectWithValue({ message: 'Access Denied: Not an administrator.' });
-      }
+      // Interceptor handles the token automatically
+      const response = await API.get('/admin/profile'); // Should hit a dedicated admin profile route
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -64,15 +74,15 @@ export const getAdminProfile = createAsyncThunk(
   }
 );
 
-// --- The Slice Definition ---
+// --- The Slice Definition (Corrected) ---
 const initialState = {
-  user: null,
-  token: localStorage.getItem(TOKEN_NAME) || null,
-  isAuthenticated: !!localStorage.getItem(TOKEN_NAME),
+  user: adminProfile ? adminProfile.user : null,
+  token: adminProfile ? adminProfile.token : null,
+  isAuthenticated: !!(adminProfile && adminProfile.token),
   status: 'idle',
   error: null,
   successMessage: null,
-  unverifiedEmail: null, // <-- NEW state field to track who needs verification
+  unverifiedEmail: null,
 };
 
 const adminAuthSlice = createSlice({
@@ -80,16 +90,19 @@ const adminAuthSlice = createSlice({
   initialState,
   reducers: {
     logoutAdmin: (state) => {
-      localStorage.removeItem(TOKEN_NAME);
+      // CORRECTED: Remove 'adminProfile' to match login logic
+      localStorage.removeItem('adminProfile');
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
       state.status = 'idle';
-      state.unverifiedEmail = null; // Clear on logout
+      state.unverifiedEmail = null;
+      state.error = null;
+      state.successMessage = null;
     },
     clearAuthState: (state) => {
-        state.error = null;
-        state.successMessage = null;
+      state.error = null;
+      state.successMessage = null;
     }
   },
   extraReducers: (builder) => {
@@ -98,19 +111,20 @@ const adminAuthSlice = createSlice({
       .addCase(loginAdmin.pending, (state) => {
         state.status = 'loading';
         state.error = null;
-        state.unverifiedEmail = null; // Clear on new login attempt
+        state.unverifiedEmail = null;
       })
       .addCase(loginAdmin.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.isAuthenticated = true;
         state.user = action.payload.user;
         state.token = action.payload.token;
-        localStorage.setItem(TOKEN_NAME, action.payload.token);
       })
       .addCase(loginAdmin.rejected, (state, action) => {
         state.status = 'failed';
+        state.isAuthenticated = false;
+        state.user = null;
+        state.token = null;
         state.error = action.payload?.message || 'Login failed.';
-        // If the backend flag exists, store the email to prompt for verification
         if (action.payload?.emailNotVerified) {
           state.unverifiedEmail = action.meta.arg.email;
         }
@@ -121,12 +135,11 @@ const adminAuthSlice = createSlice({
         state.status = 'loading';
         state.error = null;
         state.successMessage = null;
-        state.unverifiedEmail = null; // Clear on new registration attempt
+        state.unverifiedEmail = null;
       })
       .addCase(registerAdmin.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.successMessage = action.payload.message;
-        // Store the email from the form data to use on the verify page
         state.unverifiedEmail = action.meta.arg.email;
       })
       .addCase(registerAdmin.rejected, (state, action) => {
@@ -134,7 +147,7 @@ const adminAuthSlice = createSlice({
         state.error = action.payload?.message || 'Registration failed.';
       })
       
-      // NEW: Email Verification cases
+      // Email Verification
       .addCase(verifyAdminEmail.pending, (state) => {
         state.status = 'loading';
         state.error = null;
@@ -143,14 +156,14 @@ const adminAuthSlice = createSlice({
       .addCase(verifyAdminEmail.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.successMessage = action.payload.message;
-        state.unverifiedEmail = null; // Clear on success
+        state.unverifiedEmail = null;
       })
       .addCase(verifyAdminEmail.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload.message || 'Verification failed.';
       })
 
-      // Get Profile (for persistent session)
+      // Get Profile
       .addCase(getAdminProfile.pending, (state) => {
         state.status = 'loading';
       })
@@ -160,7 +173,7 @@ const adminAuthSlice = createSlice({
         state.user = action.payload;
       })
       .addCase(getAdminProfile.rejected, (state) => {
-        localStorage.removeItem(TOKEN_NAME);
+        localStorage.removeItem('adminProfile');
         state.isAuthenticated = false;
         state.user = null;
         state.token = null;
