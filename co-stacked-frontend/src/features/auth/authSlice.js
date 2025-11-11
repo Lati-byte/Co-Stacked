@@ -7,10 +7,15 @@ import API from '../../api/axios';
 import { verifySubscription, verifyProfileBoost, cancelSubscription } from '../payments/paymentSlice';
 
 // ===================================================================
+// UTILITY: Get user profile from localStorage
+// ===================================================================
+const userProfile = JSON.parse(localStorage.getItem('userProfile'));
+
+
+// ===================================================================
 // ASYNC THUNKS
 // ===================================================================
 
-// --- NEW: Thunk for Forgot Password ---
 export const forgotPassword = createAsyncThunk(
   'auth/forgotPassword',
   async (email, { rejectWithValue }) => {
@@ -23,22 +28,18 @@ export const forgotPassword = createAsyncThunk(
   }
 );
 
-// --- NEW: Thunk for Reset Password ---
 export const resetPassword = createAsyncThunk(
   'auth/resetPassword',
   async ({ token, password }, { rejectWithValue }) => {
     try {
       const response = await API.put(`/users/reset-password/${token}`, { password });
       return response.data;
-    } catch (error) {
+    } catch (error)      {
       return rejectWithValue(error.response.data);
     }
   }
 );
 
-/**
- * Handles User Registration API call.
- */
 export const registerUser = createAsyncThunk(
   'auth/register',
   async (userData, { rejectWithValue }) => {
@@ -52,48 +53,45 @@ export const registerUser = createAsyncThunk(
 );
 
 /**
- * Handles User Login API call, storing the token on success.
+ * Handles User Login API call, storing the entire user profile on success.
+ * THIS IS THE CORRECTED FUNCTION.
  */
 export const loginUser = createAsyncThunk(
   'auth/login',
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await API.post('/users/login', credentials);
-      const { user, token } = response.data;
-      if (token) {
-        localStorage.setItem('token', token);
+      
+      // THE FIX: Check if the response contains the user and token.
+      if (response.data && response.data.token) {
+        // Store the entire object { user: {...}, token: "..." }
+        // This makes it compatible with our axios interceptor.
+        localStorage.setItem('userProfile', JSON.stringify(response.data));
       }
-      return { user, token };
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
     }
   }
 );
 
-// --- NEW: Thunk for Email Verification ---
 export const verifyEmail = createAsyncThunk(
   'auth/verifyEmail',
   async ({ email, token }, { rejectWithValue }) => {
     try {
       const response = await API.post('/users/verify-email', { email, token });
-      return response.data; // e.g., { success: true, message: '...' }
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
     }
   }
 );
 
-/**
- * Handles fetching the user's profile using a stored token for persistent login.
- */
 export const getUserProfile = createAsyncThunk(
   'auth/getUserProfile',
-  async (_, { rejectWithValue, getState }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      const { token } = getState().auth;
-      if (!token) {
-        return rejectWithValue('No token found');
-      }
+      // The interceptor automatically adds the token, so we just make the call.
       const response = await API.get('/users/profile'); 
       return response.data;
     } catch (error) {
@@ -102,14 +100,17 @@ export const getUserProfile = createAsyncThunk(
   }
 );
 
-/**
- * Handles updating the logged-in user's profile information.
- */
 export const updateUserProfile = createAsyncThunk(
   'auth/updateUserProfile',
   async (userData, { rejectWithValue }) => {
     try {
       const response = await API.put('/users/profile', userData);
+      // After updating, save the new user data to local storage as well to keep it in sync
+      const currentProfile = JSON.parse(localStorage.getItem('userProfile'));
+      if (currentProfile) {
+        const updatedProfile = { ...currentProfile, user: response.data };
+        localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+      }
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -117,16 +118,12 @@ export const updateUserProfile = createAsyncThunk(
   }
 );
 
-/**
- * NEW: Handles changing the user's password.
- */
 export const changePassword = createAsyncThunk(
   'auth/changePassword',
   async (passwordData, { rejectWithValue }) => {
     try {
-      // passwordData will be { currentPassword, newPassword }
       const response = await API.put('/users/profile/change-password', passwordData);
-      return response.data; // e.g., { message: 'Password updated successfully.' }
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
     }
@@ -139,22 +136,22 @@ export const changePassword = createAsyncThunk(
 // ===================================================================
 
 const initialState = {
-  user: null,
-  token: localStorage.getItem('token') || null,
-  isAuthenticated: !!localStorage.getItem('token'),
+  user: userProfile ? userProfile.user : null,
+  token: userProfile ? userProfile.token : null,
+  isAuthenticated: !!(userProfile && userProfile.token),
   status: 'idle',
   error: null,
-   successMessage: null,
-  unverifiedEmail: null, // For feedback on successful actions
+  successMessage: null,
+  unverifiedEmail: null,
 };
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    // Synchronous action to handle user logout
     logout: (state) => {
-      localStorage.removeItem('token');
+      // CORRECTED: Remove 'userProfile' to match the login logic.
+      localStorage.removeItem('userProfile');
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
@@ -163,7 +160,6 @@ const authSlice = createSlice({
       state.successMessage = null;
       state.unverifiedEmail = null;
     },
-    // NEW: Synchronous action to clear feedback messages
     clearAuthMessages: (state) => {
       state.error = null;
       state.successMessage = null;
@@ -171,7 +167,7 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // --- UPDATED: Registration cases ---
+      // Registration cases
       .addCase(registerUser.pending, (state) => { 
         state.status = 'loading'; 
         state.error = null;
@@ -180,7 +176,6 @@ const authSlice = createSlice({
       })
       .addCase(registerUser.fulfilled, (state, action) => { 
         state.status = 'succeeded';
-        // Store the email from the form data payload to use on the verify page
         state.unverifiedEmail = action.meta.arg.email; 
       })
       .addCase(registerUser.rejected, (state, action) => { 
@@ -188,7 +183,7 @@ const authSlice = createSlice({
         state.error = action.payload?.message || 'Registration failed.'; 
       })
 
-      // --- UPDATED: Login cases ---
+      // CORRECTED: Login cases
       .addCase(loginUser.pending, (state) => { 
         state.status = 'loading'; 
         state.error = null; 
@@ -199,19 +194,20 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.user = action.payload.user;
         state.token = action.payload.token;
+        state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.status = 'failed';
         state.isAuthenticated = false;
         state.user = null;
+        state.token = null;
         state.error = action.payload?.message || 'Invalid credentials.';
-        // If the backend flag exists, store the email to prompt for verification
         if (action.payload?.emailNotVerified) {
           state.unverifiedEmail = action.meta.arg.email;
         }
       })
 
-      // --- NEW: Email Verification cases ---
+      // Email Verification cases
       .addCase(verifyEmail.pending, (state) => {
         state.status = 'loading';
         state.error = null;
@@ -220,7 +216,7 @@ const authSlice = createSlice({
       .addCase(verifyEmail.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.successMessage = action.payload.message;
-        state.unverifiedEmail = null; // Clear the temporary email on successful verification
+        state.unverifiedEmail = null;
       })
       .addCase(verifyEmail.rejected, (state, action) => {
         state.status = 'failed';
@@ -235,7 +231,7 @@ const authSlice = createSlice({
         state.user = action.payload;
       })
       .addCase(getUserProfile.rejected, (state, action) => {
-        localStorage.removeItem('token');
+        localStorage.removeItem('userProfile');
         state.status = 'failed';
         state.error = action.payload?.message || 'Session expired.';
         state.user = null;
@@ -251,7 +247,7 @@ const authSlice = createSlice({
       })
       .addCase(updateUserProfile.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload.message || 'Failed to update profile.'; })
 
-      // NEW: Cases for Change Password
+      // Change Password cases
       .addCase(changePassword.pending, (state) => {
         state.status = 'loading';
         state.error = null;
@@ -266,19 +262,7 @@ const authSlice = createSlice({
         state.error = action.payload.message || 'Failed to change password.';
       })
 
-      // Inter-Slice Reducers for reacting to payment success
-      .addCase(verifySubscription.fulfilled, (state, action) => {
-        const { user: updatedUser } = action.payload;
-        if (state.user && updatedUser) {
-          state.user = { ...state.user, ...updatedUser };
-        }
-      })
-      .addCase(verifyProfileBoost.fulfilled, (state, action) => {
-          const { user: updatedUser } = action.payload;
-          if (state.user && updatedUser) {
-              state.user = { ...state.user, ...updatedUser };
-          }
-      })
+      // Forgot Password cases
       .addCase(forgotPassword.pending, (state) => {
         state.status = 'loading';
         state.error = null;
@@ -292,17 +276,8 @@ const authSlice = createSlice({
         state.status = 'failed';
         state.error = action.payload.message || 'Failed to send reset link.';
       })
-       // --- NEW: Add a listener for when a subscription is successfully canceled ---
-      .addCase(cancelSubscription.fulfilled, (state, action) => {
-        const { user: updatedUser } = action.payload;
-        if (state.user && updatedUser) {
-          // The backend sends back the user object with `isVerified: false`.
-          // We update the state here to keep the UI in sync.
-          state.user = { ...state.user, ...updatedUser };
-        }
-      })
-
-      // --- NEW: Cases for Reset Password ---
+      
+      // Reset Password cases
       .addCase(resetPassword.pending, (state) => {
         state.status = 'loading';
         state.error = null;
@@ -315,6 +290,26 @@ const authSlice = createSlice({
       .addCase(resetPassword.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload.message || 'Failed to reset password.';
+      })
+
+      // Inter-Slice Reducers
+      .addCase(verifySubscription.fulfilled, (state, action) => {
+        const { user: updatedUser } = action.payload;
+        if (state.user && updatedUser) {
+          state.user = { ...state.user, ...updatedUser };
+        }
+      })
+      .addCase(verifyProfileBoost.fulfilled, (state, action) => {
+          const { user: updatedUser } = action.payload;
+          if (state.user && updatedUser) {
+              state.user = { ...state.user, ...updatedUser };
+          }
+      })
+      .addCase(cancelSubscription.fulfilled, (state, action) => {
+        const { user: updatedUser } = action.payload;
+        if (state.user && updatedUser) {
+          state.user = { ...state.user, ...updatedUser };
+        }
       });
   },
 });
