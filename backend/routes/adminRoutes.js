@@ -3,8 +3,9 @@
 const express = require('express');
 const router = express.Router();
 
-// 1. Import all necessary controller functions, including the new notification ones.
+// 1. Import all necessary controller functions, including the new login and notification ones.
 const { 
+    loginAdmin, // <-- IMPORT THE NEW LOGIN CONTROLLER
     getPlatformStats, 
     registerAdmin, 
     getUsersForAdmin, 
@@ -21,19 +22,23 @@ const {
 } = require('../controllers/adminController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
-// === Dashboard & Auth Routes ===
+// === Auth Routes (Public) ===
+router.route('/login').post(loginAdmin); // <-- ADD THE LOGIN ROUTE HERE
+router.route('/register').post(registerAdmin); // Note: This should probably be protected
+
+// === Dashboard & Protected Routes ===
 router.route('/stats').get(protect, admin, getPlatformStats);
-router.route('/register').post(registerAdmin);
+
+// === Reports Routes ===
 router.route('/reports')
   .get(protect, admin, getReports);
-
 router.route('/reports/:id')
   .put(protect, admin, updateReportStatus);
   
 // === Transactions Route ===
 router.route('/transactions').get(protect, admin, getTransactions);
 
-// === NEW: Admin Notifications Routes ===
+// === Admin Notifications Routes ===
 router.route('/notifications').get(protect, admin, getAdminNotifications);
 router.route('/notifications/mark-read').put(protect, admin, markAdminNotificationsAsRead);
 
@@ -50,6 +55,5 @@ router
   .route('/projects/:id')
   .put(protect, admin, updateProjectByAdmin)
   .delete(protect, admin, deleteProjectByAdmin);
-
 
 module.exports = router;

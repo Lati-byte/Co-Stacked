@@ -6,6 +6,8 @@ const Report = require('../models/Report');
 const Transaction = require('../models/Transaction');
 const AdminNotification = require('../models/AdminNotification');
 const sendEmail = require('../utils/sendEmail'); // For sending verification emails
+const bcrypt = require('bcryptjs'); // <-- ADD THIS IMPORT
+const jwt = require('jsonwebtoken'); // <-- ADD THIS IMPORT
 
 /**
  * @desc    Get platform-wide statistics for the admin dashboard
@@ -68,6 +70,65 @@ const getPlatformStats = async (req, res) => {
     res.status(500).json({ message: 'Server error while fetching platform stats.' });
   }
 };
+
+// ==========================================================
+// NEW LOGIN FUNCTION ADDED HERE
+// ==========================================================
+/**
+ * @desc    Authenticate admin & get token
+ * @route   POST /api/admin/login
+ * @access  Public
+ */
+const loginAdmin = async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Please provide email and password' });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    if (!user.isAdmin) {
+      return res.status(403).json({ message: 'Access Denied. User is not an administrator.' });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+    
+    const payload = {
+      id: user.id,
+      name: user.name,
+      isAdmin: user.isAdmin,
+    };
+
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: '1d', 
+    });
+
+    res.status(200).json({
+      token,
+      user: {
+        _id: user.id,
+        name: user.name,
+        email: user.email,
+        isAdmin: user.isAdmin,
+      },
+    });
+
+  } catch (error) {
+    console.error('Admin login error:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+// ==========================================================
 
 /**
  * @desc    Register a new ADMIN user and send verification email
@@ -360,6 +421,7 @@ const updateReportStatus = async (req, res) => {
 
 
 module.exports = { 
+  loginAdmin, // <-- ADD THE NEW FUNCTION TO YOUR EXPORTS
   getPlatformStats, 
   registerAdmin, 
   getUsersForAdmin, 
