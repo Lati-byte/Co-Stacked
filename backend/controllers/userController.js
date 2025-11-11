@@ -74,7 +74,11 @@ const registerUser = async (req, res) => {
       console.error(emailError); // This will log the actual detailed error from nodemailer
       // ==========================================================
       
-      return res.status(500).json({ message: 'User registered, but could not send verification email. Please try resending.' });
+      return res.status(500).json({ 
+        message: 'Email sending failed on the server. See error details.',
+        error: emailError.message, // Send the error message
+        fullError: emailError      // Send the full error object
+      });
     }
 
   } catch (error) {
