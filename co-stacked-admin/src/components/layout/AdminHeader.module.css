@@ -8,6 +8,32 @@
   height: 65px;
   background-color: #fff;
   border-bottom: 1px solid var(--border);
+  position: sticky; /* Make header sticky */
+  top: 0;
+  z-index: 40; /* Lower z-index than sidebar */
+}
+
+/* NEW: Wrapper for left-aligned content */
+.leftContent {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* NEW: Sidebar Toggle Button (hidden on desktop) */
+.sidebarToggleButton {
+  display: none; /* Hidden by default */
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--foreground);
+  padding: 0.5rem;
+  margin-left: -0.5rem; /* Align icon nicely */
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+.sidebarToggleButton:hover {
+  background-color: var(--muted);
 }
 
 .title {
@@ -22,7 +48,7 @@
 }
 
 .notificationWrapper {
-  position: relative; /* This is critical for the dropdown to appear correctly */
+  position: relative;
 }
 
 .notificationButton {
@@ -36,18 +62,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s;
 }
-
 .notificationButton:hover {
   background-color: var(--background);
 }
-
 .notificationCount {
   position: absolute;
   top: 4px;
   right: 4px;
-  background-color: #dc2626; /* Red */
+  background-color: #dc2626;
   color: white;
   width: 18px;
   height: 18px;
@@ -64,7 +87,6 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  cursor: pointer; /* To indicate it's clickable */
 }
 
 .avatar {
@@ -91,4 +113,33 @@
 .userRole {
   font-size: 0.8rem;
   color: var(--muted-foreground);
+}
+
+/* ======================================== */
+/*            RESPONSIVE QUERIES            */
+/* ======================================== */
+
+@media (max-width: 768px) {
+  .header {
+    padding: 0 1rem; /* Reduce padding on mobile */
+  }
+
+  /* Show the sidebar toggle button */
+  .sidebarToggleButton {
+    display: flex;
+  }
+
+  .title {
+    font-size: 1.25rem; /* Slightly smaller title */
+  }
+
+  /* Hide the detailed user info and chevron on mobile */
+  .userInfo,
+  .chevronIcon {
+    display: none;
+  }
+
+  .userMenu {
+    gap: 0.75rem; /* Reduce gap between bell and avatar */
+  }
 }
