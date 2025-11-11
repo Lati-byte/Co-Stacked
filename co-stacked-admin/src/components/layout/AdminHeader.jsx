@@ -7,9 +7,12 @@ import { AdminNotificationDropdown } from '../notifications/AdminNotificationDro
 import { fetchAdminNotifications, markAdminNotificationsAsRead } from '../../features/notifications/adminNotificationsSlice';
 import { useClickOutside } from '../../hooks/useClickOutside';
 import styles from './AdminHeader.module.css';
-import { Bell, ChevronDown } from 'lucide-react';
+// --- NEW: Import Menu icon for the sidebar toggle ---
+import { Bell, ChevronDown, Menu } from 'lucide-react';
+import PropTypes from 'prop-types';
 
-export const AdminHeader = () => {
+// --- NEW: Accept 'onToggleSidebar' function as a prop ---
+export const AdminHeader = ({ onToggleSidebar }) => {
   const { title } = usePageTitle();
   const dispatch = useDispatch();
 
@@ -19,14 +22,12 @@ export const AdminHeader = () => {
   const [isNotifOpen, setNotifOpen] = useState(false);
   const notifRef = useRef(null);
 
-  // This hook closes the notification dropdown when clicking outside of it.
   useClickOutside(notifRef, () => {
     if (isNotifOpen) {
       setNotifOpen(false);
     }
   });
 
-  // Fetch notifications when the user is authenticated.
   useEffect(() => {
     if (isAuthenticated) {
       dispatch(fetchAdminNotifications());
@@ -42,7 +43,14 @@ export const AdminHeader = () => {
 
   return (
     <header className={styles.header}>
-      <h1 className={styles.title}>{title || 'Dashboard'}</h1>
+      <div className={styles.leftContent}>
+        {/* --- NEW: Sidebar Toggle Button (visible on mobile) --- */}
+        <button onClick={onToggleSidebar} className={styles.sidebarToggleButton} aria-label="Toggle sidebar">
+          <Menu size={22} />
+        </button>
+        <h1 className={styles.title}>{title || 'Dashboard'}</h1>
+      </div>
+
       <div className={styles.userMenu}>
         <div ref={notifRef} className={styles.notificationWrapper}>
           <button className={styles.notificationButton} onClick={() => setNotifOpen(prev => !prev)}>
@@ -67,9 +75,14 @@ export const AdminHeader = () => {
             <span className={styles.userName}>{user?.name}</span>
             <span className={styles.userRole}>Administrator</span>
           </div>
-          <ChevronDown size={18} />
+          <ChevronDown size={18} className={styles.chevronIcon} />
         </div>
       </div>
     </header>
   );
+};
+
+// --- NEW: Add prop validation ---
+AdminHeader.propTypes = {
+  onToggleSidebar: PropTypes.func.isRequired,
 };
