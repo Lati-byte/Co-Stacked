@@ -5,9 +5,9 @@ const Project = require('../models/Project');
 const Report = require('../models/Report');
 const Transaction = require('../models/Transaction');
 const AdminNotification = require('../models/AdminNotification');
-const sendEmail = require('../utils/sendEmail'); // For sending verification emails
-const bcrypt = require('bcryptjs'); // <-- ADD THIS IMPORT
-const jwt = require('jsonwebtoken'); // <-- ADD THIS IMPORT
+// const sendEmail = require('../utils/sendEmail'); // No longer needed for admin registration
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 /**
  * @desc    Get platform-wide statistics for the admin dashboard
@@ -71,9 +71,6 @@ const getPlatformStats = async (req, res) => {
   }
 };
 
-// ==========================================================
-// NEW LOGIN FUNCTION ADDED HERE
-// ==========================================================
 /**
  * @desc    Authenticate admin & get token
  * @route   POST /api/admin/login
@@ -128,10 +125,9 @@ const loginAdmin = async (req, res) => {
     res.status(500).json({ message: 'Server Error' });
   }
 };
-// ==========================================================
 
 /**
- * @desc    Register a new ADMIN user and send verification email
+ * @desc    Register a new ADMIN user (Simplified Flow)
  * @route   POST /api/admin/register
  * @access  Public (but requires secret key)
  */
@@ -149,32 +145,19 @@ const registerAdmin = async (req, res) => {
       return res.status(400).json({ message: 'An admin with this email already exists.' });
     }
     
+    // Create the admin user. They are considered "verified" by default.
     const user = await User.create({
       name, email, password, role,
       isAdmin: true,
+      isEmailVerified: true, // Set to true on creation
     });
 
+    // We no longer send an email. Just send a success response.
     if (user) {
-      const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
-      user.emailVerificationToken = verificationToken;
-      user.emailVerificationExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
-      await user.save({ validateBeforeSave: false });
-
-      const message = `Welcome to the CoStacked Admin team!\n\nYour verification code is: ${verificationToken}\n\nThis code will expire in 10 minutes.`;
-      try {
-        await sendEmail({
-          to: user.email,
-          subject: 'CoStacked Admin - Verify Your Email',
-          text: message,
-        });
         res.status(201).json({ 
             success: true, 
-            message: 'Admin user registered successfully! Please check your email for a verification code.' 
+            message: 'Admin user registered successfully! You can now log in.' 
         });
-      } catch (emailError) {
-        console.error('Admin Email Sending Error:', emailError);
-        return res.status(500).json({ message: 'Admin registered, but could not send verification email.' });
-      }
     } else {
       res.status(400).json({ message: 'Invalid admin data provided.' });
     }
@@ -426,9 +409,6 @@ const updateReportStatus = async (req, res) => {
  */
 const getAdminProfile = async (req, res) => {
   try {
-    // The `protect` and `admin` middleware have already fetched the user and
-    // verified they are an admin. We just need to send it back.
-    // The user data is available on the `req.user` object.
     const adminUser = await User.findById(req.user.id).select('-password');
 
     if (adminUser) {
@@ -444,7 +424,7 @@ const getAdminProfile = async (req, res) => {
 
 
 module.exports = { 
-  loginAdmin, // <-- ADD THE NEW FUNCTION TO YOUR EXPORTS
+  loginAdmin,
   getPlatformStats, 
   registerAdmin, 
   getUsersForAdmin, 
