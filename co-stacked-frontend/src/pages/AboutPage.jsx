@@ -4,7 +4,7 @@ import { TeamMemberCard } from '../components/about/TeamMemberCard';
 import styles from './AboutPage.module.css';
 
 // Placeholder for founder image - put a real image in your assets folder!
-import founderImage from '../assets/IMG_7062.jpeg; 
+import founderImage from 'IMG_7062.jpeg'; 
 
 export const AboutPage = () => {
   return (
