@@ -12,7 +12,6 @@ const {
   updateUserProfile,
   changeUserPassword,
   recordProfileView,
-  verifyEmail,
   forgotPassword,
   resetPassword,
    cancelSubscription
