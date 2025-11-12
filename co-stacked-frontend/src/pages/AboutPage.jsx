@@ -31,7 +31,7 @@ export const AboutPage = () => {
           <TeamMemberCard 
             imageUrl={founderImage}
             name="Moise Kobokiba"
-            role="Founder & Full-Stack Developer"
+            role="Founder"
             linkedInUrl="http://linkedin.com/in/moise-kobokiba"
           />
         </div>
