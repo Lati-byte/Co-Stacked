@@ -11,8 +11,7 @@ import { getAdminProfile } from './features/auth/adminAuthSlice';
 import { AdminLayout } from './components/layout/AdminLayout';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
-import { AdminRegisterPage } from './pages/AdminRegisterPage';
-import { AdminVerifyEmailPage } from './pages/AdminVerifyEmailPage'; // <-- 1. IMPORT
+import { AdminRegisterPage } from './pages/AdminRegisterPage'; // <-- 1. IMPORT
 import { UserManagementPage } from './pages/UserManagementPage';
 import { ProjectManagementPage } from './pages/ProjectManagementPage';
 import { ReportsPage } from './pages/ReportsPage';
@@ -21,8 +20,7 @@ import { TransactionsPage } from './pages/TransactionsPage';
 // The router configuration is updated with all necessary routes.
 const router = createBrowserRouter([
   { path: '/login', element: <AdminLoginPage /> },
-  { path: '/register', element: <AdminRegisterPage /> },
-  { path: '/verify-email', element: <AdminVerifyEmailPage /> }, // <-- 2. ADD the new route
+  { path: '/register', element: <AdminRegisterPage /> }, // <-- 2. ADD the new route
   {
     path: '/',
     element: <AdminProtectedRoute />,
