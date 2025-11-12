@@ -321,7 +321,6 @@ module.exports = {
   updateUserProfile,
   changeUserPassword,
   recordProfileView,
-  verifyEmail,
   forgotPassword,
   resetPassword,
   cancelSubscription,

@@ -25,7 +25,6 @@ const { protect } = require('../middleware/authMiddleware');
 router.route('/').get(getUsers);
 router.post('/register', registerUser);
 router.post('/login', authUser);
-router.post('/verify-email', verifyEmail); 
 router.post('/forgot-password', forgotPassword); // <-- ADD
 router.put('/reset-password/:token', resetPassword);
 router.route('/cancel-subscription').put(protect, cancelSubscription); 
