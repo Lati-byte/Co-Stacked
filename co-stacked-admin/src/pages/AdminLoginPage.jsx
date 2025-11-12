@@ -33,13 +33,12 @@ export const AdminLoginPage = () => {
     
     const resultAction = await dispatch(loginAdmin(credentials));
     
+    // --- THIS IS THE SIMPLIFIED LOGIC ---
+    // If the login is successful, navigate to the dashboard.
+    // If it fails for any reason, the component will automatically
+    // display the error message from the Redux state. No special logic is needed.
     if (loginAdmin.fulfilled.match(resultAction)) {
       navigate('/');
-    } else if (loginAdmin.rejected.match(resultAction) && resultAction.payload?.emailNotVerified) {
-      // --- THIS IS THE NEW LOGIC ---
-      // If the login failed specifically because the email is not verified,
-      // redirect the user to the verification page.
-      navigate('/verify-email');
     }
   };
 
