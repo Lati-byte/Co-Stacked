@@ -5,9 +5,10 @@ const AdminNotification = require('../models/AdminNotification'); // For admin p
 const generateToken = require('../utils/generateToken');
 const sendEmail = require('../utils/sendEmail');
 const crypto = require('crypto');
+const axios = require('axios');
 
 /**
- * @desc    Register a new user & send verification email
+ * @desc    Register a new user after validating their email with Abstract API
  * @route   POST /api/users/register
  * @access  Public
  */
@@ -23,8 +24,35 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'A user with this email already exists.' });
     }
 
+    // ==========================================================
+    // START: ABSTRACT API EMAIL VALIDATION
+    // ==========================================================
+    try {
+      console.log(`Validating email with Abstract API: ${email}`);
+      const apiKey = process.env.ABSTRACT_API_KEY;
+      const url = `https://emailvalidation.abstractapi.com/v1/?api_key=${apiKey}&email=${email}`;
+      const response = await axios.get(url);
+      
+      // We only accept emails that are 'DELIVERABLE'.
+      // This prevents disposable, invalid, or risky emails.
+      if (response.data.deliverability !== 'DELIVERABLE') {
+        console.log(`Registration blocked for undeliverable email: ${email}`, response.data);
+        return res.status(400).json({ message: 'Please provide a valid, deliverable email address.' });
+      }
+      console.log(`Email is deliverable for: ${email}`);
+
+    } catch (apiError) {
+      console.error('!!! ABSTRACT API ERROR !!!', apiError.response ? apiError.response.data : apiError.message);
+      // If the validation service fails, we block registration to be safe.
+      return res.status(503).json({ message: 'Email validation service is temporarily unavailable. Please try again later.' });
+    }
+    // ==========================================================
+    // END: ABSTRACT API EMAIL VALIDATION
+    // ==========================================================
+
     const user = await User.create({
-      name, email, password, role, bio, skills: skills ? skills.split(',').map(skill => skill.trim()) : [], location, availability, portfolioLink
+      name, email, password, role, bio, skills: skills ? skills.split(',').map(skill => skill.trim()) : [], location, availability, portfolioLink,
+      isEmailVerified: true // The email is considered "verified" by this check.
     });
 
     await AdminNotification.create({
@@ -34,87 +62,16 @@ const registerUser = async (req, res) => {
       refId: user._id
     });
 
-    const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
-    user.emailVerificationToken = verificationToken;
-    user.emailVerificationExpires = Date.now() + 10 * 60 * 1000;
-    await user.save({ validateBeforeSave: false });
-
-    const message = `Welcome to CoStacked!\n\nYour verification code is: ${verificationToken}\n\nThis code will expire in 10 minutes.`;
-    
-    try {
-      // ==========================================================
-      // START OF DIAGNOSTIC LOGGING
-      // ==========================================================
-      console.log('--- ATTEMPTING TO SEND VERIFICATION EMAIL ---');
-      console.log('Recipient:', user.email);
-      console.log('EMAIL_HOST:', process.env.EMAIL_HOST);
-      console.log('EMAIL_PORT:', process.env.EMAIL_PORT);
-      console.log('EMAIL_USER:', process.env.EMAIL_USER);
-      console.log('EMAIL_PASS is present:', !!process.env.EMAIL_PASS);
-      // ==========================================================
-      // END OF DIAGNOSTIC LOGGING
-      // ==========================================================
-
-      await sendEmail({
-        to: user.email,
-        subject: 'CoStacked - Verify Your Email Address',
-        text: message,
-      });
-
-      res.status(201).json({ 
-        success: true, 
-        message: 'Registration successful! Please check your email for a verification code.' 
-      });
-
-    } catch (emailError) {
-      // ==========================================================
-      // THIS LOG IS CRITICAL FOR DEBUGGING
-      // ==========================================================
-      console.error('!!! EMAIL SENDING FAILED !!!');
-      console.error(emailError); // This will log the actual detailed error from nodemailer
-      // ==========================================================
-      
-      return res.status(500).json({ 
-        message: 'Email sending failed on the server. See error details.',
-        error: emailError.message, // Send the error message
-        fullError: emailError      // Send the full error object
-      });
-    }
+    // Since we are not sending an OTP, we can just send a success message.
+    res.status(201).json({ 
+      success: true, 
+      message: 'Registration successful! You can now log in.' 
+    });
 
   } catch (error) {
     console.error(`[REGISTER ERROR]: ${error.message}`);
     res.status(500).json({ message: 'Server Error: Could not register user.' });
   }
-};
-
-/**
- * @desc    Verify user email with OTP
- * @route   POST /api/users/verify-email
- * @access  Public
- */
-const verifyEmail = async (req, res) => {
-    try {
-        const { email, token } = req.body;
-        if (!email || !token) {
-            return res.status(400).json({ message: 'Email and token are required.' });
-        }
-        const user = await User.findOne({ 
-            email, 
-            emailVerificationToken: token,
-            emailVerificationExpires: { $gt: Date.now() }
-        });
-        if (!user) {
-            return res.status(400).json({ message: 'Invalid or expired verification token.' });
-        }
-        user.isEmailVerified = true;
-        user.emailVerificationToken = undefined;
-        user.emailVerificationExpires = undefined;
-        await user.save({ validateBeforeSave: false });
-        res.json({ success: true, message: 'Email verified successfully! You can now log in.' });
-    } catch (error) {
-        console.error(`[VERIFY EMAIL ERROR]: ${error.message}`);
-        res.status(500).json({ message: 'Server error during email verification.' });
-    }
 };
 
 /**
@@ -128,16 +85,23 @@ const authUser = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({ message: 'Please provide both email and password.' });
     }
+
     const user = await User.findOne({ email });
+
     if (user && (await user.matchPassword(password))) {
-      if (!user.isEmailVerified) {
-        return res.status(401).json({ 
-          message: 'Email not verified. Please check your inbox for a verification code.',
-          emailNotVerified: true
-        });
-      }
+      // The `isEmailVerified` check is now removed.
+      // Since the email is validated by Abstract API upon registration,
+      // any user that exists is considered verified and can log in.
+      
       res.json({
-        user: { _id: user._id, name: user.name, email: user.email, role: user.role, isAdmin: user.isAdmin },
+        user: { 
+          _id: user._id, 
+          name: user.name, 
+          email: user.email, 
+          role: user.role, 
+          isAdmin: user.isAdmin,
+          isEmailVerified: user.isEmailVerified // It's good practice to still send this status to the frontend
+        },
         token: generateToken(user._id),
       });
     } else {
