@@ -45,11 +45,13 @@ export const RegistrationForm = () => {
     e.preventDefault();
     const resultAction = await dispatch(registerUser(formData));
 
-    // --- THIS IS THE UPDATED LOGIC ---
-    // If the registration is successful, redirect the user to the
-    // new email verification page instead of the login page.
+    // ==========================================================
+    // THIS IS THE ONLY CHANGE
+    // If registration is successful, redirect to the login page.
+    // ==========================================================
     if (registerUser.fulfilled.match(resultAction)) {
-      navigate('/verify-email');
+      // You could also show a success toast here before navigating
+      navigate('/login');
     }
   };
 
