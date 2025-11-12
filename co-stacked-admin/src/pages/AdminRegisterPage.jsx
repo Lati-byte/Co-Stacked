@@ -47,10 +47,12 @@ export const AdminRegisterPage = () => {
     
     const resultAction = await dispatch(registerAdmin(adminData));
     
-    // --- THIS IS THE UPDATE ---
-    // On successful registration, redirect to the new email verification page.
+    // ==========================================================
+    // THIS IS THE FINAL CHANGE
+    // On successful registration, redirect to the login page.
+    // ==========================================================
     if (registerAdmin.fulfilled.match(resultAction)) {
-      navigate('/verify-email');
+      navigate('/login');
     }
   };
 
@@ -81,6 +83,7 @@ export const AdminRegisterPage = () => {
           </div>
 
           {status === 'failed' && error && <p className={styles.error}>{error}</p>}
+          {/* You can keep this success message, but the user will be redirected quickly */}
           {status === 'succeeded' && successMessage && <p className={styles.success}>{successMessage}</p>}
           
           <button type="submit" className={styles.button} disabled={status === 'loading'}>
