@@ -30,9 +30,9 @@ export const AboutPage = () => {
         <div className={styles.teamGrid}>
           <TeamMemberCard 
             imageUrl={founderImage}
-            name="Your Name"
+            name="Moise Kobokiba"
             role="Founder & Full-Stack Developer"
-            linkedInUrl="https://linkedin.com/in/your-profile"
+            linkedInUrl="http://linkedin.com/in/moise-kobokiba"
           />
         </div>
       </section>
