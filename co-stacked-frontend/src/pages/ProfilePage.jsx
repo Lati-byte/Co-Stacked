@@ -1,4 +1,5 @@
-// src/pages/ProfilePage.jsx
+// frontend/src/pages/ProfilePage.jsx
+
 import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
@@ -39,9 +40,8 @@ export const ProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isBoostModalOpen, setBoostModalOpen] = useState(false);
   const [isReviewModalOpen, setReviewModalOpen] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
-  const [isPending, setIsPending] = useState(false);
-  const [isRequestIncoming, setIsRequestIncoming] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState('not_connected'); // 'not_connected', 'pending', 'connected', 'request_received'
+  const [isLoading, setIsLoading] = useState(false);
 
   const { user: loggedInUser } = useSelector(state => state.auth);
   const { items: allUsers, status: usersStatus } = useSelector(state => state.users);
@@ -51,15 +51,30 @@ export const ProfilePage = () => {
   
   const userToDisplay = userId ? allUsers.find(u => u._id === userId) : loggedInUser;
   const isOwnProfile = userToDisplay && loggedInUser && userToDisplay._id === loggedInUser._id;
-  
-  // Connection status effect
-  useEffect(() => {
-    if (!loggedInUser || !userToDisplay) return;
 
-    setIsConnected(userToDisplay.connections?.includes(loggedInUser._id));
-    setIsPending(loggedInUser.sentRequests?.includes(userToDisplay._id));
-    setIsRequestIncoming(loggedInUser.connectionRequests?.includes(userToDisplay._id));
-  }, [loggedInUser, userToDisplay]);
+  // Fetch connection status
+  useEffect(() => {
+    const fetchConnectionStatus = async () => {
+      if (!loggedInUser || !userToDisplay || isOwnProfile) return;
+      
+      try {
+        const response = await fetch(`/api/connections/status/${userToDisplay._id}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setConnectionStatus(data.status);
+        }
+      } catch (error) {
+        console.error('Error fetching connection status:', error);
+      }
+    };
+
+    fetchConnectionStatus();
+  }, [loggedInUser, userToDisplay, isOwnProfile]);
 
   // Data fetching effects
   useEffect(() => {
@@ -76,19 +91,130 @@ export const ProfilePage = () => {
     }
   }, [userId, loggedInUser, dispatch]);
 
+  // Connection Handlers
   const sendConnectionRequest = async () => {
+    if (!userToDisplay) return;
+    
+    setIsLoading(true);
     try {
-      const res = await fetch(`/api/connections/send`, {
+      const res = await fetch('/api/connections/send', {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify({ targetUserId: userToDisplay._id })
       });
 
       if (res.ok) {
-        setIsPending(true);
+        setConnectionStatus('pending');
+      } else {
+        const error = await res.json();
+        console.error('Error sending connection request:', error.message);
       }
     } catch (e) {
       console.error("Error sending connection request", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const acceptConnectionRequest = async () => {
+    if (!userToDisplay) return;
+    
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/connections/accept', {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ senderId: userToDisplay._id })
+      });
+
+      if (res.ok) {
+        setConnectionStatus('connected');
+      } else {
+        const error = await res.json();
+        console.error('Error accepting connection:', error.message);
+      }
+    } catch (e) {
+      console.error("Error accepting connection", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const declineConnectionRequest = async () => {
+    if (!userToDisplay) return;
+    
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/connections/decline', {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ senderId: userToDisplay._id })
+      });
+
+      if (res.ok) {
+        setConnectionStatus('not_connected');
+      }
+    } catch (e) {
+      console.error("Error declining connection", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const removeConnection = async () => {
+    if (!userToDisplay) return;
+    
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/connections/remove', {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ targetUserId: userToDisplay._id })
+      });
+
+      if (res.ok) {
+        setConnectionStatus('not_connected');
+      }
+    } catch (e) {
+      console.error("Error removing connection", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const cancelSentRequest = async () => {
+    if (!userToDisplay) return;
+    
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/connections/cancel', {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ targetUserId: userToDisplay._id })
+      });
+
+      if (res.ok) {
+        setConnectionStatus('not_connected');
+      }
+    } catch (e) {
+      console.error("Error canceling request", e);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -113,6 +239,71 @@ export const ProfilePage = () => {
   if (usersStatus === 'loading' || projectsStatus === 'loading' || reviewsStatus === 'loading' || !userToDisplay) {
     return <div className={styles.pageContainer}><LoadingSpinner /></div>;
   }
+
+  const renderConnectionButton = () => {
+    if (isOwnProfile) return null;
+
+    switch (connectionStatus) {
+      case 'connected':
+        return (
+          <div className={styles.connectionActions}>
+            <Button disabled variant="secondary">Connected ✓</Button>
+            <Button 
+              onClick={removeConnection} 
+              variant="outline" 
+              disabled={isLoading}
+            >
+              Remove Connection
+            </Button>
+          </div>
+        );
+      
+      case 'pending':
+        return (
+          <div className={styles.connectionActions}>
+            <Button disabled variant="secondary">Request Sent</Button>
+            <Button 
+              onClick={cancelSentRequest} 
+              variant="outline" 
+              disabled={isLoading}
+            >
+              Cancel Request
+            </Button>
+          </div>
+        );
+      
+      case 'request_received':
+        return (
+          <div className={styles.connectionActions}>
+            <Button 
+              onClick={acceptConnectionRequest} 
+              variant="primary" 
+              disabled={isLoading}
+            >
+              Accept Request
+            </Button>
+            <Button 
+              onClick={declineConnectionRequest} 
+              variant="outline" 
+              disabled={isLoading}
+            >
+              Decline
+            </Button>
+          </div>
+        );
+      
+      default: // not_connected
+        return (
+          <Button 
+            onClick={sendConnectionRequest} 
+            variant="primary" 
+            disabled={isLoading}
+          >
+            {isLoading ? 'Sending...' : 'Connect'}
+          </Button>
+        );
+    }
+  };
 
   return (
     <>
@@ -163,26 +354,8 @@ export const ProfilePage = () => {
                     </Button>
                   )}
 
-                  {/* Connection Logic */}
-                  {!isOwnProfile && (
-                    <>
-                      {isConnected && (
-                        <Button disabled variant="secondary">Connected ✓</Button>
-                      )}
+                  {renderConnectionButton()}
 
-                      {!isConnected && isPending && (
-                        <Button disabled variant="secondary">Pending...</Button>
-                      )}
-
-                      {!isConnected && !isPending && (
-                        <Button onClick={sendConnectionRequest} variant="primary">
-                          Connect
-                        </Button>
-                      )}
-                    </>
-                  )}
-
-                  {/* Own Profile Actions */}
                   {isOwnProfile && (
                     <>
                       <Button onClick={() => setBoostModalOpen(true)} variant="secondary">
@@ -234,14 +407,15 @@ export const ProfilePage = () => {
                   </>
                 )}
                 
+                {/* Testimonials Section - Hidden with CSS */}
                 {developerReviews.length > 0 && (
-                  <>
+                  <div className={styles.hiddenSection}>
                     <div className={styles.separator} />
                     <h2 className={styles.title}>Reviews</h2>
                     <div className={styles.reviewsGrid}>
                       {developerReviews.map(r => <ReviewCard key={r._id} review={r}/>)}
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
             </Card>
