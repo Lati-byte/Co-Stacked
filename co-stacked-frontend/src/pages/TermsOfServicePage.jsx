@@ -29,12 +29,12 @@ export const TermsOfServicePage = () => {
         <section>
           <h2>4. User Content and Conduct</h2>
           <p>You are solely responsible for the content you post, including project descriptions, profile information, and messages ("User Content"). You agree not to post User Content that is unlawful, harmful, threatening, abusive, or otherwise objectionable.</p>
-          <p>You grant Co-Stacked a worldwide, non-exclusive, royalty-free license to use, reproduce, and display the User Content solely for the purposes of operating and providing the Service.</p>
+          <p>You grant CoStacked a worldwide, non-exclusive, royalty-free license to use, reproduce, and display the User Content solely for the purposes of operating and providing the Service.</p>
         </section>
         
         <section>
           <h2>5. Intellectual Property</h2>
-          <p>CoStacked is a platform for sharing ideas. When you connect with another user, you may be exposed to their confidential information. The **Non-Disclosure Agreement (NDA)** presented before you connect governs the confidentiality of this information. Co-Stacked does not claim ownership rights in the project ideas or content you post. The intellectual property of projects remains with the original Founder or as agreed between collaborating parties.</p>
+          <p>CoStacked is a platform for sharing ideas. When you connect with another user, you may be exposed to their confidential information. The **Non-Disclosure Agreement (NDA)** presented before you connect governs the confidentiality of this information. CoStacked does not claim ownership rights in the project ideas or content you post. The intellectual property of projects remains with the original Founder or as agreed between collaborating parties.</p>
         </section>
 
         <section>
