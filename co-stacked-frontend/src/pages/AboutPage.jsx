@@ -12,7 +12,7 @@ export const AboutPage = () => {
       {/* --- Hero Section --- */}
       <section className={styles.hero}>
         <h1>Our mission is to bridge the gap between brilliant ideas and brilliant minds.</h1>
-        <p>We believe that no great idea should fail simply because the right people couldn't find each other. Co-Stacked was built to be the launchpad for the next generation of digital products and startups.</p>
+        <p>We believe that no great idea should fail simply because the right people couldn't find each other. CoStacked was built to be the launchpad for the next generation of digital products and startups.</p>
       </section>
 
       {/* --- Our Story Section --- */}
