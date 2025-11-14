@@ -13,7 +13,7 @@ export const PrivacyPolicyPage = () => {
 
         <section>
           <h2>1. Introduction</h2>
-          <p>Welcome to Co-Stacked ("we," "our," "us"). We are committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website. Please read this privacy policy carefully. If you do not agree with the terms, do not access the site.</p>
+          <p>Welcome to CoStacked ("we," "our," "us"). We are committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website. Please read this privacy policy carefully. If you do not agree with the terms, do not access the site.</p>
         </section>
 
         <section>
