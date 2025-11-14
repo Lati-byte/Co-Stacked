@@ -55,12 +55,12 @@ export const ProfilePage = () => {
   const [isRequestIncoming, setIsRequestIncoming] = useState(false);
 
 useEffect(() => {
-  if (!loggedInUser || !profileUser) return;
+  if (!loggedInUser || !userToDisplay) return;
 
-  setIsConnected(profileUser.connections?.includes(loggedInUser._id));
-  setIsPending(loggedInUser.sentRequests?.includes(profileUser._id));
-  setIsRequestIncoming(loggedInUser.connectionRequests?.includes(profileUser._id));
-}, [loggedInUser, profileUser]);
+  setIsConnected(userToDisplay.connections?.includes(loggedInUser._id));
+  setIsPending(loggedInUser.sentRequests?.includes(userToDisplay._id));
+  setIsRequestIncoming(loggedInUser.connectionRequests?.includes(userToDisplay._id));
+}, [loggedInUser, userToDisplay]);
 
   useEffect(() => {
     if (usersStatus === 'idle') dispatch(fetchUsers());
@@ -75,6 +75,26 @@ useEffect(() => {
     }
   }, [userId, loggedInUser, dispatch]);
   
+const [isConnected, setIsConnected] = useState(false);
+const [isPending, setIsPending] = useState(false);
+const [isRequestIncoming, setIsRequestIncoming] = useState(false);
+
+const sendConnectionRequest = async () => {
+  try {
+    const res = await fetch(`/api/connections/send`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ targetUserId: userToDisplay._id })
+    });
+
+    if (res.ok) {
+      setIsPending(true);
+    }
+  } catch (e) {
+    console.error("Error sending connection request", e);
+  }
+};
+
   const developerReviews = reviewsByUser[userToDisplay?._id] || [];
 
   const userProjects = userToDisplay?.role === 'founder' 
@@ -139,16 +159,42 @@ useEffect(() => {
                   <p className={styles.subtitle}>{userToDisplay.role}</p>
                 </div>
                 
-                <div className={styles.headerActions}>
-                  {canLeaveReview && <Button onClick={() => setReviewModalOpen(true)} variant="secondary">Leave a Review</Button>}
-                  {isOwnProfile && (
-                    <>
-                      <Button onClick={() => setBoostModalOpen(true)} variant="secondary">Boost Profile</Button>
-                      <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
-                    </>
-                  )}
-                </div>
-              </div>
+              <div className={styles.headerActions}>
+  {canLeaveReview && (
+    <Button onClick={() => setReviewModalOpen(true)} variant="secondary">
+      Leave a Review
+    </Button>
+  )}
+
+  {/* --- CONNECTION LOGIC --- */}
+  {!isOwnProfile && (
+    <>
+      {isConnected && (
+        <Button disabled variant="secondary">Connected ✓</Button>
+      )}
+
+      {!isConnected && isPending && (
+        <Button disabled variant="secondary">Pending...</Button>
+      )}
+
+      {!isConnected && !isPending && (
+        <Button onClick={sendConnectionRequest} variant="primary">
+          Connect
+        </Button>
+      )}
+    </>
+  )}
+
+  {/* --- OWN PROFILE ACTIONS --- */}
+  {isOwnProfile && (
+    <>
+      <Button onClick={() => setBoostModalOpen(true)} variant="secondary">
+        Boost Profile
+      </Button>
+      <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
+    </>
+  )}
+</div>
               
               <div className={styles.content}>
                 <div className={styles.section}><h3 className={styles.sectionTitle}>About Me:</h3><p>{userToDisplay.bio || 'No bio provided.'}</p></div>
