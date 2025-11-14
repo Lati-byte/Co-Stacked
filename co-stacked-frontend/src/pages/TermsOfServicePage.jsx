@@ -13,12 +13,12 @@ export const TermsOfServicePage = () => {
 
         <section>
           <h2>1. Agreement to Terms</h2>
-          <p>By using the Co-Stacked platform ("Site", "Service"), you agree to be bound by these Terms of Service. If you disagree with any part of the terms, then you may not access the Service. These terms apply to all visitors, users, and others who access or use the Service.</p>
+          <p>By using the CoStacked platform ("Site", "Service"), you agree to be bound by these Terms of Service. If you disagree with any part of the terms, then you may not access the Service. These terms apply to all visitors, users, and others who access or use the Service.</p>
         </section>
 
         <section>
           <h2>2. Description of Service</h2>
-          <p>Co-Stacked provides a platform for individuals ("Founders") to post summaries of their project ideas and for other individuals ("Developers") to connect with them for potential collaboration. We are a platform for facilitating connections and are not a party to any agreement entered into between users.</p>
+          <p>CoStacked provides a platform for individuals ("Founders") to post summaries of their project ideas and for other individuals ("Developers") to connect with them for potential collaboration. We are a platform for facilitating connections and are not a party to any agreement entered into between users.</p>
         </section>
         
         <section>
@@ -34,13 +34,13 @@ export const TermsOfServicePage = () => {
         
         <section>
           <h2>5. Intellectual Property</h2>
-          <p>Co-Stacked is a platform for sharing ideas. When you connect with another user, you may be exposed to their confidential information. The **Non-Disclosure Agreement (NDA)** presented before you connect governs the confidentiality of this information. Co-Stacked does not claim ownership rights in the project ideas or content you post. The intellectual property of projects remains with the original Founder or as agreed between collaborating parties.</p>
+          <p>CoStacked is a platform for sharing ideas. When you connect with another user, you may be exposed to their confidential information. The **Non-Disclosure Agreement (NDA)** presented before you connect governs the confidentiality of this information. Co-Stacked does not claim ownership rights in the project ideas or content you post. The intellectual property of projects remains with the original Founder or as agreed between collaborating parties.</p>
         </section>
 
         <section>
           <h2>6. Limitation of Liability</h2>
-          <p>In no event shall Co-Stacked, nor its directors or employees, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your access to or use of or inability to access or use the Service.</p>
-          <p><strong>Disclaimer:</strong> Co-Stacked does not vet users or projects. We are not responsible for the conduct of any user of our service. You are solely responsible for your interactions with other users.</p>
+          <p>In no event shall CoStacked, nor its directors or employees, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your access to or use of or inability to access or use the Service.</p>
+          <p><strong>Disclaimer:</strong> CoStacked does not vet users or projects. We are not responsible for the conduct of any user of our service. You are solely responsible for your interactions with other users.</p>
         </section>
 
         <section>
