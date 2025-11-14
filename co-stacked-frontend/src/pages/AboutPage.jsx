@@ -19,7 +19,7 @@ export const AboutPage = () => {
       <section className={styles.storySection}>
         <div className={styles.storyContent}>
           <h2>From a single idea to a community.</h2>
-          <p>Co-Stacked was born from a simple observation: founders with groundbreaking ideas often struggle to find the technical talent to bring them to life. At the same time, countless skilled developers are searching for meaningful projects to contribute to, learn from, or even co-found.</p>
+          <p>CoStacked was born from a simple observation: founders with groundbreaking ideas often struggle to find the technical talent to bring them to life. At the same time, countless skilled developers are searching for meaningful projects to contribute to, learn from, or even co-found.</p>
           <p>We created this platform to be that essential bridge. A place for collaboration, innovation, and shared success. It's a space built on the belief that the right partnership can turn a simple concept into a world-changing reality.</p>
         </div>
       </section>
