@@ -50,9 +50,17 @@ export const ProfilePage = () => {
   const userToDisplay = userId ? allUsers.find(u => u._id === userId) : loggedInUser;
   const isOwnProfile = userToDisplay && loggedInUser && userToDisplay._id === loggedInUser._id;
   
-const [isConnected, setIsConnected] = useState(false);
-const [isPending, setIsPending] = useState(false);
-const [isRequestIncoming, setIsRequestIncoming] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const [isPending, setIsPending] = useState(false);
+  const [isRequestIncoming, setIsRequestIncoming] = useState(false);
+
+useEffect(() => {
+  if (!loggedInUser || !profileUser) return;
+
+  setIsConnected(profileUser.connections?.includes(loggedInUser._id));
+  setIsPending(loggedInUser.sentRequests?.includes(profileUser._id));
+  setIsRequestIncoming(loggedInUser.connectionRequests?.includes(profileUser._id));
+}, [loggedInUser, profileUser]);
 
   useEffect(() => {
     if (usersStatus === 'idle') dispatch(fetchUsers());
