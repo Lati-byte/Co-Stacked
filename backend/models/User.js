@@ -125,3 +125,15 @@ userSchema.methods.createPasswordResetToken = function() {
 
 // Robust export to prevent 'OverwriteModelError' in development environments
 module.exports = mongoose.models.User || mongoose.model("User", userSchema);
+
+connections: [
+  { type: mongoose.Schema.Types.ObjectId, ref: "User" }
+],
+
+connectionRequests: [
+  { type: mongoose.Schema.Types.ObjectId, ref: "User" }
+],
+
+sentRequests: [
+  { type: mongoose.Schema.Types.ObjectId, ref: "User" }
+],
