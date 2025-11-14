@@ -50,6 +50,10 @@ export const ProfilePage = () => {
   const userToDisplay = userId ? allUsers.find(u => u._id === userId) : loggedInUser;
   const isOwnProfile = userToDisplay && loggedInUser && userToDisplay._id === loggedInUser._id;
   
+const [isConnected, setIsConnected] = useState(false);
+const [isPending, setIsPending] = useState(false);
+const [isRequestIncoming, setIsRequestIncoming] = useState(false);
+
   useEffect(() => {
     if (usersStatus === 'idle') dispatch(fetchUsers());
     if (projectsStatus === 'idle') dispatch(fetchProjects());
