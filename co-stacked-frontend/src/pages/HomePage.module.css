@@ -159,6 +159,6 @@
   }
 }
   /* Completely remove the entire testimonials section */
-.TestimonialsCard {
+.Testimonials {
   display: none !important;
 }
