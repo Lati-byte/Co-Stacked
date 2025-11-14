@@ -159,6 +159,6 @@
   }
 }
   /* Completely remove the entire testimonials section */
-.Testimonials {
+.testimonials {
   display: none !important;
 }
