@@ -1,5 +1,4 @@
 // src/pages/ProfilePage.jsx
-
 import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
@@ -40,6 +39,9 @@ export const ProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isBoostModalOpen, setBoostModalOpen] = useState(false);
   const [isReviewModalOpen, setReviewModalOpen] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const [isPending, setIsPending] = useState(false);
+  const [isRequestIncoming, setIsRequestIncoming] = useState(false);
 
   const { user: loggedInUser } = useSelector(state => state.auth);
   const { items: allUsers, status: usersStatus } = useSelector(state => state.users);
@@ -50,18 +52,16 @@ export const ProfilePage = () => {
   const userToDisplay = userId ? allUsers.find(u => u._id === userId) : loggedInUser;
   const isOwnProfile = userToDisplay && loggedInUser && userToDisplay._id === loggedInUser._id;
   
-  const [isConnected, setIsConnected] = useState(false);
-  const [isPending, setIsPending] = useState(false);
-  const [isRequestIncoming, setIsRequestIncoming] = useState(false);
+  // Connection status effect
+  useEffect(() => {
+    if (!loggedInUser || !userToDisplay) return;
 
-useEffect(() => {
-  if (!loggedInUser || !userToDisplay) return;
+    setIsConnected(userToDisplay.connections?.includes(loggedInUser._id));
+    setIsPending(loggedInUser.sentRequests?.includes(userToDisplay._id));
+    setIsRequestIncoming(loggedInUser.connectionRequests?.includes(userToDisplay._id));
+  }, [loggedInUser, userToDisplay]);
 
-  setIsConnected(userToDisplay.connections?.includes(loggedInUser._id));
-  setIsPending(loggedInUser.sentRequests?.includes(userToDisplay._id));
-  setIsRequestIncoming(loggedInUser.connectionRequests?.includes(userToDisplay._id));
-}, [loggedInUser, userToDisplay]);
-
+  // Data fetching effects
   useEffect(() => {
     if (usersStatus === 'idle') dispatch(fetchUsers());
     if (projectsStatus === 'idle') dispatch(fetchProjects());
@@ -69,31 +69,28 @@ useEffect(() => {
     if (loggedInUser?.role === 'founder') dispatch(fetchReceivedInterests());
   }, [userToDisplay?._id, usersStatus, projectsStatus, loggedInUser, dispatch]);
   
+  // Record profile view
   useEffect(() => {
     if (userId && loggedInUser && userId !== loggedInUser._id) {
       dispatch(recordProfileView(userId));
     }
   }, [userId, loggedInUser, dispatch]);
-  
-const [isConnected, setIsConnected] = useState(false);
-const [isPending, setIsPending] = useState(false);
-const [isRequestIncoming, setIsRequestIncoming] = useState(false);
 
-const sendConnectionRequest = async () => {
-  try {
-    const res = await fetch(`/api/connections/send`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ targetUserId: userToDisplay._id })
-    });
+  const sendConnectionRequest = async () => {
+    try {
+      const res = await fetch(`/api/connections/send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetUserId: userToDisplay._id })
+      });
 
-    if (res.ok) {
-      setIsPending(true);
+      if (res.ok) {
+        setIsPending(true);
+      }
+    } catch (e) {
+      console.error("Error sending connection request", e);
     }
-  } catch (e) {
-    console.error("Error sending connection request", e);
-  }
-};
+  };
 
   const developerReviews = reviewsByUser[userToDisplay?._id] || [];
 
@@ -159,58 +156,92 @@ const sendConnectionRequest = async () => {
                   <p className={styles.subtitle}>{userToDisplay.role}</p>
                 </div>
                 
-              <div className={styles.headerActions}>
-  {canLeaveReview && (
-    <Button onClick={() => setReviewModalOpen(true)} variant="secondary">
-      Leave a Review
-    </Button>
-  )}
+                <div className={styles.headerActions}>
+                  {canLeaveReview && (
+                    <Button onClick={() => setReviewModalOpen(true)} variant="secondary">
+                      Leave a Review
+                    </Button>
+                  )}
 
-  {/* --- CONNECTION LOGIC --- */}
-  {!isOwnProfile && (
-    <>
-      {isConnected && (
-        <Button disabled variant="secondary">Connected ✓</Button>
-      )}
+                  {/* Connection Logic */}
+                  {!isOwnProfile && (
+                    <>
+                      {isConnected && (
+                        <Button disabled variant="secondary">Connected ✓</Button>
+                      )}
 
-      {!isConnected && isPending && (
-        <Button disabled variant="secondary">Pending...</Button>
-      )}
+                      {!isConnected && isPending && (
+                        <Button disabled variant="secondary">Pending...</Button>
+                      )}
 
-      {!isConnected && !isPending && (
-        <Button onClick={sendConnectionRequest} variant="primary">
-          Connect
-        </Button>
-      )}
-    </>
-  )}
+                      {!isConnected && !isPending && (
+                        <Button onClick={sendConnectionRequest} variant="primary">
+                          Connect
+                        </Button>
+                      )}
+                    </>
+                  )}
 
-  {/* --- OWN PROFILE ACTIONS --- */}
-  {isOwnProfile && (
-    <>
-      <Button onClick={() => setBoostModalOpen(true)} variant="secondary">
-        Boost Profile
-      </Button>
-      <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
-    </>
-  )}
-</div>
+                  {/* Own Profile Actions */}
+                  {isOwnProfile && (
+                    <>
+                      <Button onClick={() => setBoostModalOpen(true)} variant="secondary">
+                        Boost Profile
+                      </Button>
+                      <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
+                    </>
+                  )}
+                </div>
+              </div>
               
               <div className={styles.content}>
-                <div className={styles.section}><h3 className={styles.sectionTitle}>About Me:</h3><p>{userToDisplay.bio || 'No bio provided.'}</p></div>
-                <div className={styles.section}><h3 className={styles.sectionTitle}>Skills:</h3><div className={styles.skillsContainer}>{(Array.isArray(userToDisplay.skills) && userToDisplay.skills.length > 0) ? userToDisplay.skills.map(s => <Tag key={s}>{s}</Tag>) : <p>No skills listed.</p>}</div></div>
-                <div className={styles.infoGrid}><div className={styles.infoItem}><MapPin size={18}/><span>{userToDisplay.location || 'N/A'}</span></div><div className={styles.infoItem}><LinkIcon size={18}/><a href={userToDisplay.portfolioLink} target="_blank" rel="noopener noreferrer">Portfolio</a></div><p><strong>Availability:</strong> {userToDisplay.availability || 'N/A'}</p></div>
+                <div className={styles.section}>
+                  <h3 className={styles.sectionTitle}>About Me:</h3>
+                  <p>{userToDisplay.bio || 'No bio provided.'}</p>
+                </div>
+                
+                <div className={styles.section}>
+                  <h3 className={styles.sectionTitle}>Skills:</h3>
+                  <div className={styles.skillsContainer}>
+                    {(Array.isArray(userToDisplay.skills) && userToDisplay.skills.length > 0) 
+                      ? userToDisplay.skills.map(s => <Tag key={s}>{s}</Tag>) 
+                      : <p>No skills listed.</p>
+                    }
+                  </div>
+                </div>
+                
+                <div className={styles.infoGrid}>
+                  <div className={styles.infoItem}>
+                    <MapPin size={18}/>
+                    <span>{userToDisplay.location || 'N/A'}</span>
+                  </div>
+                  <div className={styles.infoItem}>
+                    <LinkIcon size={18}/>
+                    <a href={userToDisplay.portfolioLink} target="_blank" rel="noopener noreferrer">
+                      Portfolio
+                    </a>
+                  </div>
+                  <p><strong>Availability:</strong> {userToDisplay.availability || 'N/A'}</p>
+                </div>
                 
                 {userProjects.length > 0 && (
-                   <><div className={styles.separator} /><h2 className={styles.title}>Posted Projects</h2><div className={styles.projectsGrid}>{userProjects.map(p => <ProjectCard key={p._id} project={p}/>)}</div></>
+                  <>
+                    <div className={styles.separator} />
+                    <h2 className={styles.title}>Posted Projects</h2>
+                    <div className={styles.projectsGrid}>
+                      {userProjects.map(p => <ProjectCard key={p._id} project={p}/>)}
+                    </div>
+                  </>
                 )}
                 
                 {developerReviews.length > 0 && (
-                   <><div className={styles.separator} /><h2 className={styles.title}>Reviews</h2><div className={styles.reviewsGrid}>{developerReviews.map(r => 
-                        // --- THIS IS THE FIX ---
-                        // Use the MongoDB `_id` field for a stable and unique key.
-                        <ReviewCard key={r._id} review={r}/>
-                   )}</div></>
+                  <>
+                    <div className={styles.separator} />
+                    <h2 className={styles.title}>Reviews</h2>
+                    <div className={styles.reviewsGrid}>
+                      {developerReviews.map(r => <ReviewCard key={r._id} review={r}/>)}
+                    </div>
+                  </>
                 )}
               </div>
             </Card>
