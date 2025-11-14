@@ -158,17 +158,7 @@
     margin-bottom: 2rem;
   }
 }
-  /* HIDE THE TESTIMONIAL / REVIEWS SECTION */
-.reviewsGrid,
-.separator + h2,
-.separator {
-    display: none !important;
-}
-  /* Completely hide the testimonials section wrapper */
-.testimonialsSection {
-  display: none !important;
-}
- /* Completely remove the entire testimonials section */
+  /* Completely remove the entire testimonials section */
 .testimonialsSection {
   display: none !important;
 }
