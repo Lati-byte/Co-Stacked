@@ -24,6 +24,8 @@ const userSchema = mongoose.Schema(
     role: { 
       type: String, 
       required: true, 
+      // --- THIS IS THE FIX ---
+      // Add 'admin' to the list of allowed roles.
       enum: ['developer', 'founder', 'admin'],
       default: 'developer',
     },
@@ -34,6 +36,7 @@ const userSchema = mongoose.Schema(
       default: false,
     },
     isVerified: {
+      // For paid subscription
       type: Boolean,
       default: false,
     },
@@ -82,27 +85,6 @@ const userSchema = mongoose.Schema(
       type: Number,
       default: 0,
     },
-
-    // --- LINKEDIN-STYLE CONNECTION FIELDS ---
-    connections: [
-      { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: "User" 
-      }
-    ],
-    connectionRequests: [
-      { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: "User" 
-      }
-    ],
-    sentRequests: [
-      { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: "User" 
-      }
-    ],
-
     passwordResetToken: String,
     passwordResetExpires: Date,
   },
@@ -126,7 +108,7 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// Method to generate and hash password reset token
+// --- NEW: Method to generate and hash password reset token ---
 userSchema.methods.createPasswordResetToken = function() {
   const resetToken = crypto.randomBytes(32).toString('hex');
 
