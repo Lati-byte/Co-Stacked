@@ -1,4 +1,5 @@
 // backend/utils/sendEmail.js
+import fetch from "node-fetch";
 
 const sendEmail = async (options) => {
   const MAILERSEND_API_KEY = process.env.MAILERSEND_API_KEY;
@@ -6,13 +7,25 @@ const sendEmail = async (options) => {
   const MAILERSEND_FROM_EMAIL = process.env.MAILERSEND_FROM_EMAIL;
   const MAILERSEND_FROM_NAME = process.env.MAILERSEND_FROM_NAME;
 
-  // --- RIGOROUS CHECKING ---
+  // Check necessary env vars
   if (!MAILERSEND_API_KEY || !MAILERSEND_FROM_EMAIL || !MAILERSEND_FROM_NAME) {
-    console.error("FATAL: MailerSend environment variables are missing!");
-    console.error(`API Key Loaded: ${!!MAILERSEND_API_KEY}`);
-    console.error(`From Email Loaded: ${!!MAILERSEND_FROM_EMAIL}`);
-    console.error(`From Name Loaded: ${!!MAILERSEND_FROM_NAME}`);
-    throw new Error("Email service is not configured correctly on the server.");
+    console.error("MailerSend env variables missing:", {
+      apiKey: !!MAILERSEND_API_KEY,
+      fromEmail: !!MAILERSEND_FROM_EMAIL,
+      fromName: !!MAILERSEND_FROM_NAME,
+    });
+    throw new Error("MailerSend is not configured correctly");
+  }
+
+  // Validate to / subject / content
+  if (!options.to) {
+    throw new Error("No recipient email provided for sendEmail");
+  }
+  if (!options.subject) {
+    throw new Error("No subject provided for sendEmail");
+  }
+  if (!options.text && !options.html) {
+    throw new Error("Either text or html must be provided to sendEmail");
   }
 
   const emailPayload = {
@@ -21,7 +34,7 @@ const sendEmail = async (options) => {
       name: MAILERSEND_FROM_NAME,
     },
     to: [
-      { email: options.to }
+      { email: options.to, name: options.toName || undefined }
     ],
     subject: options.subject,
     text: options.text,
@@ -38,32 +51,32 @@ const sendEmail = async (options) => {
       body: JSON.stringify(emailPayload),
     });
 
-    // --- IMPROVED ERROR LOGGING ---
+    const responseText = await response.text();
+    let responseBody;
+    try {
+      responseBody = JSON.parse(responseText);
+    } catch (e) {
+      responseBody = responseText;
+    }
+
     if (!response.ok) {
-      // Try to get the detailed error message from MailerSend's response body
-      let errorBody = 'Could not parse error response.';
-      try {
-        errorBody = await response.json();
-      } catch (e) {
-        // Ignore parsing error if body is not JSON
-      }
-      
-      console.error("MailerSend API Error Response:", {
+      console.error("MailerSend API Error:", {
         status: response.status,
         statusText: response.statusText,
-        body: errorBody,
+        body: responseBody,
       });
-
-      throw new Error(`Failed to send email via MailerSend. Status: ${response.status}`);
+      throw new Error(
+        `MailerSend failed with status ${response.status}: ` +
+        (responseBody?.message || JSON.stringify(responseBody))
+      );
     }
-    
-    console.log(`Email sent successfully to ${options.to} via MailerSend.`);
-    return await response.json();
 
-  } catch (error) {
-    console.error("Critical error in sendEmail utility:", error);
-    throw error;
+    console.log(`MailerSend email sent to ${options.to}`, responseBody);
+    return responseBody;
+  } catch (err) {
+    console.error("sendEmail - unexpected error:", err);
+    throw err;
   }
 };
 
-module.exports = sendEmail;
+export default sendEmail;

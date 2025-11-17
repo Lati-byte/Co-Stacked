@@ -11,6 +11,16 @@ if (process.env.NODE_ENV !== 'production') {
   dotenv.config();
 }
 
+// --- THIS IS THE NEW DEBUGGING STEP ---
+// Log the environment variables to confirm they are loaded in the Render environment.
+console.log("--- Environment Variable Check ---");
+console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
+console.log(`MONGO_URI Loaded: ${!!process.env.MONGO_URI}`);
+console.log(`MAILERSEND_API_KEY Loaded: ${!!process.env.MAILERSEND_API_KEY}`);
+console.log(`MAILERSEND_FROM_EMAIL: ${process.env.MAILERSEND_FROM_EMAIL}`);
+console.log("---------------------------------");
+// --- END DEBUGGING STEP ---
+
 // --- 2. ROUTE IMPORTS ---
 const userRoutes = require('./routes/userRoutes');
 const projectRoutes = require('./routes/projectRoutes');
