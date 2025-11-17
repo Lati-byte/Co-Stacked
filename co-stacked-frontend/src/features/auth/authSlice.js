@@ -1,73 +1,42 @@
 // src/features/auth/authSlice.js
 
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import API from '../../api/axios';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import API from "../../api/axios";
 
-// Import actions from other slices that this slice needs to react to.
-import { verifySubscription, verifyProfileBoost, cancelSubscription } from '../payments/paymentSlice';
+// Import actions from other slices that this slice needs to react to
+import {
+  verifySubscription,
+  verifyProfileBoost,
+  cancelSubscription,
+} from "../payments/paymentSlice";
 
-// ===================================================================
-// UTILITY: Get user profile from localStorage
-// ===================================================================
-const userProfile = JSON.parse(localStorage.getItem('userProfile'));
+// A single, consistent key for storing auth data in localStorage
+const AUTH_STORAGE_KEY = "userAuth";
 
+// Utility function to safely load the initial state from localStorage
+const loadAuthState = () => {
+  try {
+    const serializedState = localStorage.getItem(AUTH_STORAGE_KEY);
+    if (serializedState === null) {
+      return { user: null, token: null, isAuthenticated: false };
+    }
+    const { user, token } = JSON.parse(serializedState);
+    return { user, token, isAuthenticated: !!token };
+  } catch (err) {
+    console.error("Could not load auth state from localStorage", err);
+    return { user: null, token: null, isAuthenticated: false };
+  }
+};
 
 // ===================================================================
 // ASYNC THUNKS
 // ===================================================================
 
-export const forgotPassword = createAsyncThunk(
-  'auth/forgotPassword',
-  async (email, { rejectWithValue }) => {
-    try {
-      const response = await API.post('/users/forgot-password', { email });
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response.data);
-    }
-  }
-);
-
-export const resetPassword = createAsyncThunk(
-  'auth/resetPassword',
-  async ({ token, password }, { rejectWithValue }) => {
-    try {
-      const response = await API.put(`/users/reset-password/${token}`, { password });
-      return response.data;
-    } catch (error)      {
-      return rejectWithValue(error.response.data);
-    }
-  }
-);
-
 export const registerUser = createAsyncThunk(
-  'auth/register',
+  "auth/register",
   async (userData, { rejectWithValue }) => {
     try {
-      const response = await API.post('/users/register', userData);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response.data);
-    }
-  }
-);
-
-/**
- * Handles User Login API call, storing the entire user profile on success.
- * THIS IS THE CORRECTED FUNCTION.
- */
-export const loginUser = createAsyncThunk(
-  'auth/login',
-  async (credentials, { rejectWithValue }) => {
-    try {
-      const response = await API.post('/users/login', credentials);
-      
-      // THE FIX: Check if the response contains the user and token.
-      if (response.data && response.data.token) {
-        // Store the entire object { user: {...}, token: "..." }
-        // This makes it compatible with our axios interceptor.
-        localStorage.setItem('userProfile', JSON.stringify(response.data));
-      }
+      const response = await API.post("/users/register", userData);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -76,10 +45,25 @@ export const loginUser = createAsyncThunk(
 );
 
 export const verifyEmail = createAsyncThunk(
-  'auth/verifyEmail',
+  "auth/verifyEmail",
   async ({ email, token }, { rejectWithValue }) => {
     try {
-      const response = await API.post('/users/verify-email', { email, token });
+      const response = await API.post("/users/verify-email", { email, token });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+export const loginUser = createAsyncThunk(
+  "auth/login",
+  async (credentials, { rejectWithValue }) => {
+    try {
+      const response = await API.post("/users/login", credentials);
+      if (response.data && response.data.token) {
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(response.data));
+      }
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -88,11 +72,10 @@ export const verifyEmail = createAsyncThunk(
 );
 
 export const getUserProfile = createAsyncThunk(
-  'auth/getUserProfile',
+  "auth/getUserProfile",
   async (_, { rejectWithValue }) => {
     try {
-      // The interceptor automatically adds the token, so we just make the call.
-      const response = await API.get('/users/profile'); 
+      const response = await API.get("/users/profile");
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -101,15 +84,14 @@ export const getUserProfile = createAsyncThunk(
 );
 
 export const updateUserProfile = createAsyncThunk(
-  'auth/updateUserProfile',
+  "auth/updateUserProfile",
   async (userData, { rejectWithValue }) => {
     try {
-      const response = await API.put('/users/profile', userData);
-      // After updating, save the new user data to local storage as well to keep it in sync
-      const currentProfile = JSON.parse(localStorage.getItem('userProfile'));
-      if (currentProfile) {
-        const updatedProfile = { ...currentProfile, user: response.data };
-        localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+      const response = await API.put("/users/profile", userData);
+      const currentAuth = JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY));
+      if (currentAuth) {
+        const updatedAuth = { ...currentAuth, user: response.data };
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(updatedAuth));
       }
       return response.data;
     } catch (error) {
@@ -119,10 +101,13 @@ export const updateUserProfile = createAsyncThunk(
 );
 
 export const changePassword = createAsyncThunk(
-  'auth/changePassword',
+  "auth/changePassword",
   async (passwordData, { rejectWithValue }) => {
     try {
-      const response = await API.put('/users/profile/change-password', passwordData);
+      const response = await API.put(
+        "/users/profile/change-password",
+        passwordData
+      );
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -130,32 +115,54 @@ export const changePassword = createAsyncThunk(
   }
 );
 
+export const forgotPassword = createAsyncThunk(
+  "auth/forgotPassword",
+  async (email, { rejectWithValue }) => {
+    try {
+      const response = await API.post("/users/forgot-password", { email });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+export const resetPassword = createAsyncThunk(
+  "auth/resetPassword",
+  async ({ token, password }, { rejectWithValue }) => {
+    try {
+      const response = await API.put(`/users/reset-password/${token}`, {
+        password,
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
 
 // ===================================================================
 // THE AUTH SLICE
 // ===================================================================
 
 const initialState = {
-  user: userProfile ? userProfile.user : null,
-  token: userProfile ? userProfile.token : null,
-  isAuthenticated: !!(userProfile && userProfile.token),
-  status: 'idle',
+  ...loadAuthState(), // Load user, token, and isAuthenticated on startup
+  status: "idle",
   error: null,
   successMessage: null,
   unverifiedEmail: null,
 };
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
     logout: (state) => {
-      // CORRECTED: Remove 'userProfile' to match the login logic.
-      localStorage.removeItem('userProfile');
+      localStorage.removeItem(AUTH_STORAGE_KEY);
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
-      state.status = 'idle';
+      state.status = "idle";
       state.error = null;
       state.successMessage = null;
       state.unverifiedEmail = null;
@@ -167,132 +174,136 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Registration cases
-      .addCase(registerUser.pending, (state) => { 
-        state.status = 'loading'; 
+      // Registration
+      .addCase(registerUser.pending, (state) => {
+        state.status = "loading";
         state.error = null;
-        state.unverifiedEmail = null;
         state.successMessage = null;
+        state.unverifiedEmail = null;
       })
-      .addCase(registerUser.fulfilled, (state, action) => { 
-        state.status = 'succeeded';
-        state.unverifiedEmail = action.meta.arg.email; 
+      .addCase(registerUser.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.unverifiedEmail = action.meta.arg.email;
       })
-      .addCase(registerUser.rejected, (state, action) => { 
-        state.status = 'failed'; 
-        state.error = action.payload?.message || 'Registration failed.'; 
+      .addCase(registerUser.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload?.message || "Registration failed.";
       })
 
-      // CORRECTED: Login cases
-      .addCase(loginUser.pending, (state) => { 
-        state.status = 'loading'; 
-        state.error = null; 
+      // Login
+      .addCase(loginUser.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
         state.unverifiedEmail = null;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
-        state.status = 'succeeded';
+        state.status = "succeeded";
         state.isAuthenticated = true;
         state.user = action.payload.user;
         state.token = action.payload.token;
         state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
-        state.status = 'failed';
+        state.status = "failed";
         state.isAuthenticated = false;
         state.user = null;
         state.token = null;
-        state.error = action.payload?.message || 'Invalid credentials.';
+        state.error = action.payload?.message || "Invalid credentials.";
         if (action.payload?.emailNotVerified) {
           state.unverifiedEmail = action.meta.arg.email;
         }
       })
 
-      // Email Verification cases
+      // Email Verification
       .addCase(verifyEmail.pending, (state) => {
-        state.status = 'loading';
+        state.status = "loading";
         state.error = null;
         state.successMessage = null;
       })
       .addCase(verifyEmail.fulfilled, (state, action) => {
-        state.status = 'succeeded';
+        state.status = "succeeded";
         state.successMessage = action.payload.message;
         state.unverifiedEmail = null;
       })
       .addCase(verifyEmail.rejected, (state, action) => {
-        state.status = 'failed';
-        state.error = action.payload.message || 'Verification failed.';
+        state.status = "failed";
+        state.error = action.payload.message || "Verification failed.";
       })
 
-      // Get User Profile cases
-      .addCase(getUserProfile.pending, (state) => { state.status = 'loading'; })
+      // Get Profile (for persistent session)
+      .addCase(getUserProfile.pending, (state) => {
+        state.status = "loading";
+      })
       .addCase(getUserProfile.fulfilled, (state, action) => {
-        state.status = 'succeeded';
+        state.status = "succeeded";
         state.isAuthenticated = true;
         state.user = action.payload;
       })
       .addCase(getUserProfile.rejected, (state, action) => {
-        localStorage.removeItem('userProfile');
-        state.status = 'failed';
-        state.error = action.payload?.message || 'Session expired.';
+        localStorage.removeItem(AUTH_STORAGE_KEY);
+        state.status = "failed";
+        state.error = action.payload?.message || "Session expired.";
         state.user = null;
         state.token = null;
         state.isAuthenticated = false;
       })
-      
-      // Update User Profile cases
-      .addCase(updateUserProfile.pending, (state) => { state.status = 'loading'; state.error = null; })
+
+      // Update Profile
+      .addCase(updateUserProfile.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
       .addCase(updateUserProfile.fulfilled, (state, action) => {
-        state.status = 'succeeded';
+        state.status = "succeeded";
         state.user = action.payload;
       })
-      .addCase(updateUserProfile.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload.message || 'Failed to update profile.'; })
+      .addCase(updateUserProfile.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload.message || "Failed to update profile.";
+      })
 
-      // Change Password cases
+      // Password Management
       .addCase(changePassword.pending, (state) => {
-        state.status = 'loading';
+        state.status = "loading";
         state.error = null;
         state.successMessage = null;
       })
       .addCase(changePassword.fulfilled, (state, action) => {
-        state.status = 'succeeded';
+        state.status = "succeeded";
         state.successMessage = action.payload.message;
       })
       .addCase(changePassword.rejected, (state, action) => {
-        state.status = 'failed';
-        state.error = action.payload.message || 'Failed to change password.';
+        state.status = "failed";
+        state.error = action.payload.message || "Failed to change password.";
       })
-
-      // Forgot Password cases
       .addCase(forgotPassword.pending, (state) => {
-        state.status = 'loading';
+        state.status = "loading";
         state.error = null;
         state.successMessage = null;
       })
       .addCase(forgotPassword.fulfilled, (state, action) => {
-        state.status = 'succeeded';
+        state.status = "succeeded";
         state.successMessage = action.payload.message;
       })
       .addCase(forgotPassword.rejected, (state, action) => {
-        state.status = 'failed';
-        state.error = action.payload.message || 'Failed to send reset link.';
+        state.status = "failed";
+        state.error = action.payload.message || "Failed to send reset link.";
       })
-      
-      // Reset Password cases
       .addCase(resetPassword.pending, (state) => {
-        state.status = 'loading';
+        state.status = "loading";
         state.error = null;
         state.successMessage = null;
       })
       .addCase(resetPassword.fulfilled, (state, action) => {
-        state.status = 'succeeded';
+        state.status = "succeeded";
         state.successMessage = action.payload.message;
       })
       .addCase(resetPassword.rejected, (state, action) => {
-        state.status = 'failed';
-        state.error = action.payload.message || 'Failed to reset password.';
+        state.status = "failed";
+        state.error = action.payload.message || "Failed to reset password.";
       })
 
-      // Inter-Slice Reducers
+      // Inter-Slice Reducers for Payment Events
       .addCase(verifySubscription.fulfilled, (state, action) => {
         const { user: updatedUser } = action.payload;
         if (state.user && updatedUser) {
@@ -300,10 +311,10 @@ const authSlice = createSlice({
         }
       })
       .addCase(verifyProfileBoost.fulfilled, (state, action) => {
-          const { user: updatedUser } = action.payload;
-          if (state.user && updatedUser) {
-              state.user = { ...state.user, ...updatedUser };
-          }
+        const { user: updatedUser } = action.payload;
+        if (state.user && updatedUser) {
+          state.user = { ...state.user, ...updatedUser };
+        }
       })
       .addCase(cancelSubscription.fulfilled, (state, action) => {
         const { user: updatedUser } = action.payload;

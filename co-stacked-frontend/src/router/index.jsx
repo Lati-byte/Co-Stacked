@@ -5,8 +5,6 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 // Import Layouts and Protection
 import { MainLayout } from "../components/layout/MainLayout";
 import { ProtectedRoute } from "../components/auth/ProtectedRoute";
-// The ScrollToTop import can be removed from here as it's no longer used in this file.
-// import ScrollToTop from "../utils/ScrollToTop";
 
 // Import All Page Components
 import { HomePage } from "../pages/HomePage";
@@ -16,6 +14,7 @@ import { BrowseUsersPage } from "../pages/BrowseUsersPage";
 import { ProfilePage } from "../pages/ProfilePage";
 import { SignUpPage } from "../pages/SignUpPage";
 import { LoginPage } from "../pages/LoginPage";
+import { VerifyEmailPage } from "../pages/VerifyEmailPage"; // <-- 1. IMPORT
 import { ForgotPasswordPage } from "../pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "../pages/ResetPasswordPage";
 import { DashboardPage } from "../pages/DashboardPage";
@@ -86,6 +85,15 @@ const router = createBrowserRouter([
     element: (
       <MainLayout>
         <LoginPage />
+      </MainLayout>
+    ),
+  },
+  // --- 2. ADD THE NEW VERIFICATION ROUTE ---
+  {
+    path: "/verify-email",
+    element: (
+      <MainLayout>
+        <VerifyEmailPage />
       </MainLayout>
     ),
   },
@@ -232,10 +240,5 @@ const router = createBrowserRouter([
 ]);
 
 export const AppRouter = () => {
-  return (
-    // --- THIS IS THE FIX ---
-    // The <ScrollToTop /> component has been removed from here.
-    // It is now correctly located inside the MainLayout component.
-    <RouterProvider router={router} />
-  );
+  return <RouterProvider router={router} />;
 };
