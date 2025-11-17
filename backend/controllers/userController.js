@@ -7,7 +7,7 @@ const sendEmail = require('../utils/sendEmail');
 const crypto = require('crypto');
 
 /**
- * @desc    Register a new user (Simplified Flow)
+ * @desc    Register a new user & send verification email
  * @route   POST /api/users/register
  * @access  Public
  */
@@ -23,13 +23,10 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'A user with this email already exists.' });
     }
 
-    // Create the user. They are considered "verified" by default in this new flow.
     const user = await User.create({
-      name, email, password, role, bio, skills: skills ? skills.split(',').map(skill => skill.trim()) : [], location, availability, portfolioLink,
-      isEmailVerified: true 
+      name, email, password, role, bio, skills: skills ? skills.split(',').map(skill => skill.trim()) : [], location, availability, portfolioLink
     });
 
-    // Create an admin notification (this can stay)
     await AdminNotification.create({
       type: 'NEW_USER_REGISTERED',
       message: `${user.name} has just signed up as a ${user.role}.`,
@@ -37,11 +34,27 @@ const registerUser = async (req, res) => {
       refId: user._id
     });
 
-    // Immediately send a success response. No email is sent.
-    res.status(201).json({ 
-      success: true, 
-      message: 'Registration successful! You can now log in.' 
-    });
+    const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+    user.emailVerificationToken = verificationToken;
+    user.emailVerificationExpires = Date.now() + 10 * 60 * 1000;
+    await user.save({ validateBeforeSave: false });
+
+    // --- UPDATED EMAIL CONTENT with HTML ---
+    const textMessage = `Welcome to CoStacked! Your verification code is: ${verificationToken}\n\nThis code will expire in 10 minutes.`;
+    const htmlMessage = `<p>Welcome to CoStacked! Your verification code is: <strong>${verificationToken}</strong></p><p>This code will expire in 10 minutes.</p>`;
+    
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: 'CoStacked - Verify Your Email Address',
+        text: textMessage,
+        html: htmlMessage, // Pass the HTML version
+      });
+      res.status(201).json({ success: true, message: 'Registration successful! Please check your email for a verification code.' });
+    } catch (emailError) {
+      console.error('Email sending error:', emailError);
+      return res.status(500).json({ message: 'User registered, but could not send verification email. Please try resending.' });
+    }
 
   } catch (error) {
     console.error(`[REGISTER ERROR]: ${error.message}`);
@@ -49,6 +62,42 @@ const registerUser = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Verify user email with OTP
+ * @route   POST /api/users/verify-email
+ * @access  Public
+ */
+const verifyEmail = async (req, res) => {
+    try {
+        const { email, token } = req.body;
+        if (!email || !token) {
+            return res.status(400).json({ message: 'Email and token are required.' });
+        }
+        const user = await User.findOne({ 
+            email, 
+            emailVerificationToken: token,
+            emailVerificationExpires: { $gt: Date.now() }
+        });
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid or expired verification token.' });
+        }
+        user.isEmailVerified = true;
+        user.emailVerificationToken = undefined;
+        user.emailVerificationExpires = undefined;
+        await user.save({ validateBeforeSave: false });
+        res.json({ success: true, message: 'Email verified successfully! You can now log in.' });
+    } catch (error) {
+        console.error(`[VERIFY EMAIL ERROR]: ${error.message}`);
+        res.status(500).json({ message: 'Server error during email verification.' });
+    }
+};
+
+
+/**
+ * @desc    Authenticate (log in) a user & get a JWT
+ * @route   POST /api/users/login
+ * @access  Public
+ */
 const authUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -57,15 +106,14 @@ const authUser = async (req, res) => {
     }
     const user = await User.findOne({ email });
     if (user && (await user.matchPassword(password))) {
+      if (!user.isEmailVerified) {
+        return res.status(401).json({ 
+          message: 'Email not verified. Please check your inbox for a verification code.',
+          emailNotVerified: true
+        });
+      }
       res.json({
-        user: { 
-          _id: user._id, 
-          name: user.name, 
-          email: user.email, 
-          role: user.role, 
-          isAdmin: user.isAdmin,
-          isEmailVerified: user.isEmailVerified 
-        },
+        user: { _id: user._id, name: user.name, email: user.email, role: user.role, isAdmin: user.isAdmin },
         token: generateToken(user._id),
       });
     } else {
@@ -211,13 +259,18 @@ const forgotPassword = async (req, res) => {
     }
     const resetToken = user.createPasswordResetToken();
     await user.save({ validateBeforeSave: false });
+
+    // --- UPDATED EMAIL CONTENT with HTML ---
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
-    const message = `You have requested a password reset. Please click the link below to set a new password:\n\n${resetUrl}\n\nThis link is valid for 10 minutes.\n\nIf you did not request this, please ignore this email.`;
+    const textMessage = `You have requested a password reset. Please click the link below to set a new password:\n\n${resetUrl}\n\nThis link is valid for 10 minutes.`;
+    const htmlMessage = `<p>You have requested a password reset. Please click the link below to set a new password:</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>This link is valid for 10 minutes.</p>`;
+
     try {
       await sendEmail({
         to: user.email,
         subject: 'CoStacked - Password Reset Request',
-        text: message,
+        text: textMessage,
+        html: htmlMessage, // Pass the HTML version
       });
       res.json({ success: true, message: 'If an account with that email exists, a password reset link has been sent.' });
     } catch (emailError) {
@@ -285,6 +338,7 @@ module.exports = {
   updateUserProfile,
   changeUserPassword,
   recordProfileView,
+  verifyEmail,
   forgotPassword,
   resetPassword,
   cancelSubscription,

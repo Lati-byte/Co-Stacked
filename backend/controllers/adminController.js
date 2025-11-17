@@ -1,13 +1,13 @@
 // backend/controllers/adminController.js
 
-const User = require('../models/User'); // Correct casing to match filename
-const Project = require('../models/Project');
-const Report = require('../models/Report');
-const Transaction = require('../models/Transaction');
-const AdminNotification = require('../models/AdminNotification');
+const User = require("../models/User"); // Correct casing to match filename
+const Project = require("../models/Project");
+const Report = require("../models/Report");
+const Transaction = require("../models/Transaction");
+const AdminNotification = require("../models/AdminNotification");
 // const sendEmail = require('../utils/sendEmail'); // No longer needed for admin registration
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 /**
  * @desc    Get platform-wide statistics for the admin dashboard
@@ -19,43 +19,61 @@ const getPlatformStats = async (req, res) => {
     const totalUsers = await User.countDocuments();
     const totalProjects = await Project.countDocuments();
     const sevenDaysAgo = new Date(new Date().setDate(new Date().getDate() - 7));
-    const newUsersLast7Days = await User.countDocuments({ createdAt: { $gte: sevenDaysAgo } });
-    const openReportsCount = await Report.countDocuments({ status: 'open' });
+    const newUsersLast7Days = await User.countDocuments({
+      createdAt: { $gte: sevenDaysAgo },
+    });
+    const openReportsCount = await Report.countDocuments({ status: "open" });
 
     const now = new Date();
     const currentYearUTC = now.getUTCFullYear();
     const currentMonthUTC = now.getUTCMonth();
-    const startOfCurrentMonth = new Date(Date.UTC(currentYearUTC, currentMonthUTC, 1));
-    const startOfLastMonth = new Date(Date.UTC(currentYearUTC, currentMonthUTC - 1, 1));
+    const startOfCurrentMonth = new Date(
+      Date.UTC(currentYearUTC, currentMonthUTC, 1)
+    );
+    const startOfLastMonth = new Date(
+      Date.UTC(currentYearUTC, currentMonthUTC - 1, 1)
+    );
 
     const revenueData = await Transaction.aggregate([
       {
-        $match: {
-          status: 'succeeded',
-          createdAt: { $gte: startOfLastMonth }
-        }
+        $match: { status: "succeeded", createdAt: { $gte: startOfLastMonth } },
       },
       {
         $group: {
           _id: null,
           currentMonth: {
             $sum: {
-              $cond: [{ $gte: ['$createdAt', startOfCurrentMonth] }, '$amountInCents', 0]
-            }
+              $cond: [
+                { $gte: ["$createdAt", startOfCurrentMonth] },
+                "$amountInCents",
+                0,
+              ],
+            },
           },
           lastMonth: {
             $sum: {
-              $cond: [{ $and: [{ $gte: ['$createdAt', startOfLastMonth] }, { $lt: ['$createdAt', startOfCurrentMonth] }] }, '$amountInCents', 0]
-            }
-          }
-        }
-      }
+              $cond: [
+                {
+                  $and: [
+                    { $gte: ["$createdAt", startOfLastMonth] },
+                    { $lt: ["$createdAt", startOfCurrentMonth] },
+                  ],
+                },
+                "$amountInCents",
+                0,
+              ],
+            },
+          },
+        },
+      },
     ]);
-    
-    const revenue = revenueData[0] ? {
-      currentMonth: revenueData[0].currentMonth / 100,
-      lastMonth: revenueData[0].lastMonth / 100
-    } : { currentMonth: 0, lastMonth: 0 };
+
+    const revenue = revenueData[0]
+      ? {
+          currentMonth: revenueData[0].currentMonth / 100,
+          lastMonth: revenueData[0].lastMonth / 100,
+        }
+      : { currentMonth: 0, lastMonth: 0 };
 
     res.json({
       totalUsers,
@@ -64,10 +82,11 @@ const getPlatformStats = async (req, res) => {
       revenue,
       openReportsCount,
     });
-
   } catch (error) {
     console.error(`[GET STATS ERROR]: ${error.message}`);
-    res.status(500).json({ message: 'Server error while fetching platform stats.' });
+    res
+      .status(500)
+      .json({ message: "Server error while fetching platform stats." });
   }
 };
 
@@ -80,26 +99,30 @@ const loginAdmin = async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ message: 'Please provide email and password' });
+    return res
+      .status(400)
+      .json({ message: "Please provide email and password" });
   }
 
   try {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
     if (!user.isAdmin) {
-      return res.status(403).json({ message: 'Access Denied. User is not an administrator.' });
+      return res
+        .status(403)
+        .json({ message: "Access Denied. User is not an administrator." });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: "Invalid credentials" });
     }
-    
+
     const payload = {
       id: user.id,
       name: user.name,
@@ -107,7 +130,7 @@ const loginAdmin = async (req, res) => {
     };
 
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: '1d', 
+      expiresIn: "1d",
     });
 
     res.status(200).json({
@@ -119,51 +142,86 @@ const loginAdmin = async (req, res) => {
         isAdmin: user.isAdmin,
       },
     });
-
   } catch (error) {
-    console.error('Admin login error:', error);
-    res.status(500).json({ message: 'Server Error' });
+    console.error("Admin login error:", error);
+    res.status(500).json({ message: "Server Error" });
   }
 };
 
 /**
- * @desc    Register a new ADMIN user (Simplified Flow)
+ * @desc    Register a new ADMIN user and send verification email
  * @route   POST /api/admin/register
  * @access  Public (but requires secret key)
  */
 const registerAdmin = async (req, res) => {
   try {
     const { name, email, password, role, secretKey } = req.body;
-
     if (secretKey !== process.env.ADMIN_SECRET_KEY) {
-        return res.status(401).json({ message: 'Invalid secret key. Not authorized.' });
+      return res
+        .status(401)
+        .json({ message: "Invalid secret key. Not authorized." });
     }
     if (!name || !email || !password || !role) {
-      return res.status(400).json({ message: 'Please provide all required fields.' });
+      return res
+        .status(400)
+        .json({ message: "Please provide all required fields." });
     }
     if (await User.findOne({ email })) {
-      return res.status(400).json({ message: 'An admin with this email already exists.' });
+      return res
+        .status(400)
+        .json({ message: "An admin with this email already exists." });
     }
-    
-    // Create the admin user. They are considered "verified" by default.
+
     const user = await User.create({
-      name, email, password, role,
+      name,
+      email,
+      password,
+      role,
       isAdmin: true,
-      isEmailVerified: true, // Set to true on creation
     });
 
-    // We no longer send an email. Just send a success response.
     if (user) {
-        res.status(201).json({ 
-            success: true, 
-            message: 'Admin user registered successfully! You can now log in.' 
+      const verificationToken = Math.floor(
+        100000 + Math.random() * 900000
+      ).toString();
+      user.emailVerificationToken = verificationToken;
+      user.emailVerificationExpires = Date.now() + 10 * 60 * 1000;
+      await user.save({ validateBeforeSave: false });
+
+      // --- UPDATED EMAIL CONTENT with HTML ---
+      const textMessage = `Welcome to the CoStacked Admin team! Your verification code is: ${verificationToken}`;
+      const htmlMessage = `<p>Welcome to the CoStacked Admin team! Your verification code is: <strong>${verificationToken}</strong></p>`;
+
+      try {
+        await sendEmail({
+          to: user.email,
+          subject: "CoStacked Admin - Verify Your Email",
+          text: textMessage,
+          html: htmlMessage, // Pass the HTML version
         });
+        res
+          .status(201)
+          .json({
+            success: true,
+            message:
+              "Admin user registered successfully! Please check your email for a verification code.",
+          });
+      } catch (emailError) {
+        console.error("Admin Email Sending Error:", emailError);
+        return res
+          .status(500)
+          .json({
+            message: "Admin registered, but could not send verification email.",
+          });
+      }
     } else {
-      res.status(400).json({ message: 'Invalid admin data provided.' });
+      res.status(400).json({ message: "Invalid admin data provided." });
     }
   } catch (error) {
     console.error(`[REGISTER ADMIN ERROR]: ${error.message}`);
-    res.status(500).json({ message: 'Server error during admin registration.' });
+    res
+      .status(500)
+      .json({ message: "Server error during admin registration." });
   }
 };
 
@@ -174,11 +232,13 @@ const registerAdmin = async (req, res) => {
  */
 const getUsersForAdmin = async (req, res) => {
   try {
-    const users = await User.find({}).select('-password').sort({ createdAt: -1 });
+    const users = await User.find({})
+      .select("-password")
+      .sort({ createdAt: -1 });
     res.json(users);
   } catch (error) {
     console.error(`[GET ADMIN USERS ERROR]: ${error.message}`);
-    res.status(500).json({ message: 'Server error while fetching users.' });
+    res.status(500).json({ message: "Server error while fetching users." });
   }
 };
 
@@ -192,15 +252,15 @@ const updateUserByAdmin = async (req, res) => {
     const user = await User.findById(req.params.id);
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found.' });
+      return res.status(404).json({ message: "User not found." });
     }
 
     user.name = req.body.name || user.name;
     user.role = req.body.role || user.role;
-    user.isAdmin = req.body.isAdmin ?? user.isAdmin; 
-    
+    user.isAdmin = req.body.isAdmin ?? user.isAdmin;
+
     const updatedUser = await user.save();
-    
+
     res.json({
       _id: updatedUser._id,
       name: updatedUser.name,
@@ -213,10 +273,9 @@ const updateUserByAdmin = async (req, res) => {
       availability: updatedUser.availability,
       location: updatedUser.location,
     });
-
   } catch (error) {
     console.error(`[ADMIN UPDATE USER ERROR]: ${error.message}`);
-    res.status(500).json({ message: 'Server error while updating user.' });
+    res.status(500).json({ message: "Server error while updating user." });
   }
 };
 
@@ -230,19 +289,22 @@ const deleteUserByAdmin = async (req, res) => {
     const user = await User.findById(req.params.id);
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found.' });
+      return res.status(404).json({ message: "User not found." });
     }
 
     if (req.user._id.toString() === user._id.toString()) {
-        return res.status(400).json({ message: 'Admins cannot delete their own account from this panel.'});
+      return res
+        .status(400)
+        .json({
+          message: "Admins cannot delete their own account from this panel.",
+        });
     }
 
     await User.deleteOne({ _id: req.params.id });
-    res.json({ message: 'User removed successfully.' });
-    
+    res.json({ message: "User removed successfully." });
   } catch (error) {
     console.error(`[DELETE USER ERROR]: ${error.message}`);
-    res.status(500).json({ message: 'Server error while deleting user.' });
+    res.status(500).json({ message: "Server error while deleting user." });
   }
 };
 
@@ -254,12 +316,12 @@ const deleteUserByAdmin = async (req, res) => {
 const getProjectsForAdmin = async (req, res) => {
   try {
     const projects = await Project.find({})
-      .populate('founderId', 'name email')
+      .populate("founderId", "name email")
       .sort({ createdAt: -1 });
     res.json(projects);
   } catch (error) {
     console.error(`[GET ADMIN PROJECTS ERROR]: ${error.message}`);
-    res.status(500).json({ message: 'Server error while fetching projects.' });
+    res.status(500).json({ message: "Server error while fetching projects." });
   }
 };
 
@@ -272,18 +334,18 @@ const updateProjectByAdmin = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
     if (!project) {
-      return res.status(404).json({ message: 'Project not found.' });
+      return res.status(404).json({ message: "Project not found." });
     }
-    
+
     project.title = req.body.title || project.title;
     project.description = req.body.description || project.description;
     project.isFeatured = req.body.isFeatured ?? project.isFeatured;
-    
+
     const updatedProject = await project.save();
     res.json(updatedProject);
   } catch (error) {
     console.error(`[ADMIN UPDATE PROJECT ERROR]: ${error.message}`);
-    res.status(500).json({ message: 'Server error while updating project.' });
+    res.status(500).json({ message: "Server error while updating project." });
   }
 };
 
@@ -296,15 +358,14 @@ const deleteProjectByAdmin = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
     if (!project) {
-      return res.status(404).json({ message: 'Project not found' });
+      return res.status(404).json({ message: "Project not found" });
     }
 
     await Project.deleteOne({ _id: req.params.id });
-    res.json({ message: 'Project removed successfully.' });
-    
+    res.json({ message: "Project removed successfully." });
   } catch (error) {
     console.error(`[ADMIN DELETE PROJECT ERROR]: ${error.message}`);
-    res.status(500).json({ message: 'Server error while deleting project.' });
+    res.status(500).json({ message: "Server error while deleting project." });
   }
 };
 
@@ -315,15 +376,15 @@ const deleteProjectByAdmin = async (req, res) => {
  */
 const getReports = async (req, res) => {
   try {
-    const reports = await Report.find({ status: 'open' })
-      .populate('reporter', 'name email')
-      .populate('reportedUser', 'name email')
-      .populate('reportedProject', 'title')
+    const reports = await Report.find({ status: "open" })
+      .populate("reporter", "name email")
+      .populate("reportedUser", "name email")
+      .populate("reportedProject", "title")
       .sort({ createdAt: -1 });
     res.json(reports);
   } catch (error) {
     console.error(`[GET REPORTS ERROR]: ${error.message}`);
-    res.status(500).json({ message: 'Server error while fetching reports.' });
+    res.status(500).json({ message: "Server error while fetching reports." });
   }
 };
 
@@ -335,12 +396,14 @@ const getReports = async (req, res) => {
 const getTransactions = async (req, res) => {
   try {
     const transactions = await Transaction.find({})
-      .populate('userId', 'name email')
+      .populate("userId", "name email")
       .sort({ createdAt: -1 });
     res.json(transactions);
   } catch (error) {
     console.error(`[GET TRANSACTIONS ERROR]: ${error.message}`);
-    res.status(500).json({ message: 'Server error while fetching transactions.' });
+    res
+      .status(500)
+      .json({ message: "Server error while fetching transactions." });
   }
 };
 
@@ -351,11 +414,15 @@ const getTransactions = async (req, res) => {
  */
 const getAdminNotifications = async (req, res) => {
   try {
-    const notifications = await AdminNotification.find({ isRead: false }).sort({ createdAt: -1 });
+    const notifications = await AdminNotification.find({ isRead: false }).sort({
+      createdAt: -1,
+    });
     res.json(notifications);
   } catch (error) {
     console.error(`[GET ADMIN NOTIFICATIONS ERROR]: ${error.message}`);
-    res.status(500).json({ message: 'Server error fetching admin notifications.' });
+    res
+      .status(500)
+      .json({ message: "Server error fetching admin notifications." });
   }
 };
 
@@ -366,11 +433,16 @@ const getAdminNotifications = async (req, res) => {
  */
 const markAdminNotificationsAsRead = async (req, res) => {
   try {
-    await AdminNotification.updateMany({ isRead: false }, { $set: { isRead: true } });
-    res.json({ success: true, message: 'Notifications marked as read.' });
+    await AdminNotification.updateMany(
+      { isRead: false },
+      { $set: { isRead: true } }
+    );
+    res.json({ success: true, message: "Notifications marked as read." });
   } catch (error) {
     console.error(`[MARK ADMIN NOTIFICATIONS READ ERROR]: ${error.message}`);
-    res.status(500).json({ message: 'Server error updating admin notifications.' });
+    res
+      .status(500)
+      .json({ message: "Server error updating admin notifications." });
   }
 };
 
@@ -382,14 +454,14 @@ const markAdminNotificationsAsRead = async (req, res) => {
 const updateReportStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    if (!['resolved', 'dismissed'].includes(status)) {
-      return res.status(400).json({ message: 'Invalid status provided.' });
+    if (!["resolved", "dismissed"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status provided." });
     }
 
     const report = await Report.findById(req.params.id);
 
     if (!report) {
-      return res.status(404).json({ message: 'Report not found.' });
+      return res.status(404).json({ message: "Report not found." });
     }
 
     report.status = status;
@@ -398,7 +470,7 @@ const updateReportStatus = async (req, res) => {
     res.json(updatedReport);
   } catch (error) {
     console.error(`[UPDATE REPORT ERROR]: ${error.message}`);
-    res.status(500).json({ message: 'Server error while updating report.' });
+    res.status(500).json({ message: "Server error while updating report." });
   }
 };
 
@@ -409,26 +481,25 @@ const updateReportStatus = async (req, res) => {
  */
 const getAdminProfile = async (req, res) => {
   try {
-    const adminUser = await User.findById(req.user.id).select('-password');
+    const adminUser = await User.findById(req.user.id).select("-password");
 
     if (adminUser) {
       res.json(adminUser);
     } else {
-      res.status(404).json({ message: 'Admin user not found' });
+      res.status(404).json({ message: "Admin user not found" });
     }
   } catch (error) {
-    console.error('Get Admin Profile Error:', error);
-    res.status(500).json({ message: 'Server Error' });
+    console.error("Get Admin Profile Error:", error);
+    res.status(500).json({ message: "Server Error" });
   }
 };
 
-
-module.exports = { 
+module.exports = {
   loginAdmin,
-  getPlatformStats, 
-  registerAdmin, 
-  getUsersForAdmin, 
-  updateUserByAdmin, 
+  getPlatformStats,
+  registerAdmin,
+  getUsersForAdmin,
+  updateUserByAdmin,
   deleteUserByAdmin,
   getProjectsForAdmin,
   updateProjectByAdmin,

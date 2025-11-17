@@ -1,40 +1,52 @@
 // backend/utils/sendEmail.js
-const { MailerSend, EmailParams, Sender, Recipient } = require("mailersend");
-
-// Initialize the MailerSend client with your API token
-const mailersend = new MailerSend({
-  apiKey: process.env.MAILERSEND_API_TOKEN,
-});
 
 const sendEmail = async (options) => {
-  // Create a Sender object. The email MUST be from a verified domain in MailerSend.
-  const sentFrom = new Sender(process.env.EMAIL_USER, "CoStacked");
-  
-  // Create a Recipient object
-  const recipients = [
-    new Recipient(options.to),
-  ];
+  const MAILERSEND_API_KEY = process.env.MAILERSEND_API_KEY;
+  const MAILERSEND_API_URL = "https://api.mailersend.com/v1/email";
 
-  // Create the EmailParams object with all the details
-  const emailParams = new EmailParams()
-    .setFrom(sentFrom)
-    .setTo(recipients)
-    .setSubject(options.subject)
-    .setText(options.text);
-    // For HTML emails, you would use .setHtml("<strong>...</strong>")
+  if (!MAILERSEND_API_KEY) {
+    console.error("MailerSend API key is missing. Please check your .env file.");
+    throw new Error("Email service is not configured.");
+  }
+
+  const emailPayload = {
+    from: {
+      email: process.env.MAILERSEND_FROM_EMAIL,
+      name: process.env.MAILERSEND_FROM_NAME,
+    },
+    to: [
+      { email: options.to }
+    ],
+    subject: options.subject,
+    text: options.text,
+    html: options.html, // Pass along HTML content if it exists
+  };
 
   try {
-    console.log("Attempting to send email via MailerSend...");
-    await mailersend.email.send(emailParams);
-    console.log(`Email successfully sent to ${options.to} via MailerSend!`);
-  } catch (error) {
-    console.error("!!! MAILERSEND ERROR !!!");
-    // MailerSend provides detailed errors in the response body
-    console.error(error);
-    if (error.body) {
-      console.error("Error Body:", error.body);
+    const response = await fetch(MAILERSEND_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${MAILERSEND_API_KEY}`,
+      },
+      body: JSON.stringify(emailPayload),
+    });
+
+    // Check if the request was successful
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("MailerSend API Error:", errorData);
+      throw new Error(`Failed to send email. Status: ${response.status}`);
     }
-    throw new Error("Email could not be sent via MailerSend.");
+    
+    console.log(`Email sent successfully to ${options.to}`);
+    // You can optionally return the response data if needed
+    return await response.json();
+
+  } catch (error) {
+    console.error("Error in sendEmail utility:", error);
+    // Re-throw to be caught by the calling controller
+    throw error;
   }
 };
 
