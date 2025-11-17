@@ -4,8 +4,9 @@ const sendEmail = async (options) => {
   const MAILERSEND_API_KEY = process.env.MAILERSEND_API_KEY;
   const MAILERSEND_API_URL = "https://api.mailersend.com/v1/email";
 
+  // Safety check to ensure the API key is loaded
   if (!MAILERSEND_API_KEY) {
-    console.error("MailerSend API key is missing. Please check your .env file.");
+    console.error("MailerSend API key is missing! Please check your .env file.");
     throw new Error("Email service is not configured.");
   }
 
@@ -19,7 +20,7 @@ const sendEmail = async (options) => {
     ],
     subject: options.subject,
     text: options.text,
-    html: options.html, // Pass along HTML content if it exists
+    html: options.html, // The HTML version of the email
   };
 
   try {
@@ -32,20 +33,19 @@ const sendEmail = async (options) => {
       body: JSON.stringify(emailPayload),
     });
 
-    // Check if the request was successful
+    // If MailerSend returns an error (like 401, 422), handle it
     if (!response.ok) {
       const errorData = await response.json();
       console.error("MailerSend API Error:", errorData);
-      throw new Error(`Failed to send email. Status: ${response.status}`);
+      throw new Error(`Failed to send email via MailerSend. Status: ${response.status}`);
     }
     
-    console.log(`Email sent successfully to ${options.to}`);
-    // You can optionally return the response data if needed
+    console.log(`Email successfully sent to ${options.to} via MailerSend.`);
     return await response.json();
 
   } catch (error) {
-    console.error("Error in sendEmail utility:", error);
-    // Re-throw to be caught by the calling controller
+    console.error("Error within sendEmail utility:", error);
+    // Re-throw the error so the calling controller's catch block can handle it
     throw error;
   }
 };
