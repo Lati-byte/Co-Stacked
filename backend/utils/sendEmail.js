@@ -1,5 +1,6 @@
 // backend/utils/sendEmail.js
-import fetch from "node-fetch";
+
+// No 'import' statement is needed for 'fetch' in modern Node.js
 
 const sendEmail = async (options) => {
   const MAILERSEND_API_KEY = process.env.MAILERSEND_API_KEY;
@@ -42,6 +43,7 @@ const sendEmail = async (options) => {
   };
 
   try {
+    // Use the native, globally available fetch function
     const response = await fetch(MAILERSEND_API_URL, {
       method: "POST",
       headers: {
@@ -51,32 +53,39 @@ const sendEmail = async (options) => {
       body: JSON.stringify(emailPayload),
     });
 
-    const responseText = await response.text();
-    let responseBody;
-    try {
-      responseBody = JSON.parse(responseText);
-    } catch (e) {
-      responseBody = responseText;
-    }
-
+    // Handle non-ok responses by parsing the error body for more details
     if (!response.ok) {
+      let errorBody;
+      try {
+        errorBody = await response.json();
+      } catch (e) {
+        errorBody = await response.text(); // Fallback to raw text if not JSON
+      }
+
       console.error("MailerSend API Error:", {
         status: response.status,
         statusText: response.statusText,
-        body: responseBody,
+        body: errorBody,
       });
-      throw new Error(
-        `MailerSend failed with status ${response.status}: ` +
-        (responseBody?.message || JSON.stringify(responseBody))
-      );
+
+      const errorMessage = typeof errorBody === 'object' && errorBody.message 
+        ? errorBody.message 
+        : JSON.stringify(errorBody);
+
+      throw new Error(`MailerSend failed with status ${response.status}: ${errorMessage}`);
     }
 
-    console.log(`MailerSend email sent to ${options.to}`, responseBody);
+    // On success, parse the JSON response
+    const responseBody = await response.json();
+    console.log(`MailerSend email sent successfully to ${options.to}`);
     return responseBody;
+
   } catch (err) {
-    console.error("sendEmail - unexpected error:", err);
-    throw err;
+    console.error("sendEmail - unexpected error:", err.message);
+    throw err; // Re-throw the error to be caught by the calling controller
   }
 };
 
-export default sendEmail;
+// --- THIS IS THE FIX ---
+// Use `module.exports` for CommonJS compatibility with the rest of your backend.
+module.exports = sendEmail;
