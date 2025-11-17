@@ -151,3 +151,10 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* Add to your ProfilePage.module.css */
+.connectionActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}

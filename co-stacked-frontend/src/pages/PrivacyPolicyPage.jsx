@@ -7,13 +7,13 @@ export const PrivacyPolicyPage = () => {
     <div className={styles.pageContainer}>
       <div className={styles.content}>
         <header className={styles.header}>
-          <h1>Privacy Policy for Co-Stacked</h1>
+          <h1>Privacy Policy for CoStacked</h1>
           <p>Last Updated: October 3, 2025</p>
         </header>
 
         <section>
           <h2>1. Introduction</h2>
-          <p>Welcome to Co-Stacked ("we," "our," "us"). We are committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website. Please read this privacy policy carefully. If you do not agree with the terms, do not access the site.</p>
+          <p>Welcome to CoStacked ("we," "our," "us"). We are committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website. Please read this privacy policy carefully. If you do not agree with the terms, do not access the site.</p>
         </section>
 
         <section>
@@ -44,7 +44,7 @@ export const PrivacyPolicyPage = () => {
           <h2>4. Disclosure of Your Information</h2>
           <p>We do not share your personal information with third parties except as described in this policy. We may share information we have collected about you in certain situations. Your information may be disclosed as follows:</p>
           <ul>
-            <li><strong>Publicly on the Platform:</strong> Your profile information (name, bio, skills, etc.) and project details are visible to other users of the platform to enable the core functionality of Co-Stacked.</li>
+            <li><strong>Publicly on the Platform:</strong> Your profile information (name, bio, skills, etc.) and project details are visible to other users of the platform to enable the core functionality of CoStacked.</li>
             <li><strong>By Law or to Protect Rights:</strong> If we believe the release of information about you is necessary to respond to legal process, we may share your information as permitted or required by any applicable law.</li>
           </ul>
         </section>

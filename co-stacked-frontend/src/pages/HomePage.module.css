@@ -158,3 +158,27 @@
     margin-bottom: 2rem;
   }
 }
+  /* Completely remove the entire testimonials section */
+.testimonialsSection {
+  display: none !important;
+}
+
+/* Option 1: Simple hide */
+.hiddenSection {
+  display: none;
+}
+
+/* Option 2: Hide but keep space (if you want to reserve the layout) */
+.hiddenSection {
+  visibility: hidden;
+  height: 0;
+  overflow: hidden;
+}
+
+/* Option 3: Hide with opacity (if you want fade animations later) */
+.hiddenSection {
+  opacity: 0;
+  height: 0;
+  overflow: hidden;
+  transition: opacity 0.3s ease;
+}

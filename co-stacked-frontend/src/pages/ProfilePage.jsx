@@ -1,4 +1,4 @@
-// src/pages/ProfilePage.jsx
+// frontend/src/pages/ProfilePage.jsx
 
 import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -40,6 +40,8 @@ export const ProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isBoostModalOpen, setBoostModalOpen] = useState(false);
   const [isReviewModalOpen, setReviewModalOpen] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState('not_connected'); // 'not_connected', 'pending', 'connected', 'request_received'
+  const [isLoading, setIsLoading] = useState(false);
 
   const { user: loggedInUser } = useSelector(state => state.auth);
   const { items: allUsers, status: usersStatus } = useSelector(state => state.users);
@@ -49,7 +51,32 @@ export const ProfilePage = () => {
   
   const userToDisplay = userId ? allUsers.find(u => u._id === userId) : loggedInUser;
   const isOwnProfile = userToDisplay && loggedInUser && userToDisplay._id === loggedInUser._id;
-  
+
+  // Fetch connection status
+  useEffect(() => {
+    const fetchConnectionStatus = async () => {
+      if (!loggedInUser || !userToDisplay || isOwnProfile) return;
+      
+      try {
+        const response = await fetch(`/api/connections/status/${userToDisplay._id}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setConnectionStatus(data.status);
+        }
+      } catch (error) {
+        console.error('Error fetching connection status:', error);
+      }
+    };
+
+    fetchConnectionStatus();
+  }, [loggedInUser, userToDisplay, isOwnProfile]);
+
+  // Data fetching effects
   useEffect(() => {
     if (usersStatus === 'idle') dispatch(fetchUsers());
     if (projectsStatus === 'idle') dispatch(fetchProjects());
@@ -57,12 +84,140 @@ export const ProfilePage = () => {
     if (loggedInUser?.role === 'founder') dispatch(fetchReceivedInterests());
   }, [userToDisplay?._id, usersStatus, projectsStatus, loggedInUser, dispatch]);
   
+  // Record profile view
   useEffect(() => {
     if (userId && loggedInUser && userId !== loggedInUser._id) {
       dispatch(recordProfileView(userId));
     }
   }, [userId, loggedInUser, dispatch]);
-  
+
+  // Connection Handlers
+  const sendConnectionRequest = async () => {
+    if (!userToDisplay) return;
+    
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/connections/send', {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ targetUserId: userToDisplay._id })
+      });
+
+      if (res.ok) {
+        setConnectionStatus('pending');
+      } else {
+        const error = await res.json();
+        console.error('Error sending connection request:', error.message);
+      }
+    } catch (e) {
+      console.error("Error sending connection request", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const acceptConnectionRequest = async () => {
+    if (!userToDisplay) return;
+    
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/connections/accept', {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ senderId: userToDisplay._id })
+      });
+
+      if (res.ok) {
+        setConnectionStatus('connected');
+      } else {
+        const error = await res.json();
+        console.error('Error accepting connection:', error.message);
+      }
+    } catch (e) {
+      console.error("Error accepting connection", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const declineConnectionRequest = async () => {
+    if (!userToDisplay) return;
+    
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/connections/decline', {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ senderId: userToDisplay._id })
+      });
+
+      if (res.ok) {
+        setConnectionStatus('not_connected');
+      }
+    } catch (e) {
+      console.error("Error declining connection", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const removeConnection = async () => {
+    if (!userToDisplay) return;
+    
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/connections/remove', {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ targetUserId: userToDisplay._id })
+      });
+
+      if (res.ok) {
+        setConnectionStatus('not_connected');
+      }
+    } catch (e) {
+      console.error("Error removing connection", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const cancelSentRequest = async () => {
+    if (!userToDisplay) return;
+    
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/connections/cancel', {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ targetUserId: userToDisplay._id })
+      });
+
+      if (res.ok) {
+        setConnectionStatus('not_connected');
+      }
+    } catch (e) {
+      console.error("Error canceling request", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const developerReviews = reviewsByUser[userToDisplay?._id] || [];
 
   const userProjects = userToDisplay?.role === 'founder' 
@@ -84,6 +239,71 @@ export const ProfilePage = () => {
   if (usersStatus === 'loading' || projectsStatus === 'loading' || reviewsStatus === 'loading' || !userToDisplay) {
     return <div className={styles.pageContainer}><LoadingSpinner /></div>;
   }
+
+  const renderConnectionButton = () => {
+    if (isOwnProfile) return null;
+
+    switch (connectionStatus) {
+      case 'connected':
+        return (
+          <div className={styles.connectionActions}>
+            <Button disabled variant="secondary">Connected ✓</Button>
+            <Button 
+              onClick={removeConnection} 
+              variant="outline" 
+              disabled={isLoading}
+            >
+              Remove Connection
+            </Button>
+          </div>
+        );
+      
+      case 'pending':
+        return (
+          <div className={styles.connectionActions}>
+            <Button disabled variant="secondary">Request Sent</Button>
+            <Button 
+              onClick={cancelSentRequest} 
+              variant="outline" 
+              disabled={isLoading}
+            >
+              Cancel Request
+            </Button>
+          </div>
+        );
+      
+      case 'request_received':
+        return (
+          <div className={styles.connectionActions}>
+            <Button 
+              onClick={acceptConnectionRequest} 
+              variant="primary" 
+              disabled={isLoading}
+            >
+              Accept Request
+            </Button>
+            <Button 
+              onClick={declineConnectionRequest} 
+              variant="outline" 
+              disabled={isLoading}
+            >
+              Decline
+            </Button>
+          </div>
+        );
+      
+      default: // not_connected
+        return (
+          <Button 
+            onClick={sendConnectionRequest} 
+            variant="primary" 
+            disabled={isLoading}
+          >
+            {isLoading ? 'Sending...' : 'Connect'}
+          </Button>
+        );
+    }
+  };
 
   return (
     <>
@@ -128,10 +348,19 @@ export const ProfilePage = () => {
                 </div>
                 
                 <div className={styles.headerActions}>
-                  {canLeaveReview && <Button onClick={() => setReviewModalOpen(true)} variant="secondary">Leave a Review</Button>}
+                  {canLeaveReview && (
+                    <Button onClick={() => setReviewModalOpen(true)} variant="secondary">
+                      Leave a Review
+                    </Button>
+                  )}
+
+                  {renderConnectionButton()}
+
                   {isOwnProfile && (
                     <>
-                      <Button onClick={() => setBoostModalOpen(true)} variant="secondary">Boost Profile</Button>
+                      <Button onClick={() => setBoostModalOpen(true)} variant="secondary">
+                        Boost Profile
+                      </Button>
                       <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
                     </>
                   )}
@@ -139,20 +368,54 @@ export const ProfilePage = () => {
               </div>
               
               <div className={styles.content}>
-                <div className={styles.section}><h3 className={styles.sectionTitle}>About Me:</h3><p>{userToDisplay.bio || 'No bio provided.'}</p></div>
-                <div className={styles.section}><h3 className={styles.sectionTitle}>Skills:</h3><div className={styles.skillsContainer}>{(Array.isArray(userToDisplay.skills) && userToDisplay.skills.length > 0) ? userToDisplay.skills.map(s => <Tag key={s}>{s}</Tag>) : <p>No skills listed.</p>}</div></div>
-                <div className={styles.infoGrid}><div className={styles.infoItem}><MapPin size={18}/><span>{userToDisplay.location || 'N/A'}</span></div><div className={styles.infoItem}><LinkIcon size={18}/><a href={userToDisplay.portfolioLink} target="_blank" rel="noopener noreferrer">Portfolio</a></div><p><strong>Availability:</strong> {userToDisplay.availability || 'N/A'}</p></div>
+                <div className={styles.section}>
+                  <h3 className={styles.sectionTitle}>About Me:</h3>
+                  <p>{userToDisplay.bio || 'No bio provided.'}</p>
+                </div>
+                
+                <div className={styles.section}>
+                  <h3 className={styles.sectionTitle}>Skills:</h3>
+                  <div className={styles.skillsContainer}>
+                    {(Array.isArray(userToDisplay.skills) && userToDisplay.skills.length > 0) 
+                      ? userToDisplay.skills.map(s => <Tag key={s}>{s}</Tag>) 
+                      : <p>No skills listed.</p>
+                    }
+                  </div>
+                </div>
+                
+                <div className={styles.infoGrid}>
+                  <div className={styles.infoItem}>
+                    <MapPin size={18}/>
+                    <span>{userToDisplay.location || 'N/A'}</span>
+                  </div>
+                  <div className={styles.infoItem}>
+                    <LinkIcon size={18}/>
+                    <a href={userToDisplay.portfolioLink} target="_blank" rel="noopener noreferrer">
+                      Portfolio
+                    </a>
+                  </div>
+                  <p><strong>Availability:</strong> {userToDisplay.availability || 'N/A'}</p>
+                </div>
                 
                 {userProjects.length > 0 && (
-                   <><div className={styles.separator} /><h2 className={styles.title}>Posted Projects</h2><div className={styles.projectsGrid}>{userProjects.map(p => <ProjectCard key={p._id} project={p}/>)}</div></>
+                  <>
+                    <div className={styles.separator} />
+                    <h2 className={styles.title}>Posted Projects</h2>
+                    <div className={styles.projectsGrid}>
+                      {userProjects.map(p => <ProjectCard key={p._id} project={p}/>)}
+                    </div>
+                  </>
                 )}
                 
+                {/* Testimonials Section - Hidden with CSS */}
                 {developerReviews.length > 0 && (
-                   <><div className={styles.separator} /><h2 className={styles.title}>Reviews</h2><div className={styles.reviewsGrid}>{developerReviews.map(r => 
-                        // --- THIS IS THE FIX ---
-                        // Use the MongoDB `_id` field for a stable and unique key.
-                        <ReviewCard key={r._id} review={r}/>
-                   )}</div></>
+                  <div className={styles.hiddenSection}>
+                    <div className={styles.separator} />
+                    <h2 className={styles.title}>Reviews</h2>
+                    <div className={styles.reviewsGrid}>
+                      {developerReviews.map(r => <ReviewCard key={r._id} review={r}/>)}
+                    </div>
+                  </div>
                 )}
               </div>
             </Card>

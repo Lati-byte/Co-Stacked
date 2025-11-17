@@ -21,7 +21,7 @@ export const ConnectNDAModal = ({ open, onClose, onConfirm }) => {
           <li>Confidentiality of shared information.</li>
           <li>Non-use of information outside of collaboration.</li>
         </ul>
-        <p className={styles.mockNotice}>This is a mock agreement for demonstration purposes.</p>
+        <p className={styles.mockNotice}>This is agreement is legally binding.</p>
       </div>
       <div className={styles.checkboxWrapper}>
         <input type="checkbox" id="nda-agree" checked={isChecked} onChange={() => setIsChecked(!isChecked)} />
