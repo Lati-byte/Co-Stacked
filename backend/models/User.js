@@ -1,8 +1,8 @@
-// backend/models/User.js
+// backend/models/user.js
 
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
-const crypto = require("crypto");
+const crypto = require("crypto"); // For generating secure tokens
 
 const userSchema = mongoose.Schema(
   {
@@ -24,6 +24,8 @@ const userSchema = mongoose.Schema(
     role: { 
       type: String, 
       required: true, 
+      // --- THIS IS THE FIX ---
+      // Add 'admin' to the list of allowed roles.
       enum: ['developer', 'founder', 'admin'],
       default: 'developer',
     },
@@ -33,7 +35,8 @@ const userSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    isVerified: { // Paid subscription verification
+    isVerified: {
+      // For paid subscription
       type: Boolean,
       default: false,
     },
@@ -44,22 +47,16 @@ const userSchema = mongoose.Schema(
     boostExpiresAt: {
       type: Date,
     },
-    isEmailVerified: { // OTP verification
+
+    // --- NEW & UPDATED VERIFICATION FIELDS ---
+    isEmailVerified: {
       type: Boolean,
       default: false,
     },
-    
-    // --- Token Fields ---
     emailVerificationToken: {
       type: String,
     },
     emailVerificationExpires: {
-      type: Date,
-    },
-    passwordResetToken: {
-      type: String,
-    },
-    passwordResetExpires: {
       type: Date,
     },
 
@@ -88,6 +85,8 @@ const userSchema = mongoose.Schema(
       type: Number,
       default: 0,
     },
+    passwordResetToken: String,
+    passwordResetExpires: Date,
   },
   {
     timestamps: true,
@@ -109,21 +108,19 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// Method to generate and hash password reset token
+// --- NEW: Method to generate and hash password reset token ---
 userSchema.methods.createPasswordResetToken = function() {
   const resetToken = crypto.randomBytes(32).toString('hex');
 
-  // Hash the token and save it to the database
   this.passwordResetToken = crypto
     .createHash('sha256')
     .update(resetToken)
     .digest('hex');
 
-  // Set the token to expire in 10 minutes
+  // Set token to expire in 10 minutes
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
 
-  // Return the unhashed token (to be sent via email)
-  return resetToken;
+  return resetToken; // Return the unhashed token to be sent via email
 };
 
 // Robust export to prevent 'OverwriteModelError' in development environments

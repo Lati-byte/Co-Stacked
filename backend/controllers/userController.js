@@ -1,7 +1,7 @@
 // backend/controllers/userController.js
 
-const User = require('../models/User');
-const AdminNotification = require('../models/AdminNotification');
+const User = require('../models/User'); // Correct casing
+const AdminNotification = require('../models/AdminNotification'); // For admin panel notifications
 const generateToken = require('../utils/generateToken');
 const sendEmail = require('../utils/sendEmail');
 const crypto = require('crypto');
@@ -18,29 +18,15 @@ const registerUser = async (req, res) => {
     if (!name || !email || !password || !role) {
       return res.status(400).json({ message: 'Name, email, password, and role are required fields.' });
     }
+
     if (await User.findOne({ email })) {
       return res.status(400).json({ message: 'A user with this email already exists.' });
     }
 
-    // 1. Create the user. This saves the initial document to the database.
     const user = await User.create({
-      name, email, password, role, bio, 
-      skills: skills ? skills.split(',').map(skill => skill.trim()) : [], 
-      location, availability, portfolioLink
+      name, email, password, role, bio, skills: skills ? skills.split(',').map(skill => skill.trim()) : [], location, availability, portfolioLink
     });
 
-    // 2. Generate the verification token and expiry date.
-    const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
-    const verificationExpires = Date.now() + 10 * 60 * 1000; // 10 minutes from now
-
-    // 3. Update the newly created user with the token information.
-    // This is a clean, single operation that prevents the double-save crash.
-    await User.findByIdAndUpdate(user._id, {
-      emailVerificationToken: verificationToken,
-      emailVerificationExpires: verificationExpires,
-    });
-
-    // 4. Create an admin notification for the new user.
     await AdminNotification.create({
       type: 'NEW_USER_REGISTERED',
       message: `${user.name} has just signed up as a ${user.role}.`,
@@ -48,6 +34,12 @@ const registerUser = async (req, res) => {
       refId: user._id
     });
 
+    const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+    user.emailVerificationToken = verificationToken;
+    user.emailVerificationExpires = Date.now() + 10 * 60 * 1000;
+    await user.save({ validateBeforeSave: false });
+
+    // --- UPDATED EMAIL CONTENT with HTML ---
     const textMessage = `Welcome to CoStacked! Your verification code is: ${verificationToken}\n\nThis code will expire in 10 minutes.`;
     const htmlMessage = `<p>Welcome to CoStacked! Your verification code is: <strong>${verificationToken}</strong></p><p>This code will expire in 10 minutes.</p>`;
     
@@ -56,9 +48,8 @@ const registerUser = async (req, res) => {
         to: user.email,
         subject: 'CoStacked - Verify Your Email Address',
         text: textMessage,
-        html: htmlMessage,
+        html: htmlMessage, // Pass the HTML version
       });
-      // 5. Send the successful response to the frontend.
       res.status(201).json({ success: true, message: 'Registration successful! Please check your email for a verification code.' });
     } catch (emailError) {
       console.error('Email sending error:', emailError);
@@ -101,6 +92,7 @@ const verifyEmail = async (req, res) => {
     }
 };
 
+
 /**
  * @desc    Authenticate (log in) a user & get a JWT
  * @route   POST /api/users/login
@@ -133,6 +125,11 @@ const authUser = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Get all users for the public browse page
+ * @route   GET /api/users
+ * @access  Public
+ */
 const getUsers = async (req, res) => {
   try {
     const users = await User.find({}).select('-password').sort({ createdAt: -1 });
@@ -143,6 +140,11 @@ const getUsers = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Get the profile of the currently logged-in user
+ * @route   GET /api/users/profile
+ * @access  Private
+ */
 const getUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('-password');
@@ -157,6 +159,11 @@ const getUserProfile = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Update the profile of the currently logged-in user
+ * @route   PUT /api/users/profile
+ * @access  Private
+ */
 const updateUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -186,6 +193,11 @@ const updateUserProfile = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Change the user's password
+ * @route   PUT /api/users/profile/change-password
+ * @access  Private
+ */
 const changeUserPassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -209,6 +221,11 @@ const changeUserPassword = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Increment the profile view count for a user
+ * @route   PUT /api/users/:id/view
+ * @access  Private
+ */
 const recordProfileView = async (req, res) => {
   try {
     if (req.params.id === req.user._id.toString()) {
@@ -229,6 +246,11 @@ const recordProfileView = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Request a password reset
+ * @route   POST /api/users/forgot-password
+ * @access  Public
+ */
 const forgotPassword = async (req, res) => {
   try {
     const user = await User.findOne({ email: req.body.email });
@@ -237,15 +259,18 @@ const forgotPassword = async (req, res) => {
     }
     const resetToken = user.createPasswordResetToken();
     await user.save({ validateBeforeSave: false });
+
+    // --- UPDATED EMAIL CONTENT with HTML ---
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
     const textMessage = `You have requested a password reset. Please click the link below to set a new password:\n\n${resetUrl}\n\nThis link is valid for 10 minutes.`;
     const htmlMessage = `<p>You have requested a password reset. Please click the link below to set a new password:</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>This link is valid for 10 minutes.</p>`;
+
     try {
       await sendEmail({
         to: user.email,
         subject: 'CoStacked - Password Reset Request',
         text: textMessage,
-        html: htmlMessage,
+        html: htmlMessage, // Pass the HTML version
       });
       res.json({ success: true, message: 'If an account with that email exists, a password reset link has been sent.' });
     } catch (emailError) {
@@ -260,6 +285,11 @@ const forgotPassword = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Reset password using token
+ * @route   PUT /api/users/reset-password/:token
+ * @access  Public
+ */
 const resetPassword = async (req, res) => {
   try {
     const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
@@ -280,6 +310,11 @@ const resetPassword = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Cancel a user's verification subscription
+ * @route   PUT /api/users/cancel-subscription
+ * @access  Private
+ */
 const cancelSubscription = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -303,7 +338,6 @@ module.exports = {
   updateUserProfile,
   changeUserPassword,
   recordProfileView,
-  verifyEmail,
   forgotPassword,
   resetPassword,
   cancelSubscription,
