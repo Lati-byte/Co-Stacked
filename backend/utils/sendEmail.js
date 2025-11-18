@@ -1,91 +1,37 @@
 // backend/utils/sendEmail.js
 
-// No 'import' statement is needed for 'fetch' in modern Node.js
+const nodemailer = require('nodemailer');
 
 const sendEmail = async (options) => {
-  const MAILERSEND_API_KEY = process.env.MAILERSEND_API_KEY;
-  const MAILERSEND_API_URL = "https://api.mailersend.com/v1/email";
-  const MAILERSEND_FROM_EMAIL = process.env.MAILERSEND_FROM_EMAIL;
-  const MAILERSEND_FROM_NAME = process.env.MAILERSEND_FROM_NAME;
-
-  // Check necessary env vars
-  if (!MAILERSEND_API_KEY || !MAILERSEND_FROM_EMAIL || !MAILERSEND_FROM_NAME) {
-    console.error("MailerSend env variables missing:", {
-      apiKey: !!MAILERSEND_API_KEY,
-      fromEmail: !!MAILERSEND_FROM_EMAIL,
-      fromName: !!MAILERSEND_FROM_NAME,
-    });
-    throw new Error("MailerSend is not configured correctly");
-  }
-
-  // Validate to / subject / content
-  if (!options.to) {
-    throw new Error("No recipient email provided for sendEmail");
-  }
-  if (!options.subject) {
-    throw new Error("No subject provided for sendEmail");
-  }
-  if (!options.text && !options.html) {
-    throw new Error("Either text or html must be provided to sendEmail");
-  }
-
-  const emailPayload = {
-    from: {
-      email: MAILERSEND_FROM_EMAIL,
-      name: MAILERSEND_FROM_NAME,
+  // 1. Create a transporter object using AhaSend's SMTP settings
+  const transporter = nodemailer.createTransport({
+    host: process.env.AHA_SMTP_HOST,
+    port: process.env.AHA_SMTP_PORT,
+    secure: false, // Port 587 uses STARTTLS, so `secure` is false
+    auth: {
+      user: process.env.AHA_SMTP_USER, // Your AhaSend Username from .env
+      pass: process.env.AHA_SMTP_PASS, // Your AhaSend Password from .env
     },
-    to: [
-      { email: options.to, name: options.toName || undefined }
-    ],
+  });
+
+  // 2. Define the email options
+  const mailOptions = {
+    from: `"${process.env.AHA_FROM_NAME}" <${process.env.AHA_FROM_EMAIL}>`,
+    to: options.to,
     subject: options.subject,
     text: options.text,
     html: options.html,
   };
 
+  // 3. Send the email and log the result
   try {
-    // Use the native, globally available fetch function
-    const response = await fetch(MAILERSEND_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${MAILERSEND_API_KEY}`,
-      },
-      body: JSON.stringify(emailPayload),
-    });
-
-    // Handle non-ok responses by parsing the error body for more details
-    if (!response.ok) {
-      let errorBody;
-      try {
-        errorBody = await response.json();
-      } catch (e) {
-        errorBody = await response.text(); // Fallback to raw text if not JSON
-      }
-
-      console.error("MailerSend API Error:", {
-        status: response.status,
-        statusText: response.statusText,
-        body: errorBody,
-      });
-
-      const errorMessage = typeof errorBody === 'object' && errorBody.message 
-        ? errorBody.message 
-        : JSON.stringify(errorBody);
-
-      throw new Error(`MailerSend failed with status ${response.status}: ${errorMessage}`);
-    }
-
-    // On success, parse the JSON response
-    const responseBody = await response.json();
-    console.log(`MailerSend email sent successfully to ${options.to}`);
-    return responseBody;
-
-  } catch (err) {
-    console.error("sendEmail - unexpected error:", err.message);
-    throw err; // Re-throw the error to be caught by the calling controller
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`Email sent successfully to ${options.to} via AhaSend. Message ID: ${info.messageId}`);
+  } catch (error) {
+    console.error("AhaSend SMTP Error:", error);
+    // Re-throw the error so the calling controller knows something went wrong.
+    throw new Error('Email could not be sent via SMTP.');
   }
 };
 
-// --- THIS IS THE FIX ---
-// Use `module.exports` for CommonJS compatibility with the rest of your backend.
 module.exports = sendEmail;
