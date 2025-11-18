@@ -1,37 +1,48 @@
 // backend/utils/sendEmail.js
 
-const nodemailer = require('nodemailer');
-
 const sendEmail = async (options) => {
-  // 1. Create a transporter object using AhaSend's SMTP settings
-  const transporter = nodemailer.createTransport({
-    host: process.env.AHA_SMTP_HOST,
-    // --- THIS IS THE FIX ---
-    // Use the alternative port 2525, which is less likely to be blocked.
-    port: process.env.AHA_SMTP_PORT || 2525, 
-    secure: false, // Port 2525 also uses STARTTLS, so `secure` remains false
-    auth: {
-      user: process.env.AHA_SMTP_USER,
-      pass: process.env.AHA_SMTP_PASS,
-    },
-  });
+  const AHASEND_API_KEY = process.env.AHA_API_KEY;
+  const AHASEND_FROM_EMAIL = process.env.AHA_FROM_EMAIL;
+  const AHASEND_FROM_NAME = process.env.AHA_FROM_NAME || 'CoStacked';
+  
+  // Use the official AhaSend API endpoint
+  const AHASEND_API_URL = "https://api.ahasend.com/v1/email"; 
 
-  // 2. Define the email options
-  const mailOptions = {
-    from: `"${process.env.AHA_FROM_NAME}" <${process.env.AHA_FROM_EMAIL}>`,
-    to: options.to,
+  if (!AHASEND_API_KEY || !AHASEND_FROM_EMAIL) {
+    console.error("FATAL: AhaSend API environment variables (AHA_API_KEY, AHA_FROM_EMAIL) are missing!");
+    throw new Error("Email service is not configured correctly on the server.");
+  }
+
+  const emailPayload = {
+    from: { email: AHASEND_FROM_EMAIL, name: AHASEND_FROM_NAME },
+    to: [{ email: options.to }],
     subject: options.subject,
     text: options.text,
     html: options.html,
   };
 
-  // 3. Send the email and log the result
   try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`Email sent successfully to ${options.to} via AhaSend on port 2525. Message ID: ${info.messageId}`);
+    const response = await fetch(AHASEND_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${AHASEND_API_KEY}`,
+      },
+      body: JSON.stringify(emailPayload),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.json();
+      console.error("AhaSend API Error Response:", errorBody);
+      throw new Error(`AhaSend API failed with status ${response.status}`);
+    }
+    
+    console.log(`Email sent successfully to ${options.to} via AhaSend API.`);
+    return await response.json();
+
   } catch (error) {
-    console.error("AhaSend SMTP Error:", error);
-    throw new Error('Email could not be sent via SMTP.');
+    console.error("Critical error in sendEmail utility:", error.message);
+    throw new Error('Email could not be sent via API.');
   }
 };
 
