@@ -1,32 +1,56 @@
-// test-email.js
-require('dotenv').config(); // Make sure to load your .env file
-const nodemailer = require('nodemailer');
+// backend/utils/sendEmail.js
 
-async function testEmail() {
-  console.log('Using User:', process.env.EMAIL_USER);
-  console.log('Using Pass:', process.env.EMAIL_PASS ? 'Exists' : 'MISSING!');
+const sendEmail = async (options) => {
+  // Use the API Key, not the SMTP credentials
+  const AHASEND_API_KEY = process.env.AHA_API_KEY;
+  const AHASEND_FROM_EMAIL = process.env.AHA_FROM_EMAIL;
+  const AHASEND_FROM_NAME = process.env.AHA_FROM_NAME;
+  
+  // According to AhaSend docs, the API endpoint is api.ahasend.com/v1/email
+  const AHASEND_API_URL = "https://api.ahasend.com/v1/email"; 
 
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+  if (!AHASEND_API_KEY || !AHASEND_FROM_EMAIL) {
+    console.error("FATAL: AhaSend API environment variables (AHA_API_KEY, AHA_FROM_EMAIL) are missing!");
+    throw new Error("Email service is not configured correctly on the server.");
+  }
+
+  const emailPayload = {
+    from: {
+      email: AHASEND_FROM_EMAIL,
+      name: AHASEND_FROM_NAME || 'CoStacked',
     },
-  });
+    to: [
+      { email: options.to }
+    ],
+    subject: options.subject,
+    text: options.text,
+    html: options.html,
+  };
 
   try {
-    console.log('Sending test email...');
-    const info = await transporter.sendMail({
-      from: process.env.EMAIL_FROM,
-      to: process.env.EMAIL_USER, // Send it to yourself for testing
-      subject: 'Nodemailer Test from Local',
-      text: 'If you received this, your credentials are correct!',
+    // Use the native fetch function to call the HTTP API
+    const response = await fetch(AHASEND_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${AHASEND_API_KEY}`,
+      },
+      body: JSON.stringify(emailPayload),
     });
-    console.log('SUCCESS! Message sent:', info.messageId);
-  } catch (error) {
-    console.error('!!! LOCAL TEST FAILED !!!');
-    console.error(error);
-  }
-}
 
-testEmail();
+    if (!response.ok) {
+      const errorBody = await response.json();
+      console.error("AhaSend API Error Response:", errorBody);
+      throw new Error(`AhaSend API failed with status ${response.status}`);
+    }
+    
+    console.log(`Email sent successfully to ${options.to} via AhaSend API.`);
+    return await response.json();
+
+  } catch (error) {
+    console.error("Critical error in sendEmail utility:", error.message);
+    throw new Error('Email could not be sent via API.');
+  }
+};
+
+module.exports = sendEmail;
