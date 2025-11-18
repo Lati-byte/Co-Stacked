@@ -20,6 +20,7 @@ const {
 
 const { protect } = require('../middleware/authMiddleware');
 
+
 // === PUBLIC ROUTES ===
 // These routes do not require a token.
 router.route('/').get(getUsers);
