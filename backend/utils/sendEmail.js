@@ -1,51 +1,47 @@
 // backend/utils/sendEmail.js
+import fetch from "node-fetch";  
 
-const sendEmail = async (options) => {
-  const AHASEND_API_KEY = process.env.AHA_API_KEY;
-  const AHASEND_FROM_EMAIL = process.env.AHA_FROM_EMAIL;
-  const AHASEND_FROM_NAME = process.env.AHA_FROM_NAME || 'CoStacked';
+const sendEmail = async ({ to, subject, text, html }) => {
+  const API_KEY = process.env.AHASEND_API_KEY;
+  const ACCOUNT_ID = process.env.AHASEND_ACCOUNT_ID;
+  const FROM_EMAIL = process.env.AHA_FROM_EMAIL;
+  const FROM_NAME = process.env.AHA_FROM_NAME || "Co-Stacked";
   
-  const AHASEND_API_URL = "https://api.ahasend.com/v1/email"; 
-
-  if (!AHASEND_API_KEY || !AHASEND_FROM_EMAIL) {
-    console.error("FATAL: AhaSend API environment variables are missing!");
-    throw new Error("Email service is not configured on the server.");
+  if (!API_KEY || !ACCOUNT_ID || !FROM_EMAIL) {
+    console.error("Missing AhaSend API config:", {
+      API_KEY: !!API_KEY,
+      ACCOUNT_ID: !!ACCOUNT_ID,
+      FROM_EMAIL
+    });
+    throw new Error("Email service is not configured correctly.");
   }
 
-  const emailPayload = {
-    from: { email: AHASEND_FROM_EMAIL, name: AHASEND_FROM_NAME },
-    to: [{ email: options.to }],
-    subject: options.subject,
-    text: options.text,
-    html: options.html,
+  const url = `https://api.ahasend.com/v2/accounts/${ACCOUNT_ID}/messages`;
+  const payload = {
+    from: { email: FROM_EMAIL, name: FROM_NAME },
+    recipients: [{ email: to }],
+    subject,
+    text_content: text,
+    html_content: html
   };
 
-  try {
-    const response = await fetch(AHASEND_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        // --- THIS IS THE FIX ---
-        // Use the 'X-API-KEY' header as requested by the AhaSend error message.
-        "X-API-KEY": AHASEND_API_KEY,
-        // The 'Authorization: Bearer ...' header is removed.
-      },
-      body: JSON.stringify(emailPayload),
-    });
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${API_KEY}`
+    },
+    body: JSON.stringify(payload)
+  });
 
-    if (!response.ok) {
-      const errorBody = await response.json();
-      console.error("AhaSend API Error Response:", errorBody);
-      throw new Error(`AhaSend API failed with status ${response.status}`);
-    }
-    
-    console.log(`Email sent successfully to ${options.to} via AhaSend API.`);
-    return await response.json();
-
-  } catch (error) {
-    console.error("Critical error in sendEmail utility:", error.message);
-    throw new Error('Email could not be sent via API.');
+  const body = await response.json();
+  if (!response.ok) {
+    console.error("AhaSend API v2 Error:", { status: response.status, body });
+    throw new Error(`AhaSend API failed: ${body.error?.message || body}`);
   }
+
+  console.log("Email sent via AhaSend API v2:", body);
+  return body;
 };
 
-module.exports = sendEmail;
+export default sendEmail;
