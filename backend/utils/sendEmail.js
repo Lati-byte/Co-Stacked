@@ -6,11 +6,13 @@ const sendEmail = async (options) => {
   // 1. Create a transporter object using AhaSend's SMTP settings
   const transporter = nodemailer.createTransport({
     host: process.env.AHA_SMTP_HOST,
-    port: process.env.AHA_SMTP_PORT,
-    secure: false, // Port 587 uses STARTTLS, so `secure` is false
+    // --- THIS IS THE FIX ---
+    // Use the alternative port 2525, which is less likely to be blocked.
+    port: process.env.AHA_SMTP_PORT || 2525, 
+    secure: false, // Port 2525 also uses STARTTLS, so `secure` remains false
     auth: {
-      user: process.env.AHA_SMTP_USER, // Your AhaSend Username from .env
-      pass: process.env.AHA_SMTP_PASS, // Your AhaSend Password from .env
+      user: process.env.AHA_SMTP_USER,
+      pass: process.env.AHA_SMTP_PASS,
     },
   });
 
@@ -26,10 +28,9 @@ const sendEmail = async (options) => {
   // 3. Send the email and log the result
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log(`Email sent successfully to ${options.to} via AhaSend. Message ID: ${info.messageId}`);
+    console.log(`Email sent successfully to ${options.to} via AhaSend on port 2525. Message ID: ${info.messageId}`);
   } catch (error) {
     console.error("AhaSend SMTP Error:", error);
-    // Re-throw the error so the calling controller knows something went wrong.
     throw new Error('Email could not be sent via SMTP.');
   }
 };
