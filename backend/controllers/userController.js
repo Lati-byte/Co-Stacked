@@ -334,6 +334,7 @@ module.exports = {
   registerUser,
   authUser,
   getUsers,
+  verifyEmail,
   getUserProfile,
   updateUserProfile,
   changeUserPassword,
