@@ -5,12 +5,11 @@ const sendEmail = async (options) => {
   const AHASEND_FROM_EMAIL = process.env.AHA_FROM_EMAIL;
   const AHASEND_FROM_NAME = process.env.AHA_FROM_NAME || 'CoStacked';
   
-  // Use the official AhaSend API endpoint
   const AHASEND_API_URL = "https://api.ahasend.com/v1/email"; 
 
   if (!AHASEND_API_KEY || !AHASEND_FROM_EMAIL) {
-    console.error("FATAL: AhaSend API environment variables (AHA_API_KEY, AHA_FROM_EMAIL) are missing!");
-    throw new Error("Email service is not configured correctly on the server.");
+    console.error("FATAL: AhaSend API environment variables are missing!");
+    throw new Error("Email service is not configured on the server.");
   }
 
   const emailPayload = {
@@ -26,7 +25,10 @@ const sendEmail = async (options) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${AHASEND_API_KEY}`,
+        // --- THIS IS THE FIX ---
+        // Use the 'X-API-KEY' header as requested by the AhaSend error message.
+        "X-API-KEY": AHASEND_API_KEY,
+        // The 'Authorization: Bearer ...' header is removed.
       },
       body: JSON.stringify(emailPayload),
     });
