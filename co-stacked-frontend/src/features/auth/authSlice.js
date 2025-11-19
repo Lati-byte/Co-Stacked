@@ -3,58 +3,29 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import API from "../../api/axios";
 
-// Import payment actions (for updating user after subscription changes)
+// Import actions from other slices that this slice needs to react to
 import {
   verifySubscription,
   verifyProfileBoost,
   cancelSubscription,
 } from "../payments/paymentSlice";
 
-// ===================================================================
-// STORAGE KEYS – Keep everything consistent
-// ===================================================================
-const TOKEN_KEY = "userToken"; // ← Used by axios interceptor
-const PROFILE_KEY = "userProfile"; // ← Optional: quick access to user data
-const AUTH_STORAGE_KEY = "userAuth"; // ← Legacy key (we'll migrate away from it)
+// A single, consistent key for storing auth data in localStorage
+const AUTH_STORAGE_KEY = "userAuth";
 
-// Helper: Migrate old storage format → new clean format (one-time)
-const migrateOldStorage = () => {
+// Utility function to safely load the initial state from localStorage
+const loadAuthState = () => {
   try {
-    const oldData = localStorage.getItem(AUTH_STORAGE_KEY);
-    if (oldData) {
-      const { user, token } = JSON.parse(oldData);
-      if (token) localStorage.setItem(TOKEN_KEY, token);
-      if (user) localStorage.setItem(PROFILE_KEY, JSON.stringify(user));
-      localStorage.removeItem(AUTH_STORAGE_KEY); // Clean up old key
+    const serializedState = localStorage.getItem(AUTH_STORAGE_KEY);
+    if (serializedState === null) {
+      return { user: null, token: null, isAuthenticated: false };
     }
+    const { user, token } = JSON.parse(serializedState);
+    return { user, token, isAuthenticated: !!token };
   } catch (err) {
-    console.warn("Failed to migrate old auth storage", err);
+    console.error("Could not load auth state from localStorage", err);
+    return { user: null, token: null, isAuthenticated: false };
   }
-};
-
-// Load initial state safely
-const loadInitialState = () => {
-  migrateOldStorage(); // Run once on app start
-
-  let token = localStorage.getItem(TOKEN_KEY);
-  let user = null;
-
-  try {
-    const storedUser = localStorage.getItem(PROFILE_KEY);
-    if (storedUser) user = JSON.parse(storedUser);
-  } catch (err) {
-    console.error("Corrupted userProfile in localStorage", err);
-  }
-
-  return {
-    user,
-    token,
-    isAuthenticated: !!token,
-    status: "idle",
-    error: null,
-    successMessage: null,
-    unverifiedEmail: null,
-  };
 };
 
 // ===================================================================
@@ -68,9 +39,7 @@ export const registerUser = createAsyncThunk(
       const response = await API.post("/users/register", userData);
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || { message: "Registration failed" }
-      );
+      return rejectWithValue(error.response.data);
     }
   }
 );
@@ -82,9 +51,7 @@ export const verifyEmail = createAsyncThunk(
       const response = await API.post("/users/verify-email", { email, token });
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.response?.data || { message: "Invalid or expired code" }
-      );
+      return rejectWithValue(error.response.data);
     }
   }
 );
@@ -94,44 +61,24 @@ export const loginUser = createAsyncThunk(
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await API.post("/users/login", credentials);
-
-      const { user, token } = response.data;
-
-      if (!token) throw new Error("No token received from server");
-
-      // Save in the exact format axios interceptor expects
-      localStorage.setItem(TOKEN_KEY, token);
-      localStorage.setItem(PROFILE_KEY, JSON.stringify(user));
-
-      return { user, token };
+      if (response.data && response.data.token) {
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(response.data));
+      }
+      return response.data;
     } catch (error) {
-      const msg = error.response?.data?.message || "Invalid email or password";
-      const emailNotVerified = error.response?.data?.emailNotVerified || false;
-      return rejectWithValue({ message: msg, emailNotVerified });
+      return rejectWithValue(error.response.data);
     }
   }
 );
 
 export const getUserProfile = createAsyncThunk(
   "auth/getUserProfile",
-  async (_, { rejectWithValue, getState }) => {
+  async (_, { rejectWithValue }) => {
     try {
       const response = await API.get("/users/profile");
-      const user = response.data;
-
-      // Keep localStorage in sync
-      localStorage.setItem(PROFILE_KEY, JSON.stringify(user));
-
-      return user;
+      return response.data;
     } catch (error) {
-      // On 401, clear everything
-      if (error.response?.status === 401) {
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(PROFILE_KEY);
-      }
-      return rejectWithValue(
-        error.response?.data || { message: "Failed to load profile" }
-      );
+      return rejectWithValue(error.response.data);
     }
   }
 );
@@ -141,15 +88,14 @@ export const updateUserProfile = createAsyncThunk(
   async (userData, { rejectWithValue }) => {
     try {
       const response = await API.put("/users/profile", userData);
-      const updatedUser = response.data;
-
-      localStorage.setItem(PROFILE_KEY, JSON.stringify(updatedUser));
-
-      return updatedUser;
+      const currentAuth = JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY));
+      if (currentAuth) {
+        const updatedAuth = { ...currentAuth, user: response.data };
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(updatedAuth));
+      }
+      return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || { message: "Update failed" }
-      );
+      return rejectWithValue(error.response.data);
     }
   }
 );
@@ -164,26 +110,55 @@ export const changePassword = createAsyncThunk(
       );
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || { message: "Password change failed" }
-      );
+      return rejectWithValue(error.response.data);
     }
   }
 );
 
-// (Other thunks like forgotPassword, resetPassword remain unchanged — they’re perfect)
+export const forgotPassword = createAsyncThunk(
+  "auth/forgotPassword",
+  async (email, { rejectWithValue }) => {
+    try {
+      const response = await API.post("/users/forgot-password", { email });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+export const resetPassword = createAsyncThunk(
+  "auth/resetPassword",
+  async ({ token, password }, { rejectWithValue }) => {
+    try {
+      const response = await API.put(`/users/reset-password/${token}`, {
+        password,
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
 
 // ===================================================================
-// SLICE
+// THE AUTH SLICE
 // ===================================================================
+
+const initialState = {
+  ...loadAuthState(), // Load user, token, and isAuthenticated on startup
+  status: "idle",
+  error: null,
+  successMessage: null,
+  unverifiedEmail: null,
+};
 
 const authSlice = createSlice({
   name: "auth",
-  initialState: loadInitialState(),
+  initialState,
   reducers: {
     logout: (state) => {
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(PROFILE_KEY);
+      localStorage.removeItem(AUTH_STORAGE_KEY);
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
@@ -199,54 +174,152 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Registration
+      .addCase(registerUser.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+        state.successMessage = null;
+        state.unverifiedEmail = null;
+      })
+      .addCase(registerUser.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.unverifiedEmail = action.meta.arg.email;
+      })
+      .addCase(registerUser.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload?.message || "Registration failed.";
+      })
+
       // Login
+      .addCase(loginUser.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+        state.unverifiedEmail = null;
+      })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.isAuthenticated = true;
         state.user = action.payload.user;
         state.token = action.payload.token;
         state.error = null;
-        state.unverifiedEmail = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.status = "failed";
         state.isAuthenticated = false;
         state.user = null;
         state.token = null;
-        state.error = action.payload.message;
-        if (action.payload.emailNotVerified) {
+        state.error = action.payload?.message || "Invalid credentials.";
+        if (action.payload?.emailNotVerified) {
           state.unverifiedEmail = action.meta.arg.email;
         }
       })
 
-      // Profile fetch/update
+      // Email Verification
+      .addCase(verifyEmail.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+        state.successMessage = null;
+      })
+      .addCase(verifyEmail.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.successMessage = action.payload.message;
+        state.unverifiedEmail = null;
+      })
+      .addCase(verifyEmail.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload.message || "Verification failed.";
+      })
+
+      // Get Profile (for persistent session)
+      .addCase(getUserProfile.pending, (state) => {
+        state.status = "loading";
+      })
       .addCase(getUserProfile.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.isAuthenticated = true;
         state.user = action.payload;
       })
+      .addCase(getUserProfile.rejected, (state, action) => {
+        localStorage.removeItem(AUTH_STORAGE_KEY);
+        state.status = "failed";
+        state.error = action.payload?.message || "Session expired.";
+        state.user = null;
+        state.token = null;
+        state.isAuthenticated = false;
+      })
+
+      // Update Profile
+      .addCase(updateUserProfile.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
       .addCase(updateUserProfile.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.user = action.payload;
       })
+      .addCase(updateUserProfile.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload.message || "Failed to update profile.";
+      })
 
-      // Payment actions → update user
+      // Password Management
+      .addCase(changePassword.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+        state.successMessage = null;
+      })
+      .addCase(changePassword.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.successMessage = action.payload.message;
+      })
+      .addCase(changePassword.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload.message || "Failed to change password.";
+      })
+      .addCase(forgotPassword.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+        state.successMessage = null;
+      })
+      .addCase(forgotPassword.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.successMessage = action.payload.message;
+      })
+      .addCase(forgotPassword.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload.message || "Failed to send reset link.";
+      })
+      .addCase(resetPassword.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+        state.successMessage = null;
+      })
+      .addCase(resetPassword.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.successMessage = action.payload.message;
+      })
+      .addCase(resetPassword.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload.message || "Failed to reset password.";
+      })
+
+      // Inter-Slice Reducers for Payment Events
       .addCase(verifySubscription.fulfilled, (state, action) => {
-        if (action.payload.user && state.user) {
-          state.user = { ...state.user, ...action.payload.user };
-          localStorage.setItem(PROFILE_KEY, JSON.stringify(state.user));
+        const { user: updatedUser } = action.payload;
+        if (state.user && updatedUser) {
+          state.user = { ...state.user, ...updatedUser };
         }
       })
       .addCase(verifyProfileBoost.fulfilled, (state, action) => {
-        if (action.payload.user && state.user) {
-          state.user = { ...state.user, ...action.payload.user };
-          localStorage.setItem(PROFILE_KEY, JSON.stringify(state.user));
+        const { user: updatedUser } = action.payload;
+        if (state.user && updatedUser) {
+          state.user = { ...state.user, ...updatedUser };
         }
       })
       .addCase(cancelSubscription.fulfilled, (state, action) => {
-        if (action.payload.user && state.user) {
-          state.user = { ...state.user, ...action.payload.user };
-          localStorage.setItem(PROFILE_KEY, JSON.stringify(state.user));
+        const { user: updatedUser } = action.payload;
+        if (state.user && updatedUser) {
+          state.user = { ...state.user, ...updatedUser };
         }
       });
   },
