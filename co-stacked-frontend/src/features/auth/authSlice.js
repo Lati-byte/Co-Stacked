@@ -10,22 +10,29 @@ import {
   cancelSubscription,
 } from "../payments/paymentSlice";
 
-// A single, consistent key for storing auth data in localStorage
-const AUTH_STORAGE_KEY = "userAuth";
+// NEW: Consistent keys for localStorage (matches axios interceptor)
+const TOKEN_KEY = "userToken";       // Axios looks for this exactly
+const PROFILE_KEY = "userProfile";   // Optional for quick user access
 
-// Utility function to safely load the initial state from localStorage
-const loadAuthState = () => {
+// Utility to load initial state from localStorage
+const loadInitialState = () => {
+  const token = localStorage.getItem(TOKEN_KEY);
+  let user = null;
   try {
-    const serializedState = localStorage.getItem(AUTH_STORAGE_KEY);
-    if (serializedState === null) {
-      return { user: null, token: null, isAuthenticated: false };
-    }
-    const { user, token } = JSON.parse(serializedState);
-    return { user, token, isAuthenticated: !!token };
+    const storedUser = localStorage.getItem(PROFILE_KEY);
+    if (storedUser) user = JSON.parse(storedUser);
   } catch (err) {
-    console.error("Could not load auth state from localStorage", err);
-    return { user: null, token: null, isAuthenticated: false };
+    console.error("Failed to parse userProfile from localStorage", err);
   }
+  return {
+    user,
+    token,
+    isAuthenticated: !!token,
+    status: "idle",
+    error: null,
+    successMessage: null,
+    unverifiedEmail: null,
+  };
 };
 
 // ===================================================================
@@ -39,7 +46,7 @@ export const registerUser = createAsyncThunk(
       const response = await API.post("/users/register", userData);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || { message: "Registration failed." });
     }
   }
 );
@@ -51,7 +58,7 @@ export const verifyEmail = createAsyncThunk(
       const response = await API.post("/users/verify-email", { email, token });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || { message: "Verification failed." });
     }
   }
 );
@@ -61,12 +68,16 @@ export const loginUser = createAsyncThunk(
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await API.post("/users/login", credentials);
-      if (response.data && response.data.token) {
-        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(response.data));
-      }
-      return response.data;
+      const { user, token } = response.data;
+
+      // NEW: Save in format axios interceptor expects
+      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(user));
+
+      return { user, token };
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      const payload = error.response?.data || { message: "Invalid credentials." };
+      return rejectWithValue(payload);
     }
   }
 );
@@ -76,9 +87,18 @@ export const getUserProfile = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await API.get("/users/profile");
-      return response.data;
+      const user = response.data;
+
+      // Sync with localStorage
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(user));
+
+      return user;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      if (error.response?.status === 401) {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(PROFILE_KEY);
+      }
+      return rejectWithValue(error.response?.data || { message: "Failed to fetch profile." });
     }
   }
 );
@@ -88,14 +108,14 @@ export const updateUserProfile = createAsyncThunk(
   async (userData, { rejectWithValue }) => {
     try {
       const response = await API.put("/users/profile", userData);
-      const currentAuth = JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY));
-      if (currentAuth) {
-        const updatedAuth = { ...currentAuth, user: response.data };
-        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(updatedAuth));
-      }
-      return response.data;
+      const updatedUser = response.data;
+
+      // Update localStorage
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(updatedUser));
+
+      return updatedUser;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || { message: "Failed to update profile." });
     }
   }
 );
@@ -104,13 +124,10 @@ export const changePassword = createAsyncThunk(
   "auth/changePassword",
   async (passwordData, { rejectWithValue }) => {
     try {
-      const response = await API.put(
-        "/users/profile/change-password",
-        passwordData
-      );
+      const response = await API.put("/users/profile/change-password", passwordData);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || { message: "Failed to change password." });
     }
   }
 );
@@ -122,7 +139,7 @@ export const forgotPassword = createAsyncThunk(
       const response = await API.post("/users/forgot-password", { email });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || { message: "Failed to send reset link." });
     }
   }
 );
@@ -131,12 +148,10 @@ export const resetPassword = createAsyncThunk(
   "auth/resetPassword",
   async ({ token, password }, { rejectWithValue }) => {
     try {
-      const response = await API.put(`/users/reset-password/${token}`, {
-        password,
-      });
+      const response = await API.put(`/users/reset-password/${token}`, { password });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || { message: "Failed to reset password." });
     }
   }
 );
@@ -145,20 +160,13 @@ export const resetPassword = createAsyncThunk(
 // THE AUTH SLICE
 // ===================================================================
 
-const initialState = {
-  ...loadAuthState(), // Load user, token, and isAuthenticated on startup
-  status: "idle",
-  error: null,
-  successMessage: null,
-  unverifiedEmail: null,
-};
-
 const authSlice = createSlice({
   name: "auth",
-  initialState,
+  initialState: loadInitialState(),
   reducers: {
     logout: (state) => {
-      localStorage.removeItem(AUTH_STORAGE_KEY);
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(PROFILE_KEY);
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
@@ -227,10 +235,10 @@ const authSlice = createSlice({
       })
       .addCase(verifyEmail.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload.message || "Verification failed.";
+        state.error = action.payload?.message || "Verification failed.";
       })
 
-      // Get Profile (for persistent session)
+      // Get Profile
       .addCase(getUserProfile.pending, (state) => {
         state.status = "loading";
       })
@@ -240,7 +248,6 @@ const authSlice = createSlice({
         state.user = action.payload;
       })
       .addCase(getUserProfile.rejected, (state, action) => {
-        localStorage.removeItem(AUTH_STORAGE_KEY);
         state.status = "failed";
         state.error = action.payload?.message || "Session expired.";
         state.user = null;
@@ -259,7 +266,7 @@ const authSlice = createSlice({
       })
       .addCase(updateUserProfile.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload.message || "Failed to update profile.";
+        state.error = action.payload?.message || "Failed to update profile.";
       })
 
       // Password Management
@@ -274,7 +281,7 @@ const authSlice = createSlice({
       })
       .addCase(changePassword.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload.message || "Failed to change password.";
+        state.error = action.payload?.message || "Failed to change password.";
       })
       .addCase(forgotPassword.pending, (state) => {
         state.status = "loading";
@@ -287,7 +294,7 @@ const authSlice = createSlice({
       })
       .addCase(forgotPassword.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload.message || "Failed to send reset link.";
+        state.error = action.payload?.message || "Failed to send reset link.";
       })
       .addCase(resetPassword.pending, (state) => {
         state.status = "loading";
@@ -300,7 +307,7 @@ const authSlice = createSlice({
       })
       .addCase(resetPassword.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload.message || "Failed to reset password.";
+        state.error = action.payload?.message || "Failed to reset password.";
       })
 
       // Inter-Slice Reducers for Payment Events
@@ -308,18 +315,21 @@ const authSlice = createSlice({
         const { user: updatedUser } = action.payload;
         if (state.user && updatedUser) {
           state.user = { ...state.user, ...updatedUser };
+          localStorage.setItem(PROFILE_KEY, JSON.stringify(state.user));
         }
       })
       .addCase(verifyProfileBoost.fulfilled, (state, action) => {
         const { user: updatedUser } = action.payload;
         if (state.user && updatedUser) {
           state.user = { ...state.user, ...updatedUser };
+          localStorage.setItem(PROFILE_KEY, JSON.stringify(state.user));
         }
       })
       .addCase(cancelSubscription.fulfilled, (state, action) => {
         const { user: updatedUser } = action.payload;
         if (state.user && updatedUser) {
           state.user = { ...state.user, ...updatedUser };
+          localStorage.setItem(PROFILE_KEY, JSON.stringify(state.user));
         }
       });
   },
