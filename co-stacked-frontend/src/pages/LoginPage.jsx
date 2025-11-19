@@ -15,28 +15,47 @@ export const LoginPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // Get the full auth state, including the `unverifiedEmail` flag
   const { status, error, unverifiedEmail } = useSelector((state) => state.auth);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  // Clear any old error messages when the component first loads
+  // Clear old messages on mount
   useEffect(() => {
     dispatch(clearAuthMessages());
   }, [dispatch]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const credentials = { email, password };
 
-    const resultAction = await dispatch(loginUser(credentials));
-    
+    // Clear any previous errors
+    dispatch(clearAuthMessages());
+
+    const resultAction = await dispatch(loginUser({ email, password }));
+
+    // SUCCESS: Login worked → token + user saved by authSlice → redirect
     if (loginUser.fulfilled.match(resultAction)) {
+      // Optional: Save to localStorage again (in case your slice doesn't persist)
+      const { user, token } = resultAction.payload;
+      localStorage.setItem('userToken', token);
+      localStorage.setItem('userProfile', JSON.stringify(user));
+
       navigate('/dashboard');
-    } else if (loginUser.rejected.match(resultAction) && resultAction.payload?.emailNotVerified) {
-      // If the backend says the email isn't verified, redirect to the verify page
-      navigate('/verify-email');
+      return;
+    }
+
+    // FAILURE: Check why it failed
+    if (loginUser.rejected.match(resultAction)) {
+      const payload = resultAction.payload;
+
+      // Case 1: Email not verified → send to verification page
+      if (payload?.emailNotVerified) {
+        navigate('/verify-email', { state: { email } }); // Pass email so verify page pre-fills it
+        return;
+      }
+
+      // Case 2: Wrong credentials or server error → error is already in Redux state
+      // Error message will show below the form
     }
   };
 
@@ -45,35 +64,78 @@ export const LoginPage = () => {
       <Card className={styles.card}>
         <header className={styles.header}>
           <h1 className={styles.title}>Welcome Back!</h1>
-          <p className={styles.description}>Enter your credentials to access your account.</p>
+          <p className={styles.description}>
+            Enter your credentials to access your account.
+          </p>
         </header>
 
         <div className={styles.content}>
-          <form onSubmit={handleSubmit} className={styles.form}>
+          <form onSubmit={handleSubmit} className={styles.form} noValidate>
             <div className={styles.formGroup}>
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
             </div>
+
             <div className={styles.formGroup}>
               <div className={styles.passwordHeader}>
                 <Label htmlFor="password">Password</Label>
-                {/* --- THIS IS THE NEW LINK --- */}
                 <Link to="/forgot-password" className={styles.forgotLink}>
                   Forgot password?
                 </Link>
               </div>
-              <Input id="password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+              <Input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
             </div>
 
-            {status === 'failed' && error && <p className={styles.error}>{error}</p>}
-            
-            <Button type="submit" variant="primary" disabled={status === 'loading'}>
-              {status === 'loading' ? (<><Loader2 className="animate-spin mr-2" /> Logging in...</>) : ( "Login" )}
+            {/* Show backend errors */}
+            {status === 'failed' && error && (
+              <p className={styles.error}>{error}</p>
+            )}
+
+            {/* Show specific unverified message if needed */}
+            {status === 'failed' && unverifiedEmail && (
+              <p className={styles.error}>
+                Please verify your email first. Check your inbox for the code.
+              </p>
+            )}
+
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={status === 'loading'}
+              className={styles.submitButton}
+            >
+              {status === 'loading' ? (
+                <>
+                  <Loader2 className="animate-spin mr-2" size={20} />
+                  Logging in...
+                </>
+              ) : (
+                'Login'
+              )}
             </Button>
           </form>
 
           <div className={styles.footer}>
-            <p>Don't have an account?{' '}<Link to="/signup" className={styles.link}>Sign Up</Link></p>
+            <p>
+              Don't have an account?{' '}
+              <Link to="/signup" className={styles.link}>
+                Sign Up
+              </Link>
+            </p>
           </div>
         </div>
       </Card>
