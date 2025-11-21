@@ -414,6 +414,12 @@ const boostedUsers = allUsers.filter((u) => u.isBoosted);
   items={/* an array of “featured users” or “connections” */}
   renderItem={(user) => <ProfileCard user={user} />}
 />
+
+<Carousel
+  items={boostedUsers}
+  renderItem={(u) => <ProfileCard user={u} />}
+/>
+
                 {/* Testimonials Section - Hidden with CSS */}
                 {developerReviews.length > 0 && (
                   <div className={styles.hiddenSection}>
