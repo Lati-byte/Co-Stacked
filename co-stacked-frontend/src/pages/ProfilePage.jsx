@@ -408,6 +408,11 @@ export const ProfilePage = () => {
                   </>
                 )}
                 
+                // Carousel Scroll Section
+                <Carousel
+  items={/* an array of “featured users” or “connections” */}
+  renderItem={(user) => <ProfileCard user={user} />}
+/>
                 {/* Testimonials Section - Hidden with CSS */}
                 {developerReviews.length > 0 && (
                   <div className={styles.hiddenSection}>
