@@ -52,6 +52,7 @@ export const ProfilePage = () => {
   
   const userToDisplay = userId ? allUsers.find(u => u._id === userId) : loggedInUser;
   const isOwnProfile = userToDisplay && loggedInUser && userToDisplay._id === loggedInUser._id;
+const boostedUsers = allUsers.filter((u) => u.isBoosted);
 
   // Fetch connection status
   useEffect(() => {
