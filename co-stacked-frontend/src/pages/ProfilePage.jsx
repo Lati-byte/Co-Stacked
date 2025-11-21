@@ -23,7 +23,8 @@ import { ReviewCard } from '../components/reviews/ReviewCard';
 import { ProfileEditor } from '../components/profile/ProfileEditor';
 import { MapPin, Link as LinkIcon } from 'lucide-react';
 import verificationBadge from '../assets/verification-badge.png';
-
+import { Carousel } from "../components/shared/Carousel";
+import { ProfileCard } from "../components/shared/ProfileCard"
 const LoadingSpinner = () => <div className={styles.loader}>Loading profile...</div>;
 
 const formatDate = (dateString) => {
