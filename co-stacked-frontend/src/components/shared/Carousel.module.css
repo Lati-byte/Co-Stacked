@@ -1,0 +1,24 @@
+.carouselWrapper {
+  overflow-x: auto;
+  display: flex;
+  scroll-snap-type: x mandatory;
+  gap: 1rem;
+  padding-bottom: 1rem;
+
+  /* Smooth scroll */
+  scroll-behavior: smooth;
+
+  /* For mobile momentum scrolling */
+  -webkit-overflow-scrolling: touch;
+}
+
+.carouselTrack {
+  display: flex;
+  gap: 1rem;
+}
+
+.carouselSlide {
+  flex: 0 0 80%;        /* Adjust width for how many cards you want visible */
+  max-width: 300px;     /* limit slide width */
+  scroll-snap-align: center;
+}
