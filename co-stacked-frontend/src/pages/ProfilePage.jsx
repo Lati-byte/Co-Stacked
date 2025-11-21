@@ -23,8 +23,7 @@ import { ReviewCard } from '../components/reviews/ReviewCard';
 import { ProfileEditor } from '../components/profile/ProfileEditor';
 import { MapPin, Link as LinkIcon } from 'lucide-react';
 import verificationBadge from '../assets/verification-badge.png';
-import { Carousel } from "../components/shared/Carousel";
-import { ProfileCard } from "../components/shared/ProfileCard"
+
 const LoadingSpinner = () => <div className={styles.loader}>Loading profile...</div>;
 
 const formatDate = (dateString) => {
@@ -52,7 +51,6 @@ export const ProfilePage = () => {
   
   const userToDisplay = userId ? allUsers.find(u => u._id === userId) : loggedInUser;
   const isOwnProfile = userToDisplay && loggedInUser && userToDisplay._id === loggedInUser._id;
-const boostedUsers = allUsers.filter((u) => u.isBoosted);
 
   // Fetch connection status
   useEffect(() => {
@@ -409,17 +407,6 @@ const boostedUsers = allUsers.filter((u) => u.isBoosted);
                   </>
                 )}
                 
-                // Carousel Scroll Section
-                <Carousel
-  items={/* an array of “featured users” or “connections” */}
-  renderItem={(user) => <ProfileCard user={user} />}
-/>
-
-<Carousel
-  items={boostedUsers}
-  renderItem={(u) => <ProfileCard user={u} />}
-/>
-
                 {/* Testimonials Section - Hidden with CSS */}
                 {developerReviews.length > 0 && (
                   <div className={styles.hiddenSection}>
