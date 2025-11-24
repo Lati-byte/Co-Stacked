@@ -145,6 +145,9 @@
   cursor: pointer;
   padding: 0.5rem;
   color: var(--foreground);
+  display: flex; /* Ensures it's visible */
+  align-items: center;
+  justify-content: center;
 }
 .closeButton:hover {
   background-color: var(--muted);
