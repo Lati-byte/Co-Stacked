@@ -13,7 +13,6 @@
   margin-bottom: 1rem;
 }
 
-/* === NEW: Wrapper for the name and verified icon === */
 .nameWrapper {
   display: flex;
   align-items: center;
@@ -24,13 +23,13 @@
   font-size: 1.25rem;
   font-weight: 700;
   line-height: 1.2;
+  color: var(--foreground); /* Ensure name uses theme variable */
 }
 
-/* === NEW: Style for the small verified PNG badge === */
 .verifiedIcon {
-  height: 20px; /* Control the size of your badge on the card */
+  height: 20px;
   width: auto;
-  flex-shrink: 0; /* Prevents the icon from being squished */
+  flex-shrink: 0;
 }
 
 .role {
@@ -44,7 +43,6 @@
   line-height: 1.6;
   margin-bottom: 1.5rem;
   flex-grow: 1;
-  /* CSS to truncate text to 3 lines */
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
@@ -94,7 +92,7 @@
 
 .boostedCard {
   border: 2px solid var(--primary);
-  position: relative; /* This is crucial for positioning the badge */
+  position: relative;
 }
 
 .boostBadge {
@@ -105,7 +103,8 @@
   align-items: center;
   gap: 6px;
   background-color: var(--primary);
-  color: white;
+  /* --- THIS IS THE UPDATE --- */
+  color: var(--primary-foreground); /* Replaced 'white' with our new variable */
   padding: 4px 10px;
   border-radius: 9999px;
   font-size: 0.75rem;

@@ -1,0 +1,104 @@
+/* src/index.css */
+
+/* 1. A Modern CSS Reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+
+input, button, textarea, select {
+  font: inherit;
+}
+
+/* 2. Define Color Variables for the Light Theme (Default) */
+:root {
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-light: #e0e7ff;
+
+  --foreground: #1f2937;
+  --muted-foreground: #6b7280;
+
+   --destructive: #dc2626; /* Red-600 */
+  --destructive-foreground: #fef2f2; /* Red-50 */
+  --destructive-border: #fca5a5; /* Red-300 */
+
+  --success: #16a34a; /* Green-600 */
+  --success-foreground: #f0fdf4; /* Green-50 */
+
+  --warning: #ca8a04; /* Yellow-600 */
+  --warning-foreground: #fefce8; /* Yellow-50 */
+
+   --card-background: #ffffff;
+  --secondary-button-background: #ffffff;
+  --secondary-button-hover: #f9fafb; /* A very light gray */
+  --secondary-foreground: #1f2937;
+  --input-background: #f3f4f6;
+
+  --background: #f9fafb;
+  --card-background: #ffffff;
+  --input-background: #f3f4f6;
+
+  --border: #e5e7eb;
+  --radius: 8px;
+  --star-color: #f59e0b; 
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+/* 3. Define Overrides for the Dark Theme */
+/* This block will only be active when <html data-theme="dark"> */
+html[data-theme='dark'] {
+  --primary: #6366f1;
+  --primary-hover: #818cf8;
+  --primary-light: #3730a3;
+
+  --foreground: #f9fafb;
+  --muted-foreground: #9ca3af;
+  --star-color: #f59e0b; 
+
+   --success: #4ade80; /* Green-400 */
+  --success-foreground: #14532d; /* Green-900 */
+
+  --warning: #facc15; /* Yellow-400 */
+  --warning-foreground: #422006; /* Yellow-900 */
+
+   --card-background: #1f2937;
+  --secondary-button-background: #374151; /* Gray-700 */
+  --secondary-button-hover: #4b5563; /* Gray-600 */
+  --secondary-foreground: #f9fafb;
+  --input-background: #374151;
+
+
+  --destructive: #f87171; /* Red-400 */
+  --destructive-foreground: #450a0a; /* Red-950 */
+  --destructive-border: #991b1b; /* Red-800 */
+  
+  --background: #111827;
+  --card-background: #1f2937;
+  --input-background: #374151;
+
+  --border: #374151;
+}
+
+/* 4. Global Transition for Smooth Theme Changes */
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
