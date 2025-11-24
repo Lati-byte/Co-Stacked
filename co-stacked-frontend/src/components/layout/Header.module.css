@@ -1,6 +1,6 @@
 /* src/components/layout/Header.module.css */
 
-/* --- Mobile First: Base styles for small screens --- */
+/* --- Mobile First: Base styles --- */
 .header {
   background-color: var(--card-background);
   border-bottom: 1px solid var(--border);
@@ -10,26 +10,16 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
-
-.leftSection, .userActions {
+/* ... other base styles ... */
+.leftSection,
+.userActions {
   display: flex;
   align-items: center;
 }
-
-.leftSection {
-  flex-shrink: 0;
-}
-
-.userActions {
-  justify-content: flex-end;
-  gap: 0.5rem;
-}
-
 .logoContainer {
   display: inline-flex;
   align-items: center;
@@ -37,29 +27,21 @@
   text-decoration: none;
   color: var(--foreground);
 }
-
 .logoImage {
   height: 32px;
   width: auto;
 }
-
 .logoText {
   font-size: 1.3rem;
   font-weight: 700;
   letter-spacing: -0.05em;
-  /* The "display: none;" rule that was here has been removed. */
-  /* The text will now be visible by default on all screen sizes. */
 }
-
-/* --- Hide desktop elements on mobile --- */
 .navLinks,
 .authButtons,
 .userName,
 .postProjectButton {
   display: none;
 }
-
-/* --- Mobile-visible elements --- */
 .hamburgerButton {
   display: flex;
   align-items: center;
@@ -74,8 +56,8 @@
 .hamburgerButton:hover {
   background-color: var(--muted);
 }
-
-.profileLink, .notificationButton {
+.profileLink,
+.notificationButton {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -87,15 +69,13 @@
   border-radius: 50%;
   transition: background-color 0.2s ease;
 }
-
-.profileLink:hover, .notificationButton:hover {
+.profileLink:hover,
+.notificationButton:hover {
   background-color: var(--muted);
 }
-
 .notificationWrapper {
   position: relative;
 }
-
 .notificationCount {
   position: absolute;
   top: 0;
@@ -126,39 +106,38 @@
   display: flex;
   flex-direction: column;
 }
-
 .mobileMenuHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
 }
-
 .mobileMenuTitle {
   font-size: 1.5rem;
   font-weight: 700;
 }
 
+/* --- THIS IS THE DEFINITIVE FIX --- */
 .closeButton {
   background: none;
   border: none;
   cursor: pointer;
   padding: 0.5rem;
-  color: var(--foreground);
-  display: flex; /* Ensures it's visible */
+  color: var(--foreground); /* Makes the 'X' icon visible */
+  display: flex; /* Ensures the button takes up space */
   align-items: center;
   justify-content: center;
 }
 .closeButton:hover {
   background-color: var(--muted);
 }
+/* --- END FIX --- */
 
 .mobileNavLinks {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
-
 .mobileNavLink {
   text-decoration: none;
   color: var(--foreground);
@@ -168,13 +147,11 @@
 .activeMobileLink {
   color: var(--primary);
 }
-
 .mobileMenuFooter {
   margin-top: auto;
   padding-top: 1.5rem;
   border-top: 1px solid var(--border);
 }
-
 .mobileAuthButtons {
   display: flex;
   flex-direction: column;
@@ -184,7 +161,6 @@
   flex: 1;
   text-align: center;
 }
-
 .dropdownLoading {
   padding: 1rem;
   background-color: var(--card-background);
@@ -193,11 +169,7 @@
   color: var(--muted-foreground);
 }
 
-/* ======================================================= */
-/* --- RESPONSIVE MEDIA QUERIES (Progressive Enhancement) --- */
-/* ======================================================= */
-
-/* --- Medium screens (Tablets, ~768px and up) --- */
+/* --- RESPONSIVE MEDIA QUERIES --- */
 @media (min-width: 768px) {
   .header {
     padding: 0 2rem;
@@ -221,18 +193,38 @@
   }
 }
 
-/* --- Large screens (Desktops, ~1024px and up) --- */
 @media (min-width: 1024px) {
   .navLinks {
     display: flex;
     gap: 2.5rem;
   }
-  .navLink { text-decoration: none; color: var(--foreground); font-weight: 500; font-size: 0.95rem; padding: 0.5rem 0; position: relative; transition: color 200ms ease-in-out; }
-  .navLink:hover { color: var(--primary); }
-  .activeLink { color: var(--primary); font-weight: 700; }
-  .activeLink::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background-color: var(--primary); }
-
-  .authButtons, .postProjectButton {
+  .navLink {
+    text-decoration: none;
+    color: var(--foreground);
+    font-weight: 500;
+    font-size: 0.95rem;
+    padding: 0.5rem 0;
+    position: relative;
+    transition: color 200ms ease-in-out;
+  }
+  .navLink:hover {
+    color: var(--primary);
+  }
+  .activeLink {
+    color: var(--primary);
+    font-weight: 700;
+  }
+  .activeLink::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--primary);
+  }
+  .authButtons,
+  .postProjectButton {
     display: flex;
   }
   .hamburgerButton {

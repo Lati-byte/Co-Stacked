@@ -6,7 +6,7 @@ import { X } from 'lucide-react';
 import styles from '../Header.module.css';
 import PropTypes from 'prop-types';
 
-export const MobileMenu = ({ isOpen, onClose, links, isAuthenticated, user, onLogout }) => (
+export const MobileMenu = ({ onClose, links, isAuthenticated, onLogout }) => (
   <motion.div 
     className={styles.mobileMenuOverlay}
     initial={{ x: '100%' }}
@@ -16,13 +16,20 @@ export const MobileMenu = ({ isOpen, onClose, links, isAuthenticated, user, onLo
   >
     <div className={styles.mobileMenuHeader}>
       <span className={styles.mobileMenuTitle}>Menu</span>
+      {/* This button uses the 'closeButton' class name */}
       <button onClick={onClose} aria-label="Close menu" className={styles.closeButton}>
         <X size={28} />
       </button>
     </div>
     <nav className={styles.mobileNavLinks}>
       {links.map(link => (
-        <NavLink key={link.path} to={link.path} className={styles.mobileNavLink}>{link.label}</NavLink>
+        <NavLink 
+          key={link.path} 
+          to={link.path} 
+          className={({isActive}) => isActive ? `${styles.mobileNavLink} ${styles.activeMobileLink}` : styles.mobileNavLink}
+        >
+          {link.label}
+        </NavLink>
       ))}
     </nav>
     <div className={styles.mobileMenuFooter}>
@@ -38,4 +45,9 @@ export const MobileMenu = ({ isOpen, onClose, links, isAuthenticated, user, onLo
   </motion.div>
 );
 
-MobileMenu.propTypes = { /* Add PropTypes for all props */ };
+MobileMenu.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  links: PropTypes.array.isRequired,
+  isAuthenticated: PropTypes.bool.isRequired,
+  onLogout: PropTypes.func.isRequired,
+};
