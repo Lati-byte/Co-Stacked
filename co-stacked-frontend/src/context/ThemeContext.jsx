@@ -14,26 +14,23 @@ export const useTheme = () => useContext(ThemeContext);
 
 // Create the provider component
 export const ThemeProvider = ({ children }) => {
-  // State to hold the current theme. We initialize it from localStorage or system preference.
+  // State to hold the current theme.
   const [theme, setTheme] = useState(() => {
-    // 1. Check localStorage for a saved theme
+    // --- THIS IS THE UPDATE ---
+    // 1. Check localStorage first. If a user has previously chosen a theme, respect it.
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme) {
       return savedTheme;
     }
-    // 2. If no saved theme, check the user's OS preference
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
-    }
-    // 3. Default to 'light'
+    
+    // 2. If no theme is saved in localStorage, ALWAYS default to 'light'.
+    // The check for the user's system preference has been removed.
     return 'light';
   });
 
   // Effect to apply the theme to the <html> element and save to localStorage
   useEffect(() => {
-    // Add the `data-theme` attribute to the root <html> element
     document.documentElement.setAttribute('data-theme', theme);
-    // Save the user's preference to localStorage
     localStorage.setItem('theme', theme);
   }, [theme]);
 
