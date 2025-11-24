@@ -1,10 +1,19 @@
 // src/components/layout/Footer.jsx
 
-import { Link } from 'react-router-dom'; // <-- THIS LINE IS NOW CORRECT
+import { Link } from 'react-router-dom';
+import { useTheme } from '../../context/ThemeContext'; // 1. Import the theme hook
+
+// 2. Import BOTH logos using the correct, case-sensitive paths
+import logoLight from '../../assets/logo-light.png'; 
+import logoDark from '../../assets/logo-dark.png';
 import styles from "./Footer.module.css";
-import logoSrc from "../../assets/logo.png";
 
 export const Footer = () => {
+  const { theme } = useTheme(); // 3. Get the current theme from the context
+
+  // 4. Conditionally select the correct logo source based on the current theme
+  const logoSrc = theme === 'light' ? logoLight : logoDark;
+
   const currentYear = new Date().getFullYear();
 
   return (
@@ -13,6 +22,7 @@ export const Footer = () => {
         {/* === Left Side: Logo and Tagline === */}
         <div className={styles.brandSection}>
           <Link to="/" className={styles.logoContainer}>
+            {/* 5. Use the dynamic logoSrc variable here */}
             <img src={logoSrc} alt="CoStacked Logo" className={styles.logoImage} />
             <span className={styles.logoText}>CoStacked</span>
            </Link>
