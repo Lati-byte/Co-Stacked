@@ -1,0 +1,77 @@
+// src/router.jsx
+
+import { createBrowserRouter } from "react-router-dom";
+
+// Import Layouts and Protection
+import { MainLayout } from "./components/layout/MainLayout";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+
+// Import All Page Components
+import { HomePage } from "./pages/HomePage";
+import { DiscoverProjectsPage } from "./pages/DiscoverProjectsPage";
+import { ProjectDetailPage } from "./pages/ProjectDetailPage";
+import { BrowseUsersPage } from "./pages/BrowseUsersPage";
+import { ProfilePage } from "./pages/ProfilePage";
+import { SignUpPage } from "./pages/SignUpPage";
+import { LoginPage } from "./pages/LoginPage";
+import { VerifyEmailPage } from "./pages/VerifyEmailPage";
+import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
+import { ResetPasswordPage } from "./pages/ResetPasswordPage";
+import { DashboardPage } from "./pages/DashboardPage";
+import { MessagesPage } from "./pages/MessagesPage";
+import { PostProjectPage } from "./pages/PostProjectPage";
+import { RequestsPage } from "./pages/RequestsPage";
+import { SettingsPage } from "./pages/SettingsPage";
+import { SupportPage } from "./pages/SupportPage";
+import { MyProjectsPage } from "./pages/MyProjectsPage";
+import { EditProjectPage } from "./pages/EditProjectPage";
+import { SentRequestsPage } from "./pages/SentRequestsPage";
+import { AboutPage } from "./pages/AboutPage";
+import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
+import { TermsOfServicePage } from "./pages/TermsOfServicePage";
+
+// This router object is the single export from this file.
+// It is imported by App.jsx, which is a higher-level component.
+export const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <MainLayout />, // The MainLayout is the parent route for all pages using it.
+    children: [
+      // --- PUBLIC CHILDREN ROUTES ---
+      // These routes are accessible to everyone.
+      { index: true, element: <HomePage /> },
+      { path: "projects", element: <DiscoverProjectsPage /> },
+      { path: "projects/:projectId", element: <ProjectDetailPage /> },
+      { path: "users", element: <BrowseUsersPage /> },
+      { path: "users/:userId", element: <ProfilePage /> },
+      { path: "signup", element: <SignUpPage /> },
+      { path: "login", element: <LoginPage /> },
+      { path: "verify-email", element: <VerifyEmailPage /> },
+      { path: "forgot-password", element: <ForgotPasswordPage /> },
+      { path: "reset-password/:token", element: <ResetPasswordPage /> },
+      { path: "support", element: <SupportPage /> },
+      { path: "about", element: <AboutPage /> },
+      { path: "privacy", element: <PrivacyPolicyPage /> },
+      { path: "terms", element: <TermsOfServicePage /> },
+
+      // --- PROTECTED CHILDREN ROUTES ---
+      // These routes are wrapped by the ProtectedRoute component.
+      { 
+        element: <ProtectedRoute />,
+        children: [
+          { path: "dashboard", element: <DashboardPage /> },
+          { path: "my-projects", element: <MyProjectsPage /> },
+          { path: "projects/edit/:projectId", element: <EditProjectPage /> },
+          { path: "profile", element: <ProfilePage /> },
+          { path: "requests", element: <RequestsPage /> },
+          { path: "my-applications", element: <SentRequestsPage /> },
+          { path: "messages", element: <MessagesPage /> },
+          { path: "settings", element: <SettingsPage /> },
+          { path: "post-project", element: <PostProjectPage /> },
+        ]
+      }
+    ]
+  },
+  // You can add routes that DON'T use MainLayout here in the future,
+  // for example, a dedicated full-screen 404 page.
+]);
