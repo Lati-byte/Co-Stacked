@@ -10,26 +10,22 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  
+
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.leftSection, .userActions {
-  display: flex;
-  align-items: center;
-}
-
+/* ... (other styles like .leftSection, .logoContainer are correct) ... */
 .leftSection {
   flex-shrink: 0;
 }
-
 .userActions {
   justify-content: flex-end;
   gap: 0.5rem;
+  display: flex;
+  align-items: center;
 }
-
 .logoContainer {
   display: inline-flex;
   align-items: center;
@@ -37,19 +33,17 @@
   text-decoration: none;
   color: var(--foreground);
 }
-
 .logoImage {
   height: 32px;
   width: auto;
 }
-
 .logoText {
   font-size: 1.3rem;
   font-weight: 700;
   letter-spacing: -0.05em;
+  display: none;
 }
 
-/* --- Hide desktop elements on mobile --- */
 .navLinks,
 .authButtons,
 .userName,
@@ -57,8 +51,8 @@
   display: none;
 }
 
-/* --- Mobile-visible elements --- */
 .hamburgerButton {
+  /* Corrected class name */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -73,28 +67,26 @@
   background-color: var(--muted);
 }
 
-.profileLink, .notificationButton {
+.profileLink,
+.notificationButton {
   display: flex;
   align-items: center;
   justify-content: center;
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--muted-foreground);
+  color: var(--foreground);
   padding: 0.5rem;
   border-radius: 50%;
   transition: background-color 0.2s ease;
 }
-
-.profileLink:hover, .notificationButton:hover {
+.profileLink:hover,
+.notificationButton:hover {
   background-color: var(--muted);
-  color: var(--foreground);
 }
-
 .notificationWrapper {
   position: relative;
 }
-
 .notificationCount {
   position: absolute;
   top: 0;
@@ -112,9 +104,10 @@
   border: 2px solid var(--card-background);
 }
 
-
 /* --- Mobile Menu Overlay --- */
-.mobileMenuOverlay {
+.mobileMenuOverlay,
+.mobileMenu {
+  /* Use same class name as JSX for consistency */
   position: fixed;
   top: 0;
   right: 0;
@@ -139,36 +132,41 @@
   font-weight: 700;
 }
 
-.closeButton {
+/* --- THIS IS THE FIX --- */
+/* The class name now correctly matches the one used in Header.jsx */
+.closeMenuButton {
   background: none;
   border: none;
   cursor: pointer;
   padding: 0.5rem;
   color: var(--foreground);
 }
-.closeButton:hover {
+.closeMenuButton:hover {
   background-color: var(--muted);
 }
+/* --- END FIX --- */
 
 .mobileNavLinks {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
-
 .mobileNavLink {
   text-decoration: none;
   color: var(--foreground);
   font-size: 1.25rem;
   font-weight: 600;
 }
-
-.mobileMenuFooter {
+.activeMobileLink {
+  color: var(--primary);
+}
+.mobileMenuFooter,
+.mobileActionsContainer {
+  /* Use same class name as JSX */
   margin-top: auto;
   padding-top: 1.5rem;
   border-top: 1px solid var(--border);
 }
-
 .mobileAuthButtons {
   display: flex;
   flex-direction: column;
@@ -178,10 +176,6 @@
   flex: 1;
   text-align: center;
 }
-.activeMobileLink {
-  color: var(--primary);
-}
-
 .dropdownLoading {
   padding: 1rem;
   background-color: var(--card-background);
@@ -190,14 +184,14 @@
   color: var(--muted-foreground);
 }
 
-/* ======================================================= */
-/* --- RESPONSIVE MEDIA QUERIES (Progressive Enhancement) --- */
-/* ======================================================= */
-
-/* --- Medium screens (Tablets, ~768px and up) --- */
 @media (min-width: 768px) {
   .header {
     padding: 0 2rem;
+  }
+  .userName {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--foreground);
   }
   .profileLink {
     gap: 0.75rem;
@@ -212,17 +206,44 @@
   }
 }
 
-/* --- Large screens (Desktops, ~1024px and up) --- */
 @media (min-width: 1024px) {
   .navLinks {
-    display: flex; /* Show desktop navigation links */
+    display: flex;
     gap: 2.5rem;
   }
-  .authButtons, .postProjectButton {
-    display: flex; /* Show desktop auth and post project buttons */
+  .navLink {
+    text-decoration: none;
+    color: var(--foreground);
+    font-weight: 500;
+    font-size: 0.95rem;
+    padding: 0.5rem 0;
+    position: relative;
+    transition: color 200ms ease-in-out;
   }
-  .hamburgerButton {
-    display: none; /* Hide hamburger menu on desktop */
+  .navLink:hover {
+    color: var(--primary);
+  }
+  .activeLink {
+    color: var(--primary);
+    font-weight: 700;
+  }
+  .activeLink::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--primary);
+  }
+  .authButtons,
+  .postProjectButton,
+  .desktopPostProject {
+    display: flex;
+  }
+  .hamburgerButton,
+  .hamburgerMenu {
+    display: none;
   }
   .userActions {
     gap: 1.5rem;
