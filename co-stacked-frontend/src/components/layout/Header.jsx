@@ -13,15 +13,15 @@ import { fetchNotifications, markNotificationsAsRead } from '../../features/noti
 import { Button } from '../shared/Button';
 import { DropdownMenu } from '../shared/DropdownMenu';
 import { useClickOutside } from '../../hooks/useClickOutside';
-import { useTheme } from '../../context/ThemeContext'; // <-- 1. IMPORT the useTheme hook
+import { useTheme } from '../../context/ThemeContext';
 
 // Import assets
 import { User, Bell, Menu, X } from 'lucide-react';
-import logoLight from '../../assets/logo-light.png'; // <-- 2. IMPORT light mode logo
-import logoDark from '../../assets/logo-dark.png';   // <-- 2. IMPORT dark mode logo
+import logoLight from '../../assets/logo-light.png';
+import logoDark from '../../assets/logo-dark.png';
 import styles from './Header.module.css';
 
-// Dynamically import the NotificationDropdown to prevent build errors
+// Dynamically import the NotificationDropdown to break circular dependencies for production builds
 const NotificationDropdown = lazy(() => import('../notifications/NotificationDropdown'));
 
 export const Header = () => {
@@ -29,38 +29,44 @@ export const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { theme } = useTheme(); // <-- 3. GET the current theme
+  // Get state from Redux and Context
+  const { theme } = useTheme();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
   const { items: notifications } = useSelector(state => state.notifications);
 
+  // State for UI toggles
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [isNotifOpen, setNotifOpen] = useState(false);
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Refs for click-outside hooks
   const dropdownRef = useRef(null);
   const notifRef = useRef(null);
 
   useClickOutside(dropdownRef, () => setDropdownOpen(false));
   
-  useEffect(() => { if (isAuthenticated) { dispatch(fetchNotifications()); } }, [isAuthenticated, dispatch]);
-  useEffect(() => { setDropdownOpen(false); setNotifOpen(false); setMobileMenuOpen(false); }, [location.pathname]);
+  // Fetch notifications when the user is authenticated
   useEffect(() => {
-    const handleResize = () => { if (window.innerWidth > 1024) setMobileMenuOpen(false); };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    if (isAuthenticated) {
+      dispatch(fetchNotifications());
+    }
+  }, [isAuthenticated, dispatch]);
+  
+  // Close all menus when the user navigates to a new page
   useEffect(() => {
-    if (isMobileMenuOpen) { document.body.style.overflow = 'hidden'; } 
-    else { document.body.style.overflow = 'auto'; }
-    return () => { document.body.style.overflow = 'auto'; };
-  }, [isMobileMenuOpen]);
+    setDropdownOpen(false);
+    setNotifOpen(false);
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
 
+  // Handler for logging out
   const handleLogout = () => {
       dispatch(logout());
       setDropdownOpen(false);
       navigate('/login');
   };
-  
+
+  // Handler for marking notifications as read
   const handleMarkAsRead = () => {
     if (notifications.length > 0) {
       dispatch(markNotificationsAsRead());
@@ -68,34 +74,43 @@ export const Header = () => {
     setNotifOpen(false);
   };
   
+  // Define navigation links, conditionally showing 'Messages'
   const navigationLinks = [
     { label: 'Discover', path: '/projects' },
     { label: 'Find Talent', path: '/users' },
     ...(isAuthenticated ? [{ label: 'Messages', path: '/messages' }] : [])
   ];
 
-  // --- 4. CONDITIONALLY select the logo source based on the current theme ---
+  // Select the correct logo based on the current theme
   const logoSrc = theme === 'light' ? logoLight : logoDark;
 
   return (
     <>
       <header className={styles.header}>
+        {/* ===== LEFT SECTION: LOGO ===== */}
         <div className={styles.leftSection}>
           <Link to="/" className={styles.logoContainer}>
-            {/* --- 5. UPDATE the img src to use our dynamic variable --- */}
             <img src={logoSrc} alt="CoStacked Logo" className={styles.logoImage} />
             <span className={styles.logoText}>CoStacked</span>
           </Link>
         </div>
 
+        {/* ===== MIDDLE SECTION: DESKTOP NAVIGATION ===== */}
         <nav className={styles.navLinks}>
           {navigationLinks.map((link) => (
-            <NavLink key={link.path} to={link.path} className={({ isActive }) => 
-              isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-            }>{link.label}</NavLink>
+            <NavLink
+              key={link.path}
+              to={link.path}
+              className={({ isActive }) => 
+                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+              }
+            >
+              {link.label}
+            </NavLink>
           ))}
         </nav>
 
+        {/* ===== RIGHT SECTION: USER ACTIONS ===== */}
         <div className={styles.userActions}>
           {isAuthenticated && user?.role === 'founder' && (
             <div className={styles.postProjectButton}>
@@ -105,20 +120,24 @@ export const Header = () => {
           
           {isAuthenticated ? (
             <>
+              {/* --- Notification Bell --- */}
               <div ref={notifRef} className={styles.notificationWrapper}>
                 <button className={styles.notificationButton} onClick={() => setNotifOpen(prev => !prev)} aria-label="Toggle notifications">
                   <Bell size={24} />
-                  {notifications.length > 0 && ( <span className={styles.notificationCount}>{notifications.length}</span> )}
+                  {notifications.length > 0 && (
+                    <span className={styles.notificationCount}>{notifications.length}</span>
+                  )}
                 </button>
                 <AnimatePresence>
                   {isNotifOpen && (
-                    <Suspense fallback={<div>Loading...</div>}>
+                    <Suspense fallback={<div className={styles.dropdownLoading}>Loading...</div>}>
                       <NotificationDropdown notifications={notifications} onMarkAsRead={handleMarkAsRead} />
                     </Suspense>
                   )}
                 </AnimatePresence>
               </div>
               
+              {/* --- Profile Dropdown --- */}
               <div ref={dropdownRef}>
                 <button className={styles.profileLink} onClick={() => setDropdownOpen(prev => !prev)} aria-label="Toggle user menu">
                   <span className={styles.userName}>{user?.name}</span>
@@ -136,12 +155,14 @@ export const Header = () => {
             </div>
           )}
 
+          {/* --- Hamburger Menu Icon --- */}
           <button className={styles.hamburgerButton} onClick={() => setMobileMenuOpen(true)} aria-label="Open menu">
             <Menu size={28} />
           </button>
         </div>
       </header>
-
+      
+      {/* ===== MOBILE MENU OVERLAY ===== */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div 
