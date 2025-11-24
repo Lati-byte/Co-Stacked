@@ -200,9 +200,6 @@
   .header {
     padding: 0 2rem;
   }
-  .logoText, .userName {
-    display: block; /* Show logo text and user name */
-  }
   .profileLink {
     gap: 0.75rem;
     padding: 0.5rem 0.75rem;
