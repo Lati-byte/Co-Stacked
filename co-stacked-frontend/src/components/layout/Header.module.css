@@ -47,7 +47,6 @@
   font-size: 1.3rem;
   font-weight: 700;
   letter-spacing: -0.05em;
-  display: none; /* Hide logo text on mobile by default */
 }
 
 /* --- Hide desktop elements on mobile --- */
