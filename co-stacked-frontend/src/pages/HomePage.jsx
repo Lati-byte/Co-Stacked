@@ -1,12 +1,10 @@
 // src/pages/HomePage.jsx
 
-// --- THIS IS THE UPDATE ---
-// Import the useTheme hook from its new, simple file.
-import { useTheme } from '../context/ThemeContext';
+// No 'useTheme' import is needed here anymore.
 
-// Import BOTH hero images with their correct paths.
-import heroLight from '../assets/hero-light.jpg';
-import heroDark from '../assets/hero-dark.png';
+// 1. Re-import a single, static background image. 
+//    Make sure you have an image at this path, for example 'hero-background.jpg'.
+import heroBgImage from '../assets/hero-background.jpg';
 
 // Import other necessary components
 import { Button } from '../components/shared/Button';
@@ -15,7 +13,6 @@ import { TestimonialCard } from '../components/shared/TestimonialCard';
 import { Lightbulb, Users, ShieldCheck } from 'lucide-react';
 import styles from './HomePage.module.css';
 
-// Data can remain outside the component
 const features = [
   { icon: Lightbulb, title: '1. Share Your Vision', description: 'Founders post their project ideas, detailing the skills needed and their collaboration style.' },
   { icon: Users, title: '2. Discover Your Match', description: 'Developers browse projects, and founders can search for talent based on specific skills.' },
@@ -27,17 +24,14 @@ const testimonials = [
 ];
 
 export const HomePage = () => {
-  const { theme } = useTheme(); // Get the current theme from our context
-
-  // Conditionally select the correct image source based on the theme
-  const heroBgImage = theme === 'light' ? heroLight : heroDark;
+  // 2. All theme-related logic is removed from the component.
 
   return (
     <div className={styles.pageContainer}>
       <section 
         className={styles.hero} 
-        // Apply the selected image as a CSS variable via an inline style
-        style={{ '--hero-bg-image': `url(${heroBgImage})` }}
+        // 3. Revert to a direct inline style for the background image.
+        style={{ backgroundImage: `url(${heroBgImage})` }}
       >
         <div className={styles.heroOverlay}></div>
         <div className={styles.heroContent}>

@@ -17,9 +17,7 @@
   padding: 4rem 1.5rem;
   text-align: center;
   
-  /* --- THIS IS THE KEY FIX --- */
-  /* Use the CSS variable set in the JSX component */
-  background-image: var(--hero-bg-image);
+  /* The background-image property is now handled by the inline style in the JSX */
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
@@ -29,12 +27,10 @@
   content: "";
   position: absolute;
   inset: 0;
-  /* Darker overlay for better text readability */
   background-color: rgba(0, 0, 0, 0.4); 
   z-index: 1;
 }
 
-/* All hero content needs a z-index to appear above the overlay */
 .heroContent {
   position: relative;
   z-index: 2;
@@ -44,7 +40,7 @@
 }
 
 .heroTitle {
-  color: #ffffff; /* White text always works on a dark overlay */
+  color: #ffffff;
   font-size: 2.5rem;
   font-weight: 800;
   letter-spacing: -0.05em;
@@ -63,13 +59,12 @@
 
 .heroActions {
   display: flex;
-  flex-direction: column; /* Stack buttons on mobile by default */
+  flex-direction: column;
   align-items: center;
   gap: 1rem;
   width: 100%;
 }
 
-/* Make buttons full width on mobile stack */
 .heroActions > * {
   width: 100%;
   max-width: 280px;
@@ -120,7 +115,6 @@
 /*            RESPONSIVE QUERIES            */
 /* ======================================== */
 
-/* --- Medium Screens / Tablets (768px and up) --- */
 @media (min-width: 768px) {
   .hero {
     min-height: 70vh;
@@ -132,12 +126,12 @@
     font-size: 1.25rem;
   }
   .heroActions {
-    flex-direction: row; /* Un-stack buttons */
+    flex-direction: row;
     justify-content: center;
     gap: 1.25rem;
   }
   .heroActions > * {
-    width: auto; /* Let buttons size to their content */
+    width: auto;
     max-width: none;
   }
   .featuresGrid {
@@ -151,7 +145,6 @@
   }
 }
 
-/* --- Large Screens / Desktops (1024px and up) --- */
 @media (min-width: 1024px) {
   .featuresSection, .testimonialsSection {
     padding: 6rem 2rem;
