@@ -6,7 +6,7 @@ import { useTheme } from '../context/ThemeContext';
 
 // Import BOTH hero images with their correct paths.
 import heroLight from '../assets/hero-light.jpg';
-import heroDark from '../assets/hero-dark.jpg';
+import heroDark from '../assets/hero-dark.png';
 
 // Import other necessary components
 import { Button } from '../components/shared/Button';
