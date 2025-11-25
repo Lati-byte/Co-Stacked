@@ -1,10 +1,12 @@
 // src/pages/HomePage.jsx
 
-import { useTheme } from '../context/ThemeContext'; // 1. Import the useTheme hook
+// --- THIS IS THE UPDATE ---
+// Import the useTheme hook from its new, simple file.
+import { useTheme } from '../context/ThemeContext';
 
-// 2. Import BOTH hero images with their correct paths
+// Import BOTH hero images with their correct paths.
 import heroLight from '../assets/hero-light.jpg';
-import heroDark from '../assets/hero-dark.png';
+import heroDark from '../assets/hero-dark.jpg';
 
 // Import other necessary components
 import { Button } from '../components/shared/Button';
@@ -25,16 +27,16 @@ const testimonials = [
 ];
 
 export const HomePage = () => {
-  const { theme } = useTheme(); // 3. Get the current theme from our context
+  const { theme } = useTheme(); // Get the current theme from our context
 
-  // 4. Conditionally select the correct image source based on the theme
+  // Conditionally select the correct image source based on the theme
   const heroBgImage = theme === 'light' ? heroLight : heroDark;
 
   return (
     <div className={styles.pageContainer}>
       <section 
         className={styles.hero} 
-        // 5. Apply the selected image as a CSS variable via an inline style
+        // Apply the selected image as a CSS variable via an inline style
         style={{ '--hero-bg-image': `url(${heroBgImage})` }}
       >
         <div className={styles.heroOverlay}></div>
