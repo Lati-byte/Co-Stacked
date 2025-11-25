@@ -11,7 +11,6 @@ import heroDark from '../assets/hero-dark.png';
 // Import other necessary components
 import { Button } from '../components/shared/Button';
 import { FeatureCard } from '../components/shared/FeatureCard';
-import { TestimonialCard } from '../components/shared/TestimonialCard';
 import { Lightbulb, Users, ShieldCheck } from 'lucide-react';
 import styles from './HomePage.module.css';
 
@@ -68,19 +67,7 @@ export const HomePage = () => {
         </div>
       </section>
 
-      <section className={styles.testimonialsSection}>
-        <h2 className={styles.sectionTitle}>What Our Users Say</h2>
-        <div className={styles.testimonialsGrid}>
-          {testimonials.map((testimonial) => (
-            <TestimonialCard 
-              key={testimonial.name}
-              name={testimonial.name}
-              role={testimonial.role}
-              quote={testimonial.quote}
-            />
-          ))}
-        </div>
-      </section>
+      
     </div>
   );
 };
