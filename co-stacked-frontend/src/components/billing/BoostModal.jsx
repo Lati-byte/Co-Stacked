@@ -1,7 +1,7 @@
 // src/components/billing/BoostModal.jsx
 
 import { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { verifyPayment } from '../../features/payments/paymentSlice';
 
 // Import UI Components
@@ -18,14 +18,13 @@ const boostOptions = [
   { id: '5d', title: '5 Days', price: 'R200', amountInCents: 20000 },
   { id: '7d', title: '1 Week', price: 'R350', amountInCents: 35000 },
 ];
-const YOCO_PUBLIC_KEY = 'pk_test_ed3c54a6gOol69qa7f45';
+const YOCO_PUBLIC_KEY = 'pk_test_ed3c54a6gOol69qa7f45'; // Use your actual public key
 
 /**
  * A modal for boosting a project, which uses the Yoco Inline SDK.
  */
 export const BoostModal = ({ project, open, onClose }) => {
   const dispatch = useDispatch();
-  // Using a local loading state is best for this flow, as the global one might resolve too early.
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTier, setSelectedTier] = useState(boostOptions[0].id);
   const [yocoSDK, setYocoSDK] = useState(null);
@@ -39,60 +38,58 @@ export const BoostModal = ({ project, open, onClose }) => {
   }, []);
 
   const handlePayment = () => {
-    if (!yocoSDK) {
-      alert("Payment gateway is not available at the moment. Please try again later.");
+    if (!yocoSDK || isLoading) {
+      alert("Payment gateway is not available or is already processing.");
       return;
     }
 
     setIsLoading(true);
     const chosenOption = boostOptions.find(opt => opt.id === selectedTier);
 
-    // --- THIS IS THE CRITICAL FIX for the layering (z-index) issue ---
-    // 1. Immediately close our application's modal.
+    // --- THIS IS THE CRITICAL FIX ---
+    // 1. Close our application's modal immediately to prevent z-index conflicts.
     onClose();
-    // -------------------------------------------------------------------
     
-    // 2. Now trigger the Yoco popup, which will appear over the main page.
-    yocoSDK.showPopup({
-      amountInCents: chosenOption.amountInCents,
-      currency: 'ZAR',
-      name: `Boost: ${project.title}`,
-      description: `Boost project for ${chosenOption.title}`,
-      callback: async (result) => {
-        // This callback runs after the Yoco popup is closed by the user (payment success, failure, or closed manually).
-        setIsLoading(false); // Reset loading state regardless of outcome
-
-        if (result.error) {
-          alert(`Payment failed: ${result.error.message}`);
-        } else {
-          // A charge token was successfully created. Send it to our backend for verification.
-          const payload = { 
-            chargeToken: result.id, 
-            projectId: project._id, 
-            tierId: selectedTier 
-          };
-          
-          alert("Payment completed! Verifying with our server...");
-          
-          const resultAction = await dispatch(verifyPayment(payload));
-
-          if (verifyPayment.fulfilled.match(resultAction)) {
-              alert(resultAction.payload.message); // e.g., "Project boosted successfully!"
-          } else {
-              alert(`Server Verification Failed: ${resultAction.payload?.message || 'Please contact support.'}`);
-          }
-          // The modal is already closed, so no need to call onClose() again.
-        }
-      }
-    });
-
-    // In case the user just closes the Yoco popup without completing, we should reset our loading state.
+    // 2. A moment later, trigger the Yoco popup. This allows our modal's
+    //    closing animation to finish and ensures the Yoco popup appears
+    //    on top of the main page, not hidden behind our modal's backdrop.
     setTimeout(() => {
-      if(isLoading) setIsLoading(false);
-    }, 3000); // Give the popup a few seconds to appear.
+      yocoSDK.showPopup({
+        amountInCents: chosenOption.amountInCents,
+        currency: 'ZAR',
+        name: `Boost: ${project.title}`,
+        description: `Boost project for ${chosenOption.title}`,
+        callback: async (result) => {
+          // This callback runs after the Yoco popup is closed.
+          setIsLoading(false); // Reset loading state for the next time the modal opens.
+
+          if (result.error) {
+            alert(`Payment failed: ${result.error.message}`);
+          } else if (result.id) {
+            // Payment succeeded, now verify with our backend.
+            const payload = { 
+              chargeToken: result.id, 
+              projectId: project._id, 
+              tierId: selectedTier 
+            };
+            
+            alert("Payment completed! Verifying with our server...");
+            const resultAction = await dispatch(verifyPayment(payload));
+
+            if (verifyPayment.fulfilled.match(resultAction)) {
+                alert(resultAction.payload.message);
+            } else {
+                alert(`Server Verification Failed: ${resultAction.payload?.message || 'Please contact support.'}`);
+            }
+          }
+          // If the user just closes the popup, nothing happens.
+        }
+      });
+    }, 200); // A 200ms delay is usually sufficient for animations.
   };
 
-  if (!open || !project) {
+  // Do not render the Dialog if it's not supposed to be open.
+  if (!open) {
     return null;
   }
 

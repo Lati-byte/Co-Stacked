@@ -12,11 +12,8 @@ const PRICE_IN_CENTS = 20000; // R200.00
 
 /**
  * A modal for handling the user verification subscription payment flow via Yoco.
- * It is a "presentational" component that orchestrates the Yoco popup and reports
- * the result back to its parent component via props.
  */
 export const SubscriptionModal = ({ open, onClose, onConfirm }) => {
-  // Local state to manage the button's loading status.
   const [isLoading, setIsLoading] = useState(false);
   const [yocoSDK, setYocoSDK]  = useState(null);
   
@@ -29,38 +26,36 @@ export const SubscriptionModal = ({ open, onClose, onConfirm }) => {
   }, []);
 
   const handlePayment = () => {
-    if (!yocoSDK) {
-      alert("Payment service is unavailable. Please try again later.");
+    if (!yocoSDK || isLoading) {
+      alert("Payment service is unavailable or already processing.");
       return;
     }
     
     setIsLoading(true);
-    // It's good UX to close our own modal before Yoco's opens.
+
+    // --- THIS IS THE CRITICAL FIX ---
+    // 1. Close our application's modal first to avoid any z-index conflicts.
     onClose(); 
 
-    yocoSDK.showPopup({
-      amountInCents: PRICE_IN_CENTS,
-      currency: 'ZAR',
-      name: 'Co-Stacked Verified Subscription',
-      description: 'Monthly subscription for a verified user badge.',
-      callback: (result) => {
-        // This callback runs after the Yoco popup is closed by the user.
-        setIsLoading(false);
+    // 2. A moment later, trigger the Yoco popup.
+    setTimeout(() => {
+      yocoSDK.showPopup({
+        amountInCents: PRICE_IN_CENTS,
+        currency: 'ZAR',
+        name: 'Co-Stacked Verified Subscription',
+        description: 'Monthly subscription for a verified user badge.',
+        callback: (result) => {
+          setIsLoading(false); // Reset loading state for next time
 
-        if (result.error) {
-          // If Yoco reports an error, just show an alert.
-          alert(`Payment failed: ${result.error.message}`);
-        } else if (result.id) {
-          // On success, Yoco returns a charge token in `result.id`.
-          // We call the `onConfirm` function passed from the parent (SettingsPage)
-          // and pass the charge token up to it. The parent will handle the API call.
-          onConfirm(result.id); 
-        } else {
-          // Fallback in case the user closes the popup without paying
-          console.log("Yoco popup closed without a result.");
+          if (result.error) {
+            alert(`Payment failed: ${result.error.message}`);
+          } else if (result.id) {
+            // On success, pass the charge token up to the parent component (SettingsPage).
+            onConfirm(result.id); 
+          }
         }
-      }
-    });
+      });
+    }, 200);
   };
 
   if (!open) {

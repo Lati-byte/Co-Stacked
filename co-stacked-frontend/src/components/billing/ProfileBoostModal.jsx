@@ -35,50 +35,49 @@ export const ProfileBoostModal = ({ user, open, onClose }) => {
   }, []);
 
   const handlePayment = () => {
-    if (!yocoSDK) {
-      alert("Payment gateway is currently unavailable.");
+    if (!yocoSDK || isLoading) {
+      alert("Payment gateway is unavailable or already processing.");
       return;
     }
 
     setIsLoading(true);
     const chosenOption = boostOptions.find(opt => opt.id === selectedTier);
 
-    // Close our modal before opening Yoco's to prevent layering issues
+    // --- THIS IS THE CRITICAL FIX ---
+    // 1. Close our application's modal first to avoid z-index conflicts.
     onClose(); 
 
-    yocoSDK.showPopup({
-      amountInCents: chosenOption.amountInCents,
-      currency: 'ZAR',
-      name: 'Boost Your Profile',
-      description: `Feature your profile for ${chosenOption.title}`,
-      callback: async (result) => {
-        setIsLoading(false);
-        if (result.error) {
-          alert(`Payment failed: ${result.error.message}`);
-        } else {
-          // Send the charge token to our backend for secure verification
-          alert("Payment completed! Verifying boost with our server...");
-          const resultAction = await dispatch(verifyProfileBoost({ 
-            chargeToken: result.id, 
-            tierId: selectedTier 
-          }));
+    // 2. A moment later, trigger the Yoco popup.
+    setTimeout(() => {
+      yocoSDK.showPopup({
+        amountInCents: chosenOption.amountInCents,
+        currency: 'ZAR',
+        name: 'Boost Your Profile',
+        description: `Feature your profile for ${chosenOption.title}`,
+        callback: async (result) => {
+          setIsLoading(false); // Reset loading state for next time
+          
+          if (result.error) {
+            alert(`Payment failed: ${result.error.message}`);
+          } else if (result.id) {
+            alert("Payment completed! Verifying boost with our server...");
+            const resultAction = await dispatch(verifyProfileBoost({ 
+              chargeToken: result.id, 
+              tierId: selectedTier 
+            }));
 
-          if (verifyProfileBoost.fulfilled.match(resultAction)) {
-            alert(resultAction.payload.message); // Show success message from backend
-          } else {
-            alert(`Verification Failed: ${resultAction.payload?.message || 'Please contact support.'}`);
+            if (verifyProfileBoost.fulfilled.match(resultAction)) {
+              alert(resultAction.payload.message);
+            } else {
+              alert(`Verification Failed: ${resultAction.payload?.message || 'Please contact support.'}`);
+            }
           }
         }
-      }
-    });
-
-    // Reset loading state after a delay in case user closes the popup
-    setTimeout(() => {
-        if(isLoading) setIsLoading(false);
-    }, 3000);
+      });
+    }, 200);
   };
 
-  if (!open || !user) {
+  if (!open) {
     return null;
   }
 
