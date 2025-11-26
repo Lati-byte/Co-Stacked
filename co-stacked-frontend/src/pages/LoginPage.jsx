@@ -1,6 +1,7 @@
 // src/pages/LoginPage.jsx
+
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser, clearAuthMessages } from '../features/auth/authSlice';
 
@@ -14,12 +15,16 @@ import styles from './LoginPage.module.css';
 export const LoginPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const location = useLocation(); // 1. Get the current location
 
-  // Get the full auth state, including the `unverifiedEmail` flag
-  const { status, error, unverifiedEmail } = useSelector((state) => state.auth);
+  const { status, error } = useSelector((state) => state.auth);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  
+  // 2. Determine the redirect path. If a user was sent here from a protected
+  //    route, 'location.state.from' will exist. Otherwise, default to '/dashboard'.
+  const from = location.state?.from?.pathname || '/dashboard';
 
   // Clear any old error messages when the component first loads
   useEffect(() => {
@@ -33,9 +38,10 @@ export const LoginPage = () => {
     const resultAction = await dispatch(loginUser(credentials));
     
     if (loginUser.fulfilled.match(resultAction)) {
-      navigate('/dashboard');
+      // 3. On successful login, navigate to the 'from' path.
+      navigate(from, { replace: true });
     } else if (loginUser.rejected.match(resultAction) && resultAction.payload?.emailNotVerified) {
-      // If the backend says the email isn't verified, redirect to the verify page
+      // If the email isn't verified, redirect to the verify page
       navigate('/verify-email');
     }
   };
@@ -57,7 +63,6 @@ export const LoginPage = () => {
             <div className={styles.formGroup}>
               <div className={styles.passwordHeader}>
                 <Label htmlFor="password">Password</Label>
-                {/* --- THIS IS THE NEW LINK --- */}
                 <Link to="/forgot-password" className={styles.forgotLink}>
                   Forgot password?
                 </Link>

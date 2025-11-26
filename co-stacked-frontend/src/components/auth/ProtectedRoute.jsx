@@ -1,33 +1,36 @@
 // src/components/auth/ProtectedRoute.jsx
+
 import { useSelector } from 'react-redux';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
 /**
- * A wrapper component that protects routes requiring authentication.
- * This version uses the `children` prop, which is perfect for a flat routing structure.
+ * A robust wrapper for protecting routes, designed for nested routing.
+ * It handles the initial authentication check gracefully.
  */
-export const ProtectedRoute = ({ children }) => {
+export const ProtectedRoute = () => {
   const { isAuthenticated, status } = useSelector((state) => state.auth);
   const location = useLocation();
 
-  // Show a loading indicator while the auth status is being determined
-  // This prevents flickering on page refresh for logged-in users.
+  // 1. If we are actively checking for a token (on app load), show a loading state.
+  // This is the key to preventing flickers for already logged-in users.
   if (status === 'loading') {
-    return <div>Loading...</div>; // Replace with a real spinner component if you have one
+    // For a better user experience, replace this with a full-page spinner component.
+    return <div style={{ textAlign: 'center', padding: '5rem' }}>Authenticating...</div>;
   }
 
-  // If the user is authenticated, render the page they are trying to access.
+  // 2. If we are done checking ('succeeded', 'failed', or 'idle') AND the user is authenticated...
   if (isAuthenticated) {
-    return children;
+    // ...render the child route that this component is protecting (e.g., DashboardPage).
+    // The <Outlet /> component is used for nested routing as defined in router.jsx
+    return <Outlet />;
   }
 
-  // If not authenticated, redirect to the login page.
-  // We pass the `location` they were trying to visit in the state,
-  // so we can redirect them back after they successfully log in.
+  // 3. If we are done checking AND the user is NOT authenticated...
+  // ...redirect them to the login page.
+  // We pass the location they were trying to access, so we can send them back after login.
   return <Navigate to="/login" state={{ from: location }} replace />;
 };
 
-ProtectedRoute.propTypes = {
-  children: PropTypes.node.isRequired,
-};
+// This component no longer accepts a `children` prop in a nested routing setup.
+ProtectedRoute.propTypes = {};
