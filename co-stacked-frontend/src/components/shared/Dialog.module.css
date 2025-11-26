@@ -7,21 +7,32 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 1rem; /* Add some padding for mobile */
   
-  /* --- THIS IS THE FIX --- */
-  /* Give the backdrop a very high z-index to ensure it appears on top of all other page content, including the sticky header. */
-  z-index: 1000;
+  /* --- THIS IS THE CRITICAL FIX --- */
+  /* A very high z-index to ensure it is on top of EVERYTHING, including your sticky header. */
+  z-index: 9999;
 }
 
 .dialog {
   background-color: var(--card-background);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-lg); /* Use a larger shadow for modals */
+  box-shadow: var(--shadow-lg);
+  width: 100%;
   max-width: 500px;
-  width: 90%;
-  overflow: hidden; /* Ensures content respects the border-radius */
+  overflow: hidden;
   
-  /* --- THIS IS THE FIX --- */
-  /* The dialog itself needs a z-index higher than the backdrop to appear on top of it. */
-  z-index: 1001; 
+  /* Animate the dialog itself */
+  animation: scale-up 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+@keyframes scale-up {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
