@@ -156,6 +156,36 @@ export const resetPassword = createAsyncThunk(
   }
 );
 
+/**
+ * NEW: Handles uploading a user's avatar.
+ */
+export const uploadAvatar = createAsyncThunk(
+  'auth/uploadAvatar',
+  async (formData, { rejectWithValue }) => {
+    try {
+      // The API instance already has the base URL and token interceptor.
+      // We need to set the Content-Type to 'multipart/form-data' for file uploads.
+      const response = await API.put('/users/profile/avatar', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      // After uploading, sync the new user data with localStorage
+      const currentAuth = JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY));
+      if (currentAuth) {
+        const updatedAuth = { ...currentAuth, user: response.data };
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(updatedAuth));
+      }
+      
+      return response.data; // The full updated user object from the backend
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+
 // ===================================================================
 // THE AUTH SLICE
 // ===================================================================
@@ -310,6 +340,8 @@ const authSlice = createSlice({
         state.error = action.payload?.message || "Failed to reset password.";
       })
 
+
+
       // Inter-Slice Reducers for Payment Events
       .addCase(verifySubscription.fulfilled, (state, action) => {
         const { user: updatedUser } = action.payload;
@@ -330,6 +362,28 @@ const authSlice = createSlice({
         if (state.user && updatedUser) {
           state.user = { ...state.user, ...updatedUser };
           localStorage.setItem(PROFILE_KEY, JSON.stringify(state.user));
+        }
+      })
+      // --- NEW: Cases for Avatar Upload ---
+      .addCase(uploadAvatar.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(uploadAvatar.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        // Replace the user object with the updated one from the backend
+        state.user = action.payload;
+      })
+      .addCase(uploadAvatar.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload.message || 'Failed to upload avatar.';
+      })
+
+      // --- Inter-Slice Reducers ---
+      .addCase(cancelSubscription.fulfilled, (state, action) => {
+        const { user: updatedUser } = action.payload;
+        if (state.user && updatedUser) {
+          state.user = { ...state.user, ...updatedUser };
         }
       });
   },

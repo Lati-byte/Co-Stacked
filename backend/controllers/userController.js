@@ -330,6 +330,37 @@ const cancelSubscription = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Upload or update a user's avatar
+ * @route   PUT /api/users/profile/avatar
+ * @access  Private
+ */
+const updateUserAvatar = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // `req.file` is populated by Multer/Cloudinary with the upload details.
+    // We only need the secure URL.
+    if (!req.file || !req.file.path) {
+      return res.status(400).json({ message: 'Image file is required.' });
+    }
+
+    user.avatarUrl = req.file.path; // The secure URL from Cloudinary
+    const updatedUser = await user.save();
+
+    // Send back the full user object to sync the frontend
+    res.json(updatedUser);
+
+  } catch (error) {
+    console.error(`[UPDATE AVATAR ERROR]: ${error.message}`);
+    res.status(500).json({ message: 'Server error while updating avatar.' });
+  }
+};
+
 module.exports = {
   registerUser,
   authUser,
@@ -342,4 +373,5 @@ module.exports = {
   forgotPassword,
   resetPassword,
   cancelSubscription,
+  updateUserAvatar,
 };

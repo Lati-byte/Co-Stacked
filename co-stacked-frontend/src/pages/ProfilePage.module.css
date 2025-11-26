@@ -13,29 +13,41 @@
   padding: 4rem 0;
 }
 
+/* --- NEW: Banner for active boosts --- */
+.boostBanner {
+  background-color: var(--primary-light);
+  color: var(--primary);
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-align: center;
+  margin: -1px -1px 0; /* Align with card edges */
+  border-bottom: 1px solid var(--border);
+}
 
 /* --- Header Section (Name, Role, Badges, Buttons) --- */
 .header {
   display: flex;
-  flex-wrap: wrap; /* Allows buttons to wrap below on narrow screens */
+  flex-wrap: wrap;
   gap: 1.5rem;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding-bottom: 1.5rem;
-  margin-bottom: 2rem;
+  align-items: center;
+  padding: 1.5rem;
   border-bottom: 1px solid var(--border);
+}
+
+.infoWrapper {
+  flex-grow: 1; /* Pushes the actions to the right */
 }
 
 .headerActions {
   display: flex;
   gap: 0.75rem;
   flex-shrink: 0;
-  padding-top: 0.25rem; /* Helps align with the main title */
 }
 
 .nameWrapper {
   display: flex;
-  align-items: baseline; 
+  align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
 }
@@ -46,23 +58,23 @@
   line-height: 1.2;
 }
 
-/* Style for the custom PNG verified badge */
+/* Style for the verified badge */
 .verifiedBadge {
   display: inline-flex;
-  align-items: center; /* Vertically center the icon and text */
+  align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
   font-size: 1rem;
   font-weight: 600;
-  background-color: hsl(211, 100%, 97%); /* Light blue */
+  background-color: var(--primary-light);
   color: var(--primary);
-  border: 1px solid hsl(211, 100%, 92%);
-  border-radius: 9999px; /* Pill shape */
+  border: 1px solid var(--border);
+  border-radius: 9999px;
   white-space: nowrap;
 }
 
 .badgeIcon {
-    height: 20px; /* Adjust size as needed */
+    height: 20px;
     width: auto;
 }
 
@@ -82,11 +94,46 @@
   font-size: 0.9rem;
 }
 
+/* --- NEW: Avatar Wrapper and Edit Button Styles --- */
+.avatarWrapper {
+  position: relative;
+  flex-shrink: 0;
+  cursor: pointer; /* Indicates it's clickable */
+}
+
+.avatarEditButton {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: var(--card-background);
+  color: var(--foreground);
+  border: 2px solid var(--card-background); /* Creates a cutout effect */
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: none; /* Hidden by default */
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease;
+}
+
+.avatarWrapper:hover .avatarEditButton {
+  display: flex; /* Show the button on hover */
+}
+
+.avatarEditButton:hover {
+  transform: scale(1.1);
+}
+
+
 /* --- Main Content Body --- */
 .content {
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 3rem; /* Adds significant space between content sections */
+  gap: 3rem;
 }
 
 .section {
@@ -135,26 +182,17 @@
 .separator {
   height: 1px;
   background-color: var(--border);
-  margin-top: 1rem; /* Added margin for better visual separation */
+  margin-top: 1rem;
 }
 
-/* Shared grid styles for Projects and Reviews */
 .projectsGrid, .reviewsGrid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 1.5rem;
 }
 
-/* Make the project grid 2-column on larger screens */
 @media (min-width: 768px) {
   .projectsGrid {
     grid-template-columns: 1fr 1fr;
   }
-}
-
-/* Add to your ProfilePage.module.css */
-.connectionActions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
 }

@@ -2,6 +2,7 @@
 
 const express = require('express');
 const router = express.Router();
+const upload = require('../config/cloudinary');
 
 // 1. Import all necessary controller functions, including the new verifyEmail
 const { 
@@ -15,7 +16,8 @@ const {
   recordProfileView,
   forgotPassword,
   resetPassword,
-   cancelSubscription
+  cancelSubscription,
+  updateUserAvatar
 } = require('../controllers/userController');
 
 const { protect } = require('../middleware/authMiddleware');
@@ -30,6 +32,7 @@ router.post('/verify-email', verifyEmail);
 router.post('/forgot-password', forgotPassword); // <-- ADD
 router.put('/reset-password/:token', resetPassword);
 router.route('/cancel-subscription').put(protect, cancelSubscription); 
+router.route('/profile/avatar').put(protect, upload.single('avatar'), updateUserAvatar);
 
 // === PROTECTED ROUTES ===
 // These routes require a valid token (the 'protect' middleware).
