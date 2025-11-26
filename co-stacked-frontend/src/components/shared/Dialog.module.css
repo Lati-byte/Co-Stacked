@@ -2,22 +2,26 @@
 
 .backdrop {
   position: fixed;
-  inset: 0;
-  /* --- THIS IS THE UPDATE --- */
+  inset: 0; /* Cover the entire viewport */
   background-color: var(--backdrop);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 50;
+  
+  /* --- THIS IS THE FIX --- */
+  /* Give the backdrop a very high z-index to ensure it appears on top of all other page content, including the sticky header. */
+  z-index: 1000;
 }
 
 .dialog {
   background-color: var(--card-background);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-md);
-  /* Padding is often better handled by the modal's content, so we remove it from the dialog itself */
-  /* padding: 1.5rem; */ 
+  box-shadow: var(--shadow-lg); /* Use a larger shadow for modals */
   max-width: 500px;
   width: 90%;
   overflow: hidden; /* Ensures content respects the border-radius */
+  
+  /* --- THIS IS THE FIX --- */
+  /* The dialog itself needs a z-index higher than the backdrop to appear on top of it. */
+  z-index: 1001; 
 }
