@@ -377,14 +377,6 @@ const authSlice = createSlice({
       .addCase(uploadAvatar.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload.message || 'Failed to upload avatar.';
-      })
-
-      // --- Inter-Slice Reducers ---
-      .addCase(cancelSubscription.fulfilled, (state, action) => {
-        const { user: updatedUser } = action.payload;
-        if (state.user && updatedUser) {
-          state.user = { ...state.user, ...updatedUser };
-        }
       });
   },
 });
