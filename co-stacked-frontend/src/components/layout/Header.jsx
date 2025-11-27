@@ -1,27 +1,33 @@
 // src/components/layout/Header.jsx
+
 import { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { AnimatePresence } from 'framer-motion';
 
+// Import Hooks, Actions, and Logos
 import { useTheme } from '../../context/ThemeContext';
 import { useClickOutside } from '../../hooks/useClickOutside';
 import { logout } from '../../features/auth/authSlice';
 import { fetchNotifications, markNotificationsAsRead } from '../../features/notifications/notificationsSlice';
-
 import logoLight from '../../assets/logo-light.png';
 import logoDark from '../../assets/logo-dark.png';
 
+// Import the Sub-Components
 import { HeaderLogo } from './header/HeaderLogo';
 import { DesktopNav } from './header/DesktopNav';
 import { UserActions } from './header/UserActions';
 import { MobileMenu } from './header/MobileMenu';
+// --- THIS IS THE FIX ---
+// The path should be './Header.module.css' to look in the current directory.
 import styles from './Header.module.css';
 
+// Dynamically import dropdowns
 const NotificationDropdown = lazy(() => import('../notifications/NotificationDropdown'));
 const DropdownMenu = lazy(() => import('../shared/DropdownMenu'));
 
 export const Header = () => {
+  // ... (The rest of your component logic is correct)
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -38,11 +44,14 @@ export const Header = () => {
   const notifRef = useRef(null);
   
   useClickOutside(dropdownRef, () => setDropdownOpen(false));
+  useClickOutside(notifRef, () => setNotifOpen(false));
+
   useEffect(() => { if (isAuthenticated) dispatch(fetchNotifications()); }, [isAuthenticated, dispatch]);
-  useEffect(() => { setMobileMenuOpen(false); }, [location.pathname]);
+  useEffect(() => { setMobileMenuOpen(false); setDropdownOpen(false); setNotifOpen(false); }, [location.pathname]);
   useEffect(() => { document.body.style.overflow = isMobileMenuOpen ? 'hidden' : 'auto'; return () => { document.body.style.overflow = 'auto'; }; }, [isMobileMenuOpen]);
 
   const handleLogout = () => { dispatch(logout()); navigate('/login'); };
+  const handleCloseNotifications = () => setNotifOpen(false);
   const handleMarkAsRead = () => {
     if (notifications.length > 0) dispatch(markNotificationsAsRead());
     setNotifOpen(false);
@@ -60,24 +69,28 @@ export const Header = () => {
       <header className={styles.header}>
         <HeaderLogo logoSrc={logoSrc} />
         <DesktopNav links={navigationLinks} />
-        <Suspense fallback={<div style={{ width: '150px' }} />}>
-          <UserActions 
-            isAuthenticated={isAuthenticated} user={user} notifications={notifications}
-            isNotifOpen={isNotifOpen} setNotifOpen={setNotifOpen}
-            isDropdownOpen={isDropdownOpen} setDropdownOpen={setDropdownOpen}
-            notifRef={notifRef} dropdownRef={dropdownRef}
-            handleLogout={handleLogout} handleMarkAsRead={handleMarkAsRead}
-            setMobileMenuOpen={setMobileMenuOpen}
-            NotificationDropdownComponent={NotificationDropdown}
-            DropdownMenuComponent={DropdownMenu}
-          />
-        </Suspense>
+        <UserActions 
+          isAuthenticated={isAuthenticated}
+          user={user}
+          notifications={notifications}
+          isNotifOpen={isNotifOpen}
+          setNotifOpen={setNotifOpen}
+          isDropdownOpen={isDropdownOpen}
+          setDropdownOpen={setDropdownOpen}
+          notifRef={notifRef}
+          dropdownRef={dropdownRef}
+          handleLogout={handleLogout}
+          handleMarkAsRead={handleMarkAsRead}
+          handleCloseNotifications={handleCloseNotifications}
+          setMobileMenuOpen={setMobileMenuOpen}
+          isMobileMenuOpen={isMobileMenuOpen}
+        />
       </header>
       
       <AnimatePresence>
         {isMobileMenuOpen && (
           <MobileMenu 
-            onClose={() => setMobileMenuOpen(false)} // This correctly passes the close function
+            onClose={() => setMobileMenuOpen(false)}
             links={navigationLinks}
             isAuthenticated={isAuthenticated}
             onLogout={handleLogout}

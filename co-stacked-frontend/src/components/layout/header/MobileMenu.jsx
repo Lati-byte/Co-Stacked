@@ -1,8 +1,9 @@
 // src/components/layout/header/MobileMenu.jsx
+
 import { NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '../../shared/Button';
-import { X } from 'lucide-react';
+import { X } from 'lucide-react'; // Make sure X is imported
 import styles from '../Header.module.css';
 import PropTypes from 'prop-types';
 
@@ -16,7 +17,8 @@ export const MobileMenu = ({ onClose, links, isAuthenticated, onLogout }) => (
   >
     <div className={styles.mobileMenuHeader}>
       <span className={styles.mobileMenuTitle}>Menu</span>
-      {/* This button uses the 'closeButton' class name */}
+      {/* --- THIS IS THE FIX --- */}
+      {/* Ensure the button is present and uses the correct class name */}
       <button onClick={onClose} aria-label="Close menu" className={styles.closeButton}>
         <X size={28} />
       </button>

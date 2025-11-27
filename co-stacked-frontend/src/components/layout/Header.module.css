@@ -234,3 +234,30 @@
     gap: 1.5rem;
   }
 }
+
+.mobileMenuHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.mobileMenuTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+/* --- THIS IS THE CRITICAL STYLE --- */
+.closeButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  color: var(--foreground); /* This makes the 'X' icon visible */
+  display: flex; /* This ensures the button itself is visible */
+  align-items: center;
+  justify-content: center;
+}
+.closeButton:hover {
+  background-color: var(--muted);
+}

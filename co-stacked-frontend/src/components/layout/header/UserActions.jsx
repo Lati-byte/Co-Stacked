@@ -1,16 +1,20 @@
 // src/components/layout/header/UserActions.jsx
+
+import { lazy, Suspense } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { Button } from '../../shared/Button';
-import { DropdownMenu } from '../../shared/DropdownMenu';
-import { NotificationDropdown } from '../../notifications/NotificationDropdown';
-import { User, Bell, Menu } from 'lucide-react';
+import { User, Bell, Menu, X } from 'lucide-react'; // 1. Import the X icon
 import styles from '../Header.module.css';
 import PropTypes from 'prop-types';
+
+const NotificationDropdown = lazy(() => import('../../notifications/NotificationDropdown'));
+const DropdownMenu = lazy(() => import('../../shared/DropdownMenu'));
 
 export const UserActions = ({
   isAuthenticated, user, notifications, isNotifOpen, setNotifOpen,
   isDropdownOpen, setDropdownOpen, notifRef, dropdownRef,
-  handleLogout, handleMarkAsRead, setMobileMenuOpen,
+  handleLogout, handleMarkAsRead, handleCloseNotifications,
+  setMobileMenuOpen, isMobileMenuOpen // <-- 2. Accept the mobile menu's current state
 }) => (
   <div className={styles.userActions}>
     {isAuthenticated && user?.role === 'founder' && (
@@ -27,7 +31,15 @@ export const UserActions = ({
             {notifications.length > 0 && <span className={styles.notificationCount}>{notifications.length}</span>}
           </button>
           <AnimatePresence>
-            {isNotifOpen && <NotificationDropdown notifications={notifications} onMarkAsRead={handleMarkAsRead} />}
+            {isNotifOpen && (
+              <Suspense fallback={<div className={styles.dropdownLoading}>Loading...</div>}>
+                <NotificationDropdown 
+                  notifications={notifications} 
+                  onMarkAsRead={handleMarkAsRead}
+                  onClose={handleCloseNotifications}
+                />
+              </Suspense>
+            )}
           </AnimatePresence>
         </div>
         
@@ -37,7 +49,11 @@ export const UserActions = ({
             <User size={24} />
           </button>
           <AnimatePresence>
-            {isDropdownOpen && <DropdownMenu onLogout={handleLogout} />}
+            {isDropdownOpen && (
+              <Suspense fallback={<div className={styles.dropdownLoading}>Loading...</div>}>
+                <DropdownMenu onLogout={handleLogout} />
+              </Suspense>
+            )}
           </AnimatePresence>
         </div>
       </>
@@ -48,10 +64,32 @@ export const UserActions = ({
       </div>
     )}
 
-    <button className={styles.hamburgerButton} onClick={() => setMobileMenuOpen(true)} aria-label="Open menu">
-      <Menu size={28} />
+    {/* --- 3. THIS IS THE FIX --- */}
+    <button 
+      className={styles.hamburgerButton} 
+      onClick={() => setMobileMenuOpen(prev => !prev)} // Change to a toggle function
+      aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+    >
+      {/* Conditionally render the correct icon based on the menu's state */}
+      {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
     </button>
   </div>
 );
 
-UserActions.propTypes = { /* Add PropTypes for all props */ };
+// --- 4. UPDATE PropTypes ---
+UserActions.propTypes = {
+  isAuthenticated: PropTypes.bool.isRequired,
+  user: PropTypes.object,
+  notifications: PropTypes.array.isRequired,
+  isNotifOpen: PropTypes.bool.isRequired,
+  setNotifOpen: PropTypes.func.isRequired,
+  isDropdownOpen: PropTypes.bool.isRequired,
+  setDropdownOpen: PropTypes.func.isRequired,
+  notifRef: PropTypes.object.isRequired,
+  dropdownRef: PropTypes.object.isRequired,
+  handleLogout: PropTypes.func.isRequired,
+  handleMarkAsRead: PropTypes.func.isRequired,
+  handleCloseNotifications: PropTypes.func.isRequired,
+  setMobileMenuOpen: PropTypes.func.isRequired,
+  isMobileMenuOpen: PropTypes.bool.isRequired, // Add the new prop
+};

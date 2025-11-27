@@ -3,7 +3,7 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { LayoutDashboard, User, Settings, LogOut, MessageSquare, LifeBuoy } from 'lucide-react';
-import { ThemeToggle } from './ThemeToggle'; // <-- 1. IMPORT
+import { ThemeToggle } from './ThemeToggle';
 import styles from './DropdownMenu.module.css';
 import PropTypes from 'prop-types';
 
@@ -12,7 +12,8 @@ const menuVariants = {
   visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.15 } }
 };
 
-export const DropdownMenu = ({ onLogout }) => {
+// Note: This is now a standard function declaration, not a named export.
+const DropdownMenu = ({ onLogout }) => {
   return (
     <motion.div
       className={styles.dropdown}
@@ -53,7 +54,7 @@ export const DropdownMenu = ({ onLogout }) => {
       
       <div className={styles.separator} />
 
-      {/* --- 2. ADD the ThemeToggle component here --- */}
+      {/* --- Theme Toggle Group --- */}
       <div className={styles.menuGroup}>
         <ThemeToggle />
       </div>
@@ -74,3 +75,7 @@ export const DropdownMenu = ({ onLogout }) => {
 DropdownMenu.propTypes = {
   onLogout: PropTypes.func.isRequired,
 };
+
+// --- THIS IS THE FIX ---
+// Because this component is lazy-loaded, it must be a default export.
+export default DropdownMenu;
