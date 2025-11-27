@@ -361,6 +361,33 @@ const updateUserAvatar = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Delete the logged-in user's own account
+ * @route   DELETE /api/users/profile
+ * @access  Private
+ */
+const deleteUserAccount = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    // You could add more logic here in the future, like deleting associated
+    // projects, cleaning up connections, etc.
+    
+    await User.deleteOne({ _id: req.user._id });
+
+    // On success, we just send a confirmation message. The frontend will handle logout.
+    res.json({ success: true, message: 'Your account has been permanently deleted.' });
+
+  } catch (error) {
+    console.error(`[DELETE ACCOUNT ERROR]: ${error.message}`);
+    res.status(500).json({ message: 'Server error while deleting account.' });
+  }
+};
+
 module.exports = {
   registerUser,
   authUser,
@@ -374,4 +401,5 @@ module.exports = {
   resetPassword,
   cancelSubscription,
   updateUserAvatar,
+  deleteUserAccount,
 };

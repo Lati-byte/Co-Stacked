@@ -17,7 +17,8 @@ const {
   forgotPassword,
   resetPassword,
   cancelSubscription,
-  updateUserAvatar
+  updateUserAvatar,
+   deleteUserAccount
 } = require('../controllers/userController');
 
 const { protect } = require('../middleware/authMiddleware');
@@ -40,7 +41,8 @@ router.route('/profile/avatar').put(protect, upload.single('avatar'), updateUser
 router
   .route('/profile')
   .get(protect, getUserProfile)
-  .put(protect, updateUserProfile);
+  .put(protect, updateUserProfile)
+  .delete(protect, deleteUserAccount);
 
 router.route('/profile/change-password').put(protect, changeUserPassword);
 

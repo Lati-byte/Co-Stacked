@@ -185,6 +185,21 @@ export const uploadAvatar = createAsyncThunk(
   }
 );
 
+export const deleteAccount = createAsyncThunk(
+  'auth/deleteAccount',
+  async (_, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await API.delete('/users/profile');
+      // On successful deletion from the backend, dispatch the logout action
+      // to clear the frontend state and local storage.
+      dispatch(logout()); 
+      return response.data; // { success, message }
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
 
 // ===================================================================
 // THE AUTH SLICE
@@ -364,6 +379,23 @@ const authSlice = createSlice({
           localStorage.setItem(PROFILE_KEY, JSON.stringify(state.user));
         }
       })
+
+      // --- NEW: Cases for Account Deletion ---
+      .addCase(deleteAccount.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(deleteAccount.fulfilled, (state, action) => {
+        // The logout action has already cleared the state,
+        // but we can set a success message if needed (though user will be logged out).
+        state.status = 'succeeded';
+        state.successMessage = action.payload.message;
+      })
+      .addCase(deleteAccount.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload?.message || 'Failed to delete account.';
+      })
+
       // --- NEW: Cases for Avatar Upload ---
       .addCase(uploadAvatar.pending, (state) => {
         state.status = 'loading';

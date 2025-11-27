@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 // Import all necessary Redux Actions for this page
-import { updateUserProfile, getUserProfile } from '../features/auth/authSlice';
+import { updateUserProfile, deleteAccount } from '../features/auth/authSlice';
 import { verifySubscription, cancelSubscription } from '../features/payments/paymentSlice';
 
 // Import all required UI Components
@@ -14,7 +15,6 @@ import { Label } from '../components/shared/Label';
 import { RadioGroup } from '../components/shared/RadioGroup';
 import { SettingsSection } from '../components/settings/SettingsSection';
 import { ConfirmationModal } from '../components/shared/ConfirmationModal';
-import { PricingCard } from '../components/billing/PricingCard';
 import { SubscriptionModal } from '../components/billing/SubscriptionModal';
 import { ChangePasswordModal } from '../components/auth/ChangePasswordModal';
 import { CheckCircle } from 'lucide-react';
@@ -25,6 +25,7 @@ import styles from './SettingsPage.module.css';
  */
 export const SettingsPage = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   
   const { user, status: authStatus } = useSelector(state => state.auth);
   const { status: paymentStatus } = useSelector(state => state.payment);
@@ -36,7 +37,8 @@ export const SettingsPage = () => {
   
   const [isSubModalOpen, setSubModalOpen] = useState(false);
   const [isPasswordModalOpen, setPasswordModalOpen] = useState(false);
-  const [isCancelModalOpen, setCancelModalOpen] = useState(false); // State for the cancellation confirmation
+  const [isCancelModalOpen, setCancelModalOpen] = useState(false);
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false); // State for delete confirmation
 
   useEffect(() => {
     if (user) {
@@ -62,10 +64,9 @@ export const SettingsPage = () => {
   
   const handleVerification = async (chargeToken) => {
     if (!chargeToken) return;
-    setSubModalOpen(false); // Close the modal immediately after payment
+    setSubModalOpen(false);
     alert("Payment successful! Verifying your subscription...");
     const resultAction = await dispatch(verifySubscription(chargeToken));
-    
     if (verifySubscription.fulfilled.match(resultAction)) {
       alert(resultAction.payload.message);
     } else {
@@ -73,7 +74,6 @@ export const SettingsPage = () => {
     }
   };
 
-  // Handler for confirming the subscription cancellation
   const handleCancelSubscription = async () => {
     const resultAction = await dispatch(cancelSubscription());
     if (cancelSubscription.fulfilled.match(resultAction)) {
@@ -84,12 +84,27 @@ export const SettingsPage = () => {
     setCancelModalOpen(false);
   };
 
+  // Handler for confirming and executing account deletion
+  const handleDeleteAccount = async () => {
+    const resultAction = await dispatch(deleteAccount());
+    setDeleteModalOpen(false); // Close the modal immediately
+    if (deleteAccount.fulfilled.match(resultAction)) {
+      alert(resultAction.payload.message);
+      // The logout action inside the thunk will clear the Redux state and localStorage.
+      // We navigate to ensure the user is moved to a public page.
+      navigate('/login');
+    } else {
+      alert(`Account deletion failed: ${resultAction.payload?.message || 'An unexpected error occurred.'}`);
+    }
+  };
+
   if (!user) {
-    return <div>Loading your settings...</div>;
+    return <div style={{textAlign: 'center', padding: '4rem'}}>Loading your settings...</div>;
   }
 
   return (
     <>
+      {/* All Modals */}
       <SubscriptionModal 
         open={isSubModalOpen}
         onClose={() => setSubModalOpen(false)}
@@ -105,7 +120,16 @@ export const SettingsPage = () => {
         onConfirm={handleCancelSubscription}
         title="Cancel Subscription"
         message="Are you sure you want to cancel your verification subscription? Your verified badge will be removed immediately."
-        confirmText="Yes, Cancel"
+        confirmText="Yes, Cancel Subscription"
+        isDestructive={true}
+      />
+      <ConfirmationModal
+        open={isDeleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleDeleteAccount}
+        title="Delete Your Account"
+        message="Are you absolutely sure? This action is irreversible and will permanently delete your account and all associated data from CoStacked."
+        confirmText="Yes, Permanently Delete My Account"
         isDestructive={true}
       />
 
@@ -152,6 +176,17 @@ export const SettingsPage = () => {
           <SettingsSection title="Email Notifications" description="Choose which emails you receive.">
             <RadioGroup name="notificationEmails" selectedValue={formData.notificationEmails} onChange={handleChange}
               options={[{ value: 'all', label: 'All notifications' }, { value: 'essential', label: 'Only essential updates' }, { value: 'none', label: 'None' }]}/>
+          </SettingsSection>
+          
+          {/* New "Danger Zone" section for account deletion */}
+          <SettingsSection 
+            title="Danger Zone" 
+            description="These actions are permanent and cannot be undone."
+            isDangerZone={true}
+          >
+            <Button variant="destructive" onClick={() => setDeleteModalOpen(true)} disabled={authStatus === 'loading'}>
+              {authStatus === 'loading' && isDeleteModalOpen ? 'Deleting...' : 'Delete My Account'}
+            </Button>
           </SettingsSection>
         </div>
 
