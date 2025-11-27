@@ -6,7 +6,7 @@ import { Avatar } from '../shared/Avatar';
 import styles from '../../pages/ProfilePage.module.css';
 import verificationBadge from '../../assets/verification-badge.png';
 import PropTypes from 'prop-types';
-import { Edit, Share2 } from 'lucide-react'; // 1. Import the Share2 icon
+import { Edit, Share2 } from 'lucide-react';
 
 export const ProfileHeader = ({ 
   user, 
@@ -18,55 +18,52 @@ export const ProfileHeader = ({
   onBoost, 
   onReview,
   onAvatarClick,
-  onShare, // 2. Accept the new onShare prop
-  copySuccess, // 3. Accept the new copySuccess prop for feedback
+  onShare,
+  copySuccess,
 }) => (
   <div className={styles.header}>
-    {/* Left side: Avatar (unchanged) */}
-    <div className={styles.avatarWrapper}>
-      <Avatar 
-        src={user.avatarUrl} 
-        fallback={(user.name || '?').charAt(0)}
-        size="large"
-      />
-      {isOwnProfile && (
-        <button className={styles.avatarEditButton} onClick={onAvatarClick} aria-label="Change profile picture">
-          <Edit size={16} />
-        </button>
-      )}
-    </div>
-
-    {/* Center: User Info (unchanged) */}
-    <div className={styles.infoWrapper}>
-      <div className={styles.nameWrapper}>
-        <h1 className={styles.title}>{user.name}</h1>
-        {user.isVerified && (
-          <div className={styles.verifiedBadge} title="Verified User">
-            <img src={verificationBadge} alt="Verification Badge" className={styles.badgeIcon} />
-            <span>Verified</span>
-          </div>
+    {/* --- NEW: Main content wrapper for better flex control --- */}
+    <div className={styles.headerMain}>
+      <div className={styles.avatarWrapper}>
+        <Avatar 
+          src={user.avatarUrl} 
+          fallback={(user.name || '?').charAt(0)}
+          size="large"
+        />
+        {isOwnProfile && (
+          <button className={styles.avatarEditButton} onClick={onAvatarClick} aria-label="Change profile picture">
+            <Edit size={16} />
+          </button>
         )}
       </div>
-      {user.role === 'developer' && reviewCount > 0 && (
-        <div className={styles.aggregateRating}>
-          <StarRating rating={averageRating} />
-          <span>({reviewCount} {reviewCount === 1 ? 'review' : 'reviews'})</span>
+
+      <div className={styles.infoWrapper}>
+        <div className={styles.nameWrapper}>
+          <h1 className={styles.title}>{user.name}</h1>
+          {user.isVerified && (
+            <div className={styles.verifiedBadge} title="Verified User">
+              <img src={verificationBadge} alt="Verification Badge" className={styles.badgeIcon} />
+              <span>Verified</span>
+            </div>
+          )}
         </div>
-      )}
-      <p className={styles.subtitle}>{user.role}</p>
+        {user.role === 'developer' && reviewCount > 0 && (
+          <div className={styles.aggregateRating}>
+            <StarRating rating={averageRating} />
+            <span>({reviewCount} {reviewCount === 1 ? 'review' : 'reviews'})</span>
+          </div>
+        )}
+        <p className={styles.subtitle}>{user.role}</p>
+      </div>
     </div>
     
-    {/* Right side: Action Buttons */}
+    {/* Action buttons are now a direct child of the main header flex container */}
     <div className={styles.headerActions}>
-      {/* --- 4. ADD the new Share Button --- */}
-      {/* This button is visible on everyone's profile */}
       <Button onClick={onShare} variant="secondary">
         <Share2 size={16} />
         <span>{copySuccess ? 'Copied!' : 'Share'}</span>
       </Button>
-
       {canLeaveReview && <Button onClick={onReview} variant="secondary">Leave a Review</Button>}
-      
       {isOwnProfile && (
         <>
           <Button onClick={onBoost} variant="secondary">Boost Profile</Button>

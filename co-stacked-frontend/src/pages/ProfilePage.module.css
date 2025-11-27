@@ -196,3 +196,142 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* --- HEADER SECTION: MOBILE FIRST --- */
+.header {
+  display: flex;
+  flex-direction: column; /* Stack main content and actions vertically on mobile */
+  gap: 1.5rem;
+  padding-bottom: 1.5rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.headerMain {
+  display: flex;
+  flex-direction: column; /* Stack avatar and info vertically on mobile */
+  align-items: center; /* Center everything on mobile */
+  text-align: center;
+  gap: 1rem;
+}
+
+.avatarWrapper {
+  position: relative;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.avatarEditButton {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: var(--card-background);
+  color: var(--foreground);
+  border: 2px solid var(--card-background);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex; /* Always display on mobile for discoverability */
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease;
+}
+.avatarEditButton:hover {
+  transform: scale(1.1);
+}
+
+.infoWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center-align text content on mobile */
+}
+
+.nameWrapper {
+  display: flex;
+  flex-direction: column; /* Stack name and badge vertically */
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.badgeIcon {
+    height: 20px;
+    width: auto;
+}
+
+.subtitle {
+  margin-top: 0.25rem;
+  font-size: 1.125rem;
+  color: var(--muted-foreground);
+  text-transform: capitalize;
+}
+
+.aggregateRating {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+
+.headerActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 2-column grid for buttons on mobile */
+  gap: 0.75rem;
+  width: 100%;
+}
+
+
+/* --- Main Content Body (unchanged) --- */
+/* ... */
+
+
+/* ======================================== */
+/*            RESPONSIVE QUERIES            */
+/* ======================================== */
+
+/* --- Medium Screens / Tablets (768px and up) --- */
+@media (min-width: 768px) {
+  .pageContainer {
+    padding: 3rem 1.5rem;
+  }
+  
+  .header {
+    flex-direction: row; /* Switch to horizontal layout */
+    align-items: center;
+  }
+
+  .headerMain {
+    flex-direction: row; /* Un-stack avatar and info */
+    text-align: left;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .infoWrapper {
+    align-items: flex-start; /* Left-align text */
+  }
+
+  .nameWrapper {
+    flex-direction: row; /* Place name and badge side-by-side */
+    align-items: baseline;
+  }
+
+  .title {
+    font-size: 2.25rem;
+  }
+
+  .headerActions {
+    display: flex; /* Switch back to flex for auto-sizing */
+    width: auto;
+    flex-shrink: 0;
+  }
+}
