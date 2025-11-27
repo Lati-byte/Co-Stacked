@@ -1,80 +1,50 @@
 // src/components/billing/ProfileBoostModal.jsx
-import { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { verifyProfileBoost } from '../../features/payments/paymentSlice';
+
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // 1. Import useNavigate
 import { Dialog } from '../shared/Dialog';
 import { Button } from '../shared/Button';
 import { PricingCard } from './PricingCard';
-import styles from './BoostModal.module.css'; // Reusing styles is efficient
+import styles from './BoostModal.module.css';
 import PropTypes from 'prop-types';
-import { Loader2 } from 'lucide-react';
-
 
 const boostOptions = [
   { id: '3d', title: '3 Days', price: 'R100', amountInCents: 10000 },
   { id: '5d', title: '5 Days', price: 'R250', amountInCents: 25000 },
   { id: '7d', title: '1 Week', price: 'R350', amountInCents: 35000 },
 ];
-const YOCO_PUBLIC_KEY = 'pk_test_ed3c54a6gOol69qa7f45';
 
 /**
- * A modal for boosting a user's profile, which initiates a Yoco payment flow.
+ * A modal for selecting a profile boost tier.
+ * It no longer handles the payment logic directly.
  */
 export const ProfileBoostModal = ({ user, open, onClose }) => {
-  const dispatch = useDispatch();
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedTier, setSelectedTier] = useState(boostOptions[0].id);
-  const [yocoSDK, setYocoSDK] = useState(null);
+  const navigate = useNavigate(); // 2. Initialize the navigate function
+  const [selectedTier, setSelectedTier] = useState(boostOptions[1].id); // Default to R250 tier
 
-  useEffect(() => {
-    if (window.YocoSDK) {
-      setYocoSDK(new window.YocoSDK({ publicKey: YOCO_PUBLIC_KEY }));
-    } else {
-      console.error("Yoco SDK not loaded. Ensure the script is in your index.html.");
-    }
-  }, []);
-
-  const handlePayment = () => {
-    if (!yocoSDK || isLoading) {
-      alert("Payment gateway is unavailable or already processing.");
-      return;
-    }
-
-    setIsLoading(true);
+  const handleProceedToPayment = () => {
     const chosenOption = boostOptions.find(opt => opt.id === selectedTier);
+    
+    if (!chosenOption) return; // Safety check
 
-    // --- THIS IS THE CRITICAL FIX ---
-    // 1. Close our application's modal first to avoid z-index conflicts.
-    onClose(); 
-
-    // 2. A moment later, trigger the Yoco popup.
-    setTimeout(() => {
-      yocoSDK.showPopup({
+    // 3. Navigate to the new dedicated payment page, passing all necessary
+    //    data in the navigation state.
+    navigate('/payment', {
+      state: {
         amountInCents: chosenOption.amountInCents,
         currency: 'ZAR',
         name: 'Boost Your Profile',
         description: `Feature your profile for ${chosenOption.title}`,
-        callback: async (result) => {
-          setIsLoading(false); // Reset loading state for next time
-          
-          if (result.error) {
-            alert(`Payment failed: ${result.error.message}`);
-          } else if (result.id) {
-            alert("Payment completed! Verifying boost with our server...");
-            const resultAction = await dispatch(verifyProfileBoost({ 
-              chargeToken: result.id, 
-              tierId: selectedTier 
-            }));
-
-            if (verifyProfileBoost.fulfilled.match(resultAction)) {
-              alert(resultAction.payload.message);
-            } else {
-              alert(`Verification Failed: ${resultAction.payload?.message || 'Please contact support.'}`);
-            }
-          }
-        }
-      });
-    }, 200);
+        // Metadata our backend needs to verify the payment correctly
+        metadata: {
+          tierId: selectedTier,
+          successPath: '/profile', // Where to redirect after a successful payment
+          failurePath: '/profile'  // Where to redirect after a failed/canceled payment
+        },
+        // A simple string to tell our PaymentPage which Redux action to dispatch
+        action: 'profileBoost'
+      }
+    });
   };
 
   if (!open) {
@@ -100,9 +70,7 @@ export const ProfileBoostModal = ({ user, open, onClose }) => {
       </div>
       <footer className={styles.footer}>
         <Button variant="secondary" onClick={onClose}>Cancel</Button>
-        <Button onClick={handlePayment} disabled={isLoading}>
-          {isLoading ? (<><Loader2 className="animate-spin mr-2" />Processing...</>) : 'Proceed to Payment'}
-        </Button>
+        <Button onClick={handleProceedToPayment}>Proceed to Payment</Button>
       </footer>
     </Dialog>
   );

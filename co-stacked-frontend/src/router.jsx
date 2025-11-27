@@ -29,16 +29,14 @@ import { SentRequestsPage } from "./pages/SentRequestsPage";
 import { AboutPage } from "./pages/AboutPage";
 import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
 import { TermsOfServicePage } from "./pages/TermsOfServicePage";
+import { PaymentPage } from "./pages/PaymentPage"; // <-- 1. IMPORT the new page
 
-// This router object is the single export from this file.
-// It is imported by App.jsx, which is a higher-level component.
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <MainLayout />, // The MainLayout is the parent route for all pages using it.
+    element: <MainLayout />,
     children: [
       // --- PUBLIC CHILDREN ROUTES ---
-      // These routes are accessible to everyone.
       { index: true, element: <HomePage /> },
       { path: "projects", element: <DiscoverProjectsPage /> },
       { path: "projects/:projectId", element: <ProjectDetailPage /> },
@@ -55,7 +53,6 @@ export const router = createBrowserRouter([
       { path: "terms", element: <TermsOfServicePage /> },
 
       // --- PROTECTED CHILDREN ROUTES ---
-      // These routes are wrapped by the ProtectedRoute component.
       { 
         element: <ProtectedRoute />,
         children: [
@@ -68,10 +65,9 @@ export const router = createBrowserRouter([
           { path: "messages", element: <MessagesPage /> },
           { path: "settings", element: <SettingsPage /> },
           { path: "post-project", element: <PostProjectPage /> },
+          { path: "payment", element: <PaymentPage /> }, // <-- 2. ADD the new protected route
         ]
       }
     ]
   },
-  // You can add routes that DON'T use MainLayout here in the future,
-  // for example, a dedicated full-screen 404 page.
 ]);
