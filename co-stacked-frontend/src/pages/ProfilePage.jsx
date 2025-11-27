@@ -44,7 +44,8 @@ export const ProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isBoostModalOpen, setBoostModalOpen] = useState(false);
   const [isReviewModalOpen, setReviewModalOpen] = useState(false);
-  const [isAvatarModalOpen, setAvatarModalOpen] = useState(false); // State for the avatar modal
+  const [isAvatarModalOpen, setAvatarModalOpen] = useState(false);
+  const [copySuccess, setCopySuccess] = useState('');
 
   // Selectors for Redux state
   const { user: loggedInUser } = useSelector((state) => state.auth);
@@ -81,6 +82,36 @@ export const ProfilePage = () => {
       dispatch(recordProfileView(userId));
     }
   }, [userId, loggedInUser, dispatch]);
+
+  const handleShare = async () => {
+    if (!userToDisplay) return;
+
+    const shareData = {
+      title: `${userToDisplay.name} on CoStacked`,
+      text: `Check out ${userToDisplay.name}'s profile on CoStacked, the platform for founders and developers.`,
+      url: window.location.href // The current page URL is the most reliable link
+    };
+
+    // Use the modern Web Share API if available (on mobile)
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        console.error('Error sharing:', err);
+      }
+    } else {
+      // Fallback to copying the URL to the clipboard for desktop browsers
+      try {
+        await navigator.clipboard.writeText(shareData.url);
+        setCopySuccess('Copied!');
+        setTimeout(() => setCopySuccess(''), 2000); // Reset feedback message
+      } catch (err) {
+        console.error('Failed to copy URL:', err);
+        setCopySuccess('Failed!');
+        setTimeout(() => setCopySuccess(''), 2000);
+      }
+    }
+  };
 
   // Derived state for UI logic
   const developerReviews = reviewsByUser[userToDisplay?._id] || [];
@@ -160,7 +191,7 @@ export const ProfilePage = () => {
                   </div>
                 )}
 
-              <ProfileHeader
+               <ProfileHeader
                 user={userToDisplay}
                 isOwnProfile={isOwnProfile}
                 averageRating={averageRating}
@@ -170,6 +201,8 @@ export const ProfilePage = () => {
                 onBoost={() => setBoostModalOpen(true)}
                 onReview={() => setReviewModalOpen(true)}
                 onAvatarClick={() => setAvatarModalOpen(true)}
+                onShare={handleShare}
+                copySuccess={copySuccess}
               />
 
               <div className={styles.content}>
