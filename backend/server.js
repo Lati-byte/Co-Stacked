@@ -31,7 +31,7 @@ const reportRoutes = require('./routes/reportRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
-
+const connectionRoutes = require('./routes/connectionRoutes');
 
 // --- 3. INITIAL CONFIGURATION ---
 connectDB();
@@ -86,6 +86,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/payments', paymentRoutes); 
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/connections', connectionRoutes);
 
 
 // --- 7. SERVER STARTUP ---

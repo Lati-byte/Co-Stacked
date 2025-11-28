@@ -13,16 +13,14 @@ export const ProfileHeader = ({
   isOwnProfile, 
   averageRating, 
   reviewCount,
-  canLeaveReview, 
   onEdit, 
   onBoost, 
-  onReview,
   onAvatarClick,
   onShare,
   copySuccess,
+  connectionButton // <-- 1. Accept the new prop
 }) => (
   <div className={styles.header}>
-    {/* --- NEW: Main content wrapper for better flex control --- */}
     <div className={styles.headerMain}>
       <div className={styles.avatarWrapper}>
         <Avatar 
@@ -57,13 +55,20 @@ export const ProfileHeader = ({
       </div>
     </div>
     
-    {/* Action buttons are now a direct child of the main header flex container */}
     <div className={styles.headerActions}>
+      {/* --- 2. Render the dynamic connection button passed from the parent --- */}
+      {connectionButton}
+
       <Button onClick={onShare} variant="secondary">
         <Share2 size={16} />
         <span>{copySuccess ? 'Copied!' : 'Share'}</span>
       </Button>
-      {canLeaveReview && <Button onClick={onReview} variant="secondary">Leave a Review</Button>}
+      
+      {/*
+        The "Leave a Review" button is removed from here because its logic is now tied
+        to the connection status, which is handled by the parent ProfilePage.
+      */}
+
       {isOwnProfile && (
         <>
           <Button onClick={onBoost} variant="secondary">Boost Profile</Button>
@@ -74,17 +79,16 @@ export const ProfileHeader = ({
   </div>
 );
 
-// --- 5. UPDATE PropTypes to include the new props ---
+// --- 3. UPDATE PropTypes ---
 ProfileHeader.propTypes = {
   user: PropTypes.object.isRequired,
   isOwnProfile: PropTypes.bool.isRequired,
   averageRating: PropTypes.number,
   reviewCount: PropTypes.number,
-  canLeaveReview: PropTypes.bool,
   onEdit: PropTypes.func.isRequired,
   onBoost: PropTypes.func.isRequired,
-  onReview: PropTypes.func.isRequired,
   onAvatarClick: PropTypes.func.isRequired,
   onShare: PropTypes.func.isRequired,
-  copySuccess: PropTypes.string.isRequired,
+  copySuccess: PropTypes.string,
+  connectionButton: PropTypes.node, // The button can be a component node or null
 };
