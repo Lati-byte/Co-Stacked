@@ -25,7 +25,9 @@ const notificationSchema = mongoose.Schema(
         'NEW_MESSAGE',
         'SUBSCRIPTION_SUCCESS',
         'BOOST_SUCCESS',
-        'NEW_REVIEW'
+        'NEW_REVIEW',
+        'NEW_CONNECTION_REQUEST',
+        'CONNECTION_ACCEPTED'
       ],
     },
     isRead: {

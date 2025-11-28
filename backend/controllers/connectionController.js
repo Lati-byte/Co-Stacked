@@ -2,6 +2,7 @@
 
 const Connection = require('../models/Connection');
 const User = require('../models/User');
+const Notification = require('../models/Notification');
 
 // @desc    Get the connection status with another user
 // @route   GET /api/connections/status/:userId
@@ -63,7 +64,11 @@ const sendRequest = async (req, res) => {
     
     await Connection.create({ requester: requesterId, recipient: recipientId });
 
-    // TODO: Create a notification for the recipient
+     await Notification.create({
+      recipient: recipientId,
+      sender: requesterId,
+      type: 'NEW_CONNECTION_REQUEST',
+    });
 
     res.status(201).json({ status: 'pending_sent' });
   } catch (error) { res.status(500).json({ message: 'Server Error' }); }
@@ -86,7 +91,11 @@ const acceptRequest = async (req, res) => {
       return res.status(404).json({ message: 'Request not found or already handled.' });
     }
 
-    // TODO: Create a notification for the requester
+    await Notification.create({
+      recipient: requesterId,
+      sender: recipientId,
+      type: 'CONNECTION_ACCEPTED',
+    });
 
     res.json({ status: 'connected' });
   } catch (error) { res.status(500).json({ message: 'Server Error' }); }
