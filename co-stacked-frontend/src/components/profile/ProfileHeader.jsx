@@ -13,12 +13,14 @@ export const ProfileHeader = ({
   isOwnProfile, 
   averageRating, 
   reviewCount,
+  canLeaveReview, // <-- 1. Re-accept this prop
+  onReview,       // <-- 1. Re-accept this prop
   onEdit, 
   onBoost, 
   onAvatarClick,
   onShare,
   copySuccess,
-  connectionButton // <-- 1. Accept the new prop
+  connectionButton
 }) => (
   <div className={styles.header}>
     <div className={styles.headerMain}>
@@ -56,7 +58,6 @@ export const ProfileHeader = ({
     </div>
     
     <div className={styles.headerActions}>
-      {/* --- 2. Render the dynamic connection button passed from the parent --- */}
       {connectionButton}
 
       <Button onClick={onShare} variant="secondary">
@@ -64,10 +65,11 @@ export const ProfileHeader = ({
         <span>{copySuccess ? 'Copied!' : 'Share'}</span>
       </Button>
       
-      {/*
-        The "Leave a Review" button is removed from here because its logic is now tied
-        to the connection status, which is handled by the parent ProfilePage.
-      */}
+      {/* --- 2. THIS IS THE FIX --- */}
+      {/* Conditionally render the "Leave a Review" button based on the prop */}
+      {canLeaveReview && (
+        <Button onClick={onReview} variant="secondary">Leave a Review</Button>
+      )}
 
       {isOwnProfile && (
         <>
@@ -85,10 +87,12 @@ ProfileHeader.propTypes = {
   isOwnProfile: PropTypes.bool.isRequired,
   averageRating: PropTypes.number,
   reviewCount: PropTypes.number,
+  canLeaveReview: PropTypes.bool, // Re-add this prop
+  onReview: PropTypes.func.isRequired, // Re-add this prop
   onEdit: PropTypes.func.isRequired,
   onBoost: PropTypes.func.isRequired,
   onAvatarClick: PropTypes.func.isRequired,
   onShare: PropTypes.func.isRequired,
   copySuccess: PropTypes.string,
-  connectionButton: PropTypes.node, // The button can be a component node or null
+  connectionButton: PropTypes.node,
 };
