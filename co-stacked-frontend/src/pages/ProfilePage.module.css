@@ -3,7 +3,7 @@
 .pageContainer {
   max-width: 1000px;
   margin: 0 auto;
-  padding: 3rem 1.5rem;
+  padding: 1rem 1rem;
 }
 
 .loader {
@@ -140,6 +140,11 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+.section p {
+  word-break: break-word; /* Allows long, unbroken strings to wrap */
+  line-height: 1.6; /* Ensure good readability */
 }
 
 .sectionTitle {
