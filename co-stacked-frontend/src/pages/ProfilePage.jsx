@@ -44,7 +44,7 @@ const formatDate = (dateString) => {
 };
 
 export const ProfilePage = () => {
-  // --- 1. ALL HOOKS ARE CALLED AT THE TOP, UNCONDITIONALLY ---
+  // --- 1. ALL HOOKS CALLED AT THE TOP ---
   const dispatch = useDispatch();
   const { userId } = useParams();
 
@@ -72,14 +72,14 @@ export const ProfilePage = () => {
     (state) => state.interests
   );
 
-  // --- 2. DERIVED STATE IS CALCULATED AFTER HOOKS ---
+  // --- 2. DERIVED STATE CALCULATED AFTER HOOKS ---
   const userToDisplay = userId
     ? allUsers.find((u) => u._id === userId)
     : loggedInUser;
   const isOwnProfile =
     userToDisplay && loggedInUser && userToDisplay._id === loggedInUser._id;
 
-  // --- 3. ALL HANDLERS (useCallback) ARE DEFINED AFTER STATE ---
+  // --- 3. HANDLERS (useCallback) DEFINED AFTER STATE ---
   const handleSendRequest = useCallback(() => {
     if (!userToDisplay) return;
     dispatch(sendConnectionRequest(userToDisplay._id))
@@ -132,7 +132,7 @@ export const ProfilePage = () => {
     }
   }, [userToDisplay]);
 
-  // --- 4. ALL EFFECTS (useEffect) ARE DEFINED LAST ---
+  // --- 4. EFFECTS (useEffect) DEFINED LAST ---
   useEffect(() => {
     if (usersStatus === "idle") dispatch(fetchUsers());
     if (projectsStatus === "idle") dispatch(fetchProjects());
@@ -155,7 +155,7 @@ export const ProfilePage = () => {
     }
   }, [userId, loggedInUser, dispatch]);
 
-  // --- 5. THE EARLY RETURN IS NOW AT THE END, AFTER ALL HOOKS HAVE BEEN CALLED ---
+  // --- 5. EARLY RETURN IS NOW SAFELY AT THE END ---
   if (
     usersStatus === "loading" ||
     projectsStatus === "loading" ||
@@ -169,7 +169,7 @@ export const ProfilePage = () => {
     );
   }
 
-  // --- DERIVED STATE FOR RENDERING IS CALCULATED LAST ---
+  // --- FINAL DERIVED STATE FOR RENDERING ---
   const developerReviews = reviewsByUser[userToDisplay._id] || [];
   const userProjects =
     userToDisplay.role === "founder"
@@ -299,9 +299,10 @@ export const ProfilePage = () => {
                 isOwnProfile={isOwnProfile}
                 averageRating={averageRating}
                 reviewCount={developerReviews.length}
+                canLeaveReview={canLeaveReview}
                 onEdit={() => setIsEditing(true)}
                 onBoost={() => setBoostModalOpen(true)}
-                onReview={() => setReviewModalOpen(true)} // Retaining for now, can be removed if ConnectionButton handles all cases
+                onReview={() => setReviewModalOpen(true)}
                 onAvatarClick={() => setAvatarModalOpen(true)}
                 onShare={handleShare}
                 copySuccess={copySuccess}
