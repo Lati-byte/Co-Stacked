@@ -7,33 +7,32 @@ import API from '../../api/axios';
 // ASYNC THUNKS
 // ===================================================================
 
-// GET a user's list of accepted connections
+// --- READ OPERATIONS ---
 export const fetchConnections = createAsyncThunk(
-  'connections/fetchConnections',
+  'connections/fetchAll',
   async (_, { rejectWithValue }) => {
     try {
       const response = await API.get('/connections');
-      return response.data;
+      return response.data; // Array of user objects
     } catch (error) {
       return rejectWithValue(error.response.data);
     }
   }
 );
 
-// GET a user's pending received requests
 export const fetchPendingRequests = createAsyncThunk(
   'connections/fetchPending',
   async (_, { rejectWithValue }) => {
     try {
       const response = await API.get('/connections/pending');
-      return response.data;
+      return response.data; // Array of connection request objects
     } catch (error) {
       return rejectWithValue(error.response.data);
     }
   }
 );
 
-// POST to send a new connection request
+// --- WRITE OPERATIONS ---
 export const sendConnectionRequest = createAsyncThunk(
   'connections/sendRequest',
   async (recipientId, { rejectWithValue }) => {
@@ -46,13 +45,12 @@ export const sendConnectionRequest = createAsyncThunk(
   }
 );
 
-// PUT to accept a connection request
 export const acceptConnectionRequest = createAsyncThunk(
   'connections/acceptRequest',
   async (requesterId, { rejectWithValue }) => {
     try {
       const response = await API.put('/connections/accept', { requesterId });
-      // We pass the requesterId in the payload to know which request to remove from the pending list
+      // We return the original requesterId to know which request to remove from the pending list
       return { status: response.data.status, requesterId };
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -60,12 +58,12 @@ export const acceptConnectionRequest = createAsyncThunk(
   }
 );
 
-// DELETE to remove, cancel, or decline a connection/request
 export const removeOrCancelConnection = createAsyncThunk(
   'connections/removeOrCancel',
   async (otherUserId, { rejectWithValue }) => {
     try {
       const response = await API.delete(`/connections/${otherUserId}`);
+      // Return the other user's ID to update the UI
       return { status: response.data.status, otherUserId };
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -79,10 +77,10 @@ export const removeOrCancelConnection = createAsyncThunk(
 // ===================================================================
 
 const initialState = {
-  connections: [], // List of accepted connections (user objects)
-  pendingRequests: [], // List of received pending requests (connection objects)
-  status: 'idle', // For list-fetching actions ('idle', 'loading', 'succeeded', 'failed')
-  actionStatus: 'idle', // For single actions like send, accept, delete
+  connections: [],
+  pendingRequests: [],
+  status: 'idle',
+  actionStatus: 'idle',
   error: null,
 };
 
@@ -98,7 +96,7 @@ const connectionsSlice = createSlice({
         state.status = 'succeeded';
         state.connections = action.payload;
       })
-      .addCase(fetchConnections.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload; })
+      .addCase(fetchConnections.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload.message; })
 
       // Fetching pending requests
       .addCase(fetchPendingRequests.pending, (state) => { state.status = 'loading'; })
@@ -106,32 +104,29 @@ const connectionsSlice = createSlice({
         state.status = 'succeeded';
         state.pendingRequests = action.payload;
       })
-      .addCase(fetchPendingRequests.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload; })
+      .addCase(fetchPendingRequests.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload.message; })
 
-      // Handling the result of accepting a request
-      .addCase(acceptConnectionRequest.pending, (state) => { state.actionStatus = 'loading'; })
+      // Accepting a request
       .addCase(acceptConnectionRequest.fulfilled, (state, action) => {
-        state.actionStatus = 'succeeded';
-        // Remove the accepted request from the pending list
-        state.pendingRequests = state.pendingRequests.filter(
-          req => req.requester._id !== action.payload.requesterId
-        );
-        // We might need to refetch the main connections list to get the new user,
-        // or optimistically add them if the backend returned the user object.
+        const { requesterId } = action.payload;
+        // Find the accepted request to get the user object
+        const acceptedRequest = state.pendingRequests.find(req => req.requester._id === requesterId);
+        if (acceptedRequest) {
+          // Add the user to the main connections list
+          state.connections.unshift(acceptedRequest.requester);
+          // Remove the request from the pending list
+          state.pendingRequests = state.pendingRequests.filter(req => req.requester._id !== requesterId);
+        }
       })
-      .addCase(acceptConnectionRequest.rejected, (state, action) => { state.actionStatus = 'failed'; state.error = action.payload; })
 
-      // Handling the result of removing/declining/canceling
-      .addCase(removeOrCancelConnection.pending, (state) => { state.actionStatus = 'loading'; })
+      // Removing a connection OR declining/canceling a request
       .addCase(removeOrCancelConnection.fulfilled, (state, action) => {
-        state.actionStatus = 'succeeded';
-        const otherUserId = action.payload.otherUserId;
-        // Remove from connections list if they were there
+        const { otherUserId } = action.payload;
+        // Remove from main connections list
         state.connections = state.connections.filter(user => user._id !== otherUserId);
-        // Remove from pending requests list if they were there
+        // Remove from pending requests list (if they were the requester)
         state.pendingRequests = state.pendingRequests.filter(req => req.requester._id !== otherUserId);
-      })
-      .addCase(removeOrCancelConnection.rejected, (state, action) => { state.actionStatus = 'failed'; state.error = action.payload; });
+      });
   },
 });
 

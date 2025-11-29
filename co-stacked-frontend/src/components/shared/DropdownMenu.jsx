@@ -2,7 +2,7 @@
 
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, User, Settings, LogOut, MessageSquare, LifeBuoy } from 'lucide-react';
+import { LayoutDashboard, User, Settings, LogOut, MessageSquare, LifeBuoy, Users } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import styles from './DropdownMenu.module.css';
 import PropTypes from 'prop-types';
@@ -12,7 +12,6 @@ const menuVariants = {
   visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.15 } }
 };
 
-// Note: This is now a standard function declaration, not a named export.
 const DropdownMenu = ({ onLogout }) => {
   return (
     <motion.div
@@ -31,6 +30,11 @@ const DropdownMenu = ({ onLogout }) => {
         <Link to="/profile" className={styles.menuItem}>
           <User className={styles.icon} />
           <span>Profile</span>
+        </Link>
+        {/* --- ADDED "My Network" LINK --- */}
+        <Link to="/my-network" className={styles.menuItem}>
+          <Users className={styles.icon} />
+          <span>My Network</span>
         </Link>
         <Link to="/messages" className={styles.menuItem}>
           <MessageSquare className={styles.icon} />
@@ -76,6 +80,4 @@ DropdownMenu.propTypes = {
   onLogout: PropTypes.func.isRequired,
 };
 
-// --- THIS IS THE FIX ---
-// Because this component is lazy-loaded, it must be a default export.
 export default DropdownMenu;

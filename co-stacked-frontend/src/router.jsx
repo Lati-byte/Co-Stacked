@@ -29,7 +29,8 @@ import { SentRequestsPage } from "./pages/SentRequestsPage";
 import { AboutPage } from "./pages/AboutPage";
 import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
 import { TermsOfServicePage } from "./pages/TermsOfServicePage";
-import { PaymentPage } from "./pages/PaymentPage"; // <-- 1. IMPORT the new page
+import { PaymentPage } from "./pages/PaymentPage"; 
+import { MyNetworkPage } from './pages/MyNetworkPage';
 
 export const router = createBrowserRouter([
   {
@@ -65,7 +66,8 @@ export const router = createBrowserRouter([
           { path: "messages", element: <MessagesPage /> },
           { path: "settings", element: <SettingsPage /> },
           { path: "post-project", element: <PostProjectPage /> },
-          { path: "payment", element: <PaymentPage /> }, // <-- 2. ADD the new protected route
+          { path: "payment", element: <PaymentPage /> }, 
+          { path: "my-network", element: <MyNetworkPage /> },
         ]
       }
     ]
