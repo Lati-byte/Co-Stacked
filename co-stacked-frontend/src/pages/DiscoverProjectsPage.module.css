@@ -97,3 +97,7 @@
   text-align: center;
   font-weight: 500;
 }
+
+.latestSection {
+  margin-top: 2rem; /* Adds space between the carousel and the grid */
+}
