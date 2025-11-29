@@ -156,6 +156,28 @@ export const ProfilePage = () => {
     }
   }, [userId, loggedInUser, dispatch]);
 
+  useEffect(() => {
+  if (!userToDisplay?._id) {
+    setConnectionCount(0);
+    return;
+  }
+
+  let cancelled = false;
+
+  API.get(`/connections/count/${userToDisplay._id}`)
+    .then((res) => {
+      if (!cancelled) setConnectionCount(res.data.count ?? 0);
+    })
+    .catch((err) => {
+      console.error('Failed to fetch connection count', err);
+      if (!cancelled) setConnectionCount(0);
+    });
+
+  return () => {
+    cancelled = true;
+  };
+}, [userToDisplay?._id]);
+
   // --- 5. EARLY RETURN IS NOW SAFELY AT THE END ---
   if (
     usersStatus === "loading" ||
