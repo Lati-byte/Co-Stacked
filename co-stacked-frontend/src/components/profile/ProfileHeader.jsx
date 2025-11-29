@@ -60,8 +60,8 @@ export const ProfileHeader = ({
 
         {/* ✅ --- NEW CONNECTION COUNT ADDED HERE --- */}
         <p className={styles.connectionCount}>
-          {user.connections?.length || 0} Connections
-        </p>
+  {typeof connectionCount === 'number' ? connectionCount : 0} Connections
+</p>
       </div>
     </div>
     
