@@ -54,7 +54,8 @@ export const ProfilePage = () => {
   const [isAvatarModalOpen, setAvatarModalOpen] = useState(false);
   const [copySuccess, setCopySuccess] = useState("");
   const [connectionStatus, setConnectionStatus] = useState("loading");
-
+  const [connectionCount, setConnectionCount] = useState(0);
+  
   const { actionStatus: connectionActionStatus } = useSelector(
     (state) => state.connections
   );
