@@ -20,8 +20,11 @@ export const ProfileHeader = ({
   onAvatarClick,
   onShare,
   copySuccess,
-  connectionButton
+  connectionButton,
+  connectionCount    // <-- add here
 }) => (
+  ...
+)
   <div className={styles.header}>
     <div className={styles.headerMain}>
       <div className={styles.avatarWrapper}>
