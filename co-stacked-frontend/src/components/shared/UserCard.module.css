@@ -9,8 +9,8 @@
 .header {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 0.75rem; /* Slightly reduced gap for mobile */
+  margin-bottom: 0.75rem;
 }
 
 .nameWrapper {
@@ -20,14 +20,14 @@
 }
 
 .name {
-  font-size: 1.25rem;
+  font-size: 1.1rem; /* Reduced base font size */
   font-weight: 700;
-  line-height: 1.2;
-  color: var(--foreground); /* Ensure name uses theme variable */
+  line-height: 1.3;
+  color: var(--foreground);
 }
 
 .verifiedIcon {
-  height: 20px;
+  height: 18px; /* Slightly smaller icon */
   width: auto;
   flex-shrink: 0;
 }
@@ -35,13 +35,15 @@
 .role {
   text-transform: capitalize;
   color: var(--muted-foreground);
+  font-size: 0.85rem; /* Reduced base font size */
   margin-top: 0.1rem;
 }
 
 .bio {
   color: var(--foreground);
+  font-size: 0.9rem; /* Reduced base font size */
   line-height: 1.6;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   flex-grow: 1;
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -52,15 +54,15 @@
 }
 
 .skillsSection {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .skillsTitle {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   color: var(--muted-foreground);
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 .skillsContainer {
@@ -70,14 +72,14 @@
 }
 
 .noSkills {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--muted-foreground);
   font-style: italic;
 }
 
 .footer {
   margin-top: auto;
-  padding-top: 1rem;
+  padding-top: 0.75rem;
   border-top: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
@@ -85,7 +87,7 @@
 }
 
 .availability {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 500;
   color: var(--muted-foreground);
 }
@@ -103,10 +105,51 @@
   align-items: center;
   gap: 6px;
   background-color: var(--primary);
-  /* --- THIS IS THE UPDATE --- */
-  color: var(--primary-foreground); /* Replaced 'white' with our new variable */
+  color: var(--primary-foreground);
   padding: 4px 10px;
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 600;
+}
+
+
+/* ======================================== */
+/*            RESPONSIVE QUERIES            */
+/* ======================================== */
+
+/* --- Medium screens and up (e.g., tablets) --- */
+@media (min-width: 768px) {
+  .header {
+    gap: 1rem; /* Increase gap back */
+    margin-bottom: 1rem;
+  }
+  .name {
+    font-size: 1.25rem; /* Increase font size back */
+  }
+  .verifiedIcon {
+    height: 20px;
+  }
+  .role {
+    font-size: 1rem;
+  }
+  .bio {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .noSkills {
+    font-size: 0.9rem;
+  }
+  .skillsSection {
+    margin-bottom: 1.5rem;
+  }
+  .skillsTitle {
+    font-size: 0.8rem;
+    margin-bottom: 0.75rem;
+  }
+  .footer {
+    padding-top: 1rem;
+  }
+  .availability {
+    font-size: 0.9rem;
+  }
 }
