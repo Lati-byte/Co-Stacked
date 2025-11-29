@@ -104,4 +104,5 @@ ProfileHeader.propTypes = {
   onShare: PropTypes.func.isRequired,
   copySuccess: PropTypes.string,
   connectionButton: PropTypes.node,
+  connectionCount: PropTypes.number, // <-- new
 };
