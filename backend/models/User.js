@@ -1,8 +1,8 @@
-// backend/models/user.js
+// backend/models/User.js
 
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
-const crypto = require("crypto"); // For generating secure tokens
+const crypto = require("crypto");
 
 const userSchema = mongoose.Schema(
   {
@@ -24,41 +24,22 @@ const userSchema = mongoose.Schema(
     role: { 
       type: String, 
       required: true, 
-      // --- THIS IS THE FIX ---
-      // Add 'admin' to the list of allowed roles.
       enum: ['developer', 'founder', 'admin'],
       default: 'developer',
     },
 
     // --- Security & Status Fields ---
-    isAdmin: {
-      type: Boolean,
-      default: false,
-    },
-    isVerified: {
-      // For paid subscription
-      type: Boolean,
-      default: false,
-    },
-    isBoosted: {
-      type: Boolean,
-      default: false,
-    },
-    boostExpiresAt: {
-      type: Date,
-    },
-
-    // --- NEW & UPDATED VERIFICATION FIELDS ---
-    isEmailVerified: {
-      type: Boolean,
-      default: false,
-    },
-    emailVerificationToken: {
-      type: String,
-    },
-    emailVerificationExpires: {
-      type: Date,
-    },
+    isAdmin: { type: Boolean, default: false },
+    isVerified: { type: Boolean, default: false },
+    isBoosted: { type: Boolean, default: false },
+    boostExpiresAt: { type: Date },
+    isEmailVerified: { type: Boolean, default: false },
+    
+    // --- Token Fields ---
+    emailVerificationToken: { type: String },
+    emailVerificationExpires: { type: Date },
+    passwordResetToken: { type: String },
+    passwordResetExpires: { type: Date },
 
     // --- Optional Profile Fields ---
     bio: { type: String, default: "" },
@@ -69,44 +50,31 @@ const userSchema = mongoose.Schema(
     avatarUrl: { type: String, default: "" },
 
     // --- User Preference Fields ---
-    profileVisibility: {
-      type: String,
-      enum: ["public", "connections-only"],
-      default: "public",
-    },
-    notificationEmails: {
-      type: String,
-      enum: ["all", "essential", "none"],
-      default: "essential",
-    },
+    profileVisibility: { type: String, enum: ["public", "connections-only"], default: "public" },
+    notificationEmails: { type: String, enum: ["all", "essential", "none"], default: "essential" },
+    profileViews: { type: Number, default: 0 },
+    
+    // --- THIS IS THE FIX ---
+    // The connection fields have been moved inside the schema definition object.
+    // The syntax for an array of ObjectIds has also been corrected.
+    connections: [{ 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: "User" 
+    }],
+    sentConnections: [{ 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: "User" 
+    }],
+    receivedConnections: [{ 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: "User" 
+    }],
 
-    // --- Field for Profile Views ---
-    profileViews: {
-      type: Number,
-      default: 0,
-    },
-    passwordResetToken: String,
-    passwordResetExpires: Date,
   },
   {
     timestamps: true,
   }
 );
-
-// Users you are currently connected to
-connections: [
-  { type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] }
-],
-
-// Requests you have sent to others (pending)
-sentConnections: [
-  { type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] }
-],
-
-// Requests you have received from others (pending)
-receivedConnections: [
-  { type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] }
-],
 
 // Middleware to automatically hash the user's password before saving
 userSchema.pre("save", async function (next) {
@@ -123,20 +91,12 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// --- NEW: Method to generate and hash password reset token ---
+// Method to generate and hash password reset token
 userSchema.methods.createPasswordResetToken = function() {
   const resetToken = crypto.randomBytes(32).toString('hex');
-
-  this.passwordResetToken = crypto
-    .createHash('sha256')
-    .update(resetToken)
-    .digest('hex');
-
-  // Set token to expire in 10 minutes
+  this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
-
-  return resetToken; // Return the unhashed token to be sent via email
+  return resetToken;
 };
 
-// Robust export to prevent 'OverwriteModelError' in development environments
 module.exports = mongoose.models.User || mongoose.model("User", userSchema);
