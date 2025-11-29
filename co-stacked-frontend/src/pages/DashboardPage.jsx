@@ -18,11 +18,15 @@ import { DeveloperDashboard } from '../components/dashboard/DeveloperDashboard';
 export const DashboardPage = () => {
   const dispatch = useDispatch();
 
-  // === FETCH ALL NECESSARY DATA FROM REDUX STATE ===
   const { user: currentUser } = useSelector((state) => state.auth);
-  const { receivedItems, sentItems } = useSelector(state => state.interests);
-  const { myItems: userProjects } = useSelector(state => state.projects);
-  const { reviewsByUser } = useSelector(state => state.reviews); // <-- 2. SELECT reviews state
+  // --- THIS IS THE FIX ---
+  // Provide a default empty object to the selector. If `state.interests`
+  // is undefined for a moment, this will prevent a crash.
+  const { receivedItems = [], sentItems = [] } = useSelector(state => state.interests || {});
+  const { myItems: userProjects = [] } = useSelector(state => state.projects || {});
+  const { reviewsByUser = {} } = useSelector(state => state.reviews || {});
+  // --- END FIX ---
+
 
   // This effect runs when the user is available and dispatches all necessary data-fetching actions.
   useEffect(() => {
