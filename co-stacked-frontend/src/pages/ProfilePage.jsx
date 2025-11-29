@@ -318,19 +318,20 @@ export const ProfilePage = () => {
                   </div>
                 )}
               <ProfileHeader
-                user={userToDisplay}
-                isOwnProfile={isOwnProfile}
-                averageRating={averageRating}
-                reviewCount={developerReviews.length}
-                canLeaveReview={canLeaveReview}
-                onEdit={() => setIsEditing(true)}
-                onBoost={() => setBoostModalOpen(true)}
-                onReview={() => setReviewModalOpen(true)}
-                onAvatarClick={() => setAvatarModalOpen(true)}
-                onShare={handleShare}
-                copySuccess={copySuccess}
-                connectionButton={renderConnectionButton()}
-              />
+  user={userToDisplay}
+  isOwnProfile={isOwnProfile}
+  averageRating={averageRating}
+  reviewCount={developerReviews.length}
+  canLeaveReview={canLeaveReview}
+  onEdit={() => setIsEditing(true)}
+  onBoost={() => setBoostModalOpen(true)}
+  onReview={() => setReviewModalOpen(true)}
+  onAvatarClick={() => setAvatarModalOpen(true)}
+  onShare={handleShare}
+  copySuccess={copySuccess}
+  connectionButton={renderConnectionButton()}
+  connectionCount={connectionCount}     // <-- new prop here
+/>
               <div className={styles.content}>
                 <div className={styles.section}>
                   <h3 className={styles.sectionTitle}>About Me:</h3>
