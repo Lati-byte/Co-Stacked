@@ -92,6 +92,7 @@ const userSchema = mongoose.Schema(
     timestamps: true,
   }
 );
+
 // Users you are currently connected to
 connections: [
   { type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] }
