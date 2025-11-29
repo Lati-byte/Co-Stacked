@@ -18,7 +18,6 @@ import {
 } from "../features/connections/connectionsSlice";
 
 // Import All UI Components
-import { Button } from "../components/shared/Button";
 import { Card } from "../components/shared/Card";
 import { Tag } from "../components/shared/Tag";
 import { ProjectCard } from "../components/shared/ProjectCard";
@@ -28,7 +27,7 @@ import { ProfileHeader } from "../components/profile/ProfileHeader";
 import { AvatarUploadModal } from "../components/profile/AvatarUploadModal";
 import { LeaveReviewModal } from "../components/reviews/LeaveReviewModal";
 import { ProfileBoostModal } from "../components/billing/ProfileBoostModal";
-import { MapPin, Link as LinkIcon, Check, Clock, UserPlus } from "lucide-react";
+import { MapPin, Link as LinkIcon } from "lucide-react";
 
 const LoadingSpinner = () => (
   <div className={styles.loader}>Loading profile...</div>
@@ -44,69 +43,78 @@ const formatDate = (dateString) => {
 };
 
 export const ProfilePage = () => {
-  // --- 1. ALL HOOKS CALLED AT THE TOP ---
   const dispatch = useDispatch();
   const { userId } = useParams();
 
+  // State for UI and Modals
   const [isEditing, setIsEditing] = useState(false);
   const [isBoostModalOpen, setBoostModalOpen] = useState(false);
   const [isReviewModalOpen, setReviewModalOpen] = useState(false);
   const [isAvatarModalOpen, setAvatarModalOpen] = useState(false);
   const [copySuccess, setCopySuccess] = useState("");
   const [connectionStatus, setConnectionStatus] = useState("loading");
-  const [connectionCount, setConnectionCount] = useState(0);
-  
+
+  // State from Redux
   const { actionStatus: connectionActionStatus } = useSelector(
-    (state) => state.connections
+    (state) => state.connections || {}
   );
   const { user: loggedInUser } = useSelector((state) => state.auth);
   const { items: allUsers, status: usersStatus } = useSelector(
-    (state) => state.users
+    (state) => state.users || {}
   );
   const { items: allProjects, status: projectsStatus } = useSelector(
-    (state) => state.projects
+    (state) => state.projects || {}
   );
   const { reviewsByUser, status: reviewsStatus } = useSelector(
-    (state) => state.reviews
+    (state) => state.reviews || {}
   );
   const { receivedItems: founderConnections } = useSelector(
-    (state) => state.interests
+    (state) => state.interests || {}
   );
 
-  // --- 2. DERIVED STATE CALCULATED AFTER HOOKS ---
   const userToDisplay = userId
     ? allUsers.find((u) => u._id === userId)
     : loggedInUser;
   const isOwnProfile =
     userToDisplay && loggedInUser && userToDisplay._id === loggedInUser._id;
 
-  // --- 3. HANDLERS (useCallback) DEFINED AFTER STATE ---
-  const handleSendRequest = useCallback(() => {
-    if (!userToDisplay) return;
-    dispatch(sendConnectionRequest(userToDisplay._id))
-      .unwrap()
-      .then(() => setConnectionStatus("pending_sent"));
-  }, [dispatch, userToDisplay]);
-
-  const handleAcceptRequest = useCallback(() => {
-    if (!userToDisplay) return;
-    dispatch(acceptConnectionRequest(userToDisplay._id))
-      .unwrap()
-      .then(() => setConnectionStatus("connected"));
-  }, [dispatch, userToDisplay]);
-
-  const handleRemoveOrCancel = useCallback(() => {
-    if (!userToDisplay) return;
-    const confirmMessage =
-      connectionStatus === "connected"
-        ? "Are you sure you want to remove this connection?"
-        : "Are you sure you want to cancel or decline this request?";
-    if (window.confirm(confirmMessage)) {
+  // Handlers for connection actions, wrapped in useCallback
+  const connectionHandlers = {
+    send: useCallback(() => {
+      if (!userToDisplay) return;
+      dispatch(sendConnectionRequest(userToDisplay._id))
+        .unwrap()
+        .then(() => setConnectionStatus("pending_sent"));
+    }, [dispatch, userToDisplay]),
+    accept: useCallback(() => {
+      if (!userToDisplay) return;
+      dispatch(acceptConnectionRequest(userToDisplay._id))
+        .unwrap()
+        .then(() => setConnectionStatus("connected"));
+    }, [dispatch, userToDisplay]),
+    decline: useCallback(() => {
+      if (!userToDisplay) return;
       dispatch(removeOrCancelConnection(userToDisplay._id))
         .unwrap()
         .then(() => setConnectionStatus("not_connected"));
-    }
-  }, [dispatch, userToDisplay, connectionStatus]);
+    }, [dispatch, userToDisplay]),
+    cancel: useCallback(() => {
+      if (!userToDisplay) return;
+      dispatch(removeOrCancelConnection(userToDisplay._id))
+        .unwrap()
+        .then(() => setConnectionStatus("not_connected"));
+    }, [dispatch, userToDisplay]),
+    remove: useCallback(() => {
+      if (
+        !userToDisplay ||
+        !window.confirm("Are you sure you want to remove this connection?")
+      )
+        return;
+      dispatch(removeOrCancelConnection(userToDisplay._id))
+        .unwrap()
+        .then(() => setConnectionStatus("not_connected"));
+    }, [dispatch, userToDisplay]),
+  };
 
   const handleShare = useCallback(async () => {
     if (!userToDisplay) return;
@@ -133,7 +141,7 @@ export const ProfilePage = () => {
     }
   }, [userToDisplay]);
 
-  // --- 4. EFFECTS (useEffect) DEFINED LAST ---
+  // Data fetching effects
   useEffect(() => {
     if (usersStatus === "idle") dispatch(fetchUsers());
     if (projectsStatus === "idle") dispatch(fetchProjects());
@@ -156,35 +164,8 @@ export const ProfilePage = () => {
     }
   }, [userId, loggedInUser, dispatch]);
 
-  useEffect(() => {
-  if (!userToDisplay?._id) {
-    setConnectionCount(0);
-    return;
-  }
-
-  let cancelled = false;
-
-  API.get(`/connections/count/${userToDisplay._id}`)
-    .then((res) => {
-      if (!cancelled) setConnectionCount(res.data.count ?? 0);
-    })
-    .catch((err) => {
-      console.error('Failed to fetch connection count', err);
-      if (!cancelled) setConnectionCount(0);
-    });
-
-  return () => {
-    cancelled = true;
-  };
-}, [userToDisplay?._id]);
-
-  // --- 5. EARLY RETURN IS NOW SAFELY AT THE END ---
-  if (
-    usersStatus === "loading" ||
-    projectsStatus === "loading" ||
-    reviewsStatus === "loading" ||
-    !userToDisplay
-  ) {
+  // Loading state guard clause
+  if (usersStatus === "loading" || !userToDisplay) {
     return (
       <div className={styles.pageContainer}>
         <LoadingSpinner />
@@ -192,7 +173,7 @@ export const ProfilePage = () => {
     );
   }
 
-  // --- FINAL DERIVED STATE FOR RENDERING ---
+  // Final derived state for rendering
   const developerReviews = reviewsByUser[userToDisplay._id] || [];
   const userProjects =
     userToDisplay.role === "founder"
@@ -203,83 +184,10 @@ export const ProfilePage = () => {
       ? developerReviews.reduce((acc, r) => acc + r.rating, 0) /
         developerReviews.length
       : 0;
-  const sharedConnections = founderConnections.filter(
-    (conn) =>
-      conn.senderId?._id === userToDisplay._id && conn.status === "approved"
-  );
-  const reviewableProjects = sharedConnections.filter(
-    (conn) =>
-      !developerReviews.some(
-        (review) => review.projectId?._id === conn.projectId?._id
-      )
-  );
   const canLeaveReview =
     !isOwnProfile &&
     loggedInUser?.role === "founder" &&
-    userToDisplay.role === "developer" &&
-    reviewableProjects.length > 0;
-
-  const renderConnectionButton = () => {
-    if (isOwnProfile || !loggedInUser) return null;
-    const isLoading = connectionActionStatus === "loading";
-    switch (connectionStatus) {
-      case "loading":
-        return (
-          <Button variant="secondary" disabled>
-            Loading...
-          </Button>
-        );
-      case "connected":
-        return (
-          <Button
-            onClick={handleRemoveOrCancel}
-            variant="secondary"
-            disabled={isLoading}
-          >
-            <Check size={16} /> Connected
-          </Button>
-        );
-      case "pending_sent":
-        return (
-          <Button
-            onClick={handleRemoveOrCancel}
-            variant="secondary"
-            disabled={isLoading}
-          >
-            <Clock size={16} /> Pending
-          </Button>
-        );
-      case "pending_received":
-        return (
-          <div className={styles.connectionActions}>
-            <Button
-              onClick={handleAcceptRequest}
-              variant="primary"
-              disabled={isLoading}
-            >
-              Accept
-            </Button>
-            <Button
-              onClick={handleRemoveOrCancel}
-              variant="secondary"
-              disabled={isLoading}
-            >
-              Decline
-            </Button>
-          </div>
-        );
-      default:
-        return (
-          <Button
-            onClick={handleSendRequest}
-            variant="primary"
-            disabled={isLoading}
-          >
-            <UserPlus size={16} /> Connect
-          </Button>
-        );
-    }
-  };
+    userToDisplay.role === "developer"; // This logic needs to be more advanced for real reviews
 
   return (
     <>
@@ -290,7 +198,7 @@ export const ProfilePage = () => {
       />
       <LeaveReviewModal
         developer={userToDisplay}
-        reviewableProjects={reviewableProjects}
+        reviewableProjects={[]}
         open={isReviewModalOpen}
         onClose={() => setReviewModalOpen(false)}
       />
@@ -317,21 +225,24 @@ export const ProfilePage = () => {
                     {formatDate(userToDisplay.boostExpiresAt)}.
                   </div>
                 )}
+
               <ProfileHeader
-  user={userToDisplay}
-  isOwnProfile={isOwnProfile}
-  averageRating={averageRating}
-  reviewCount={developerReviews.length}
-  canLeaveReview={canLeaveReview}
-  onEdit={() => setIsEditing(true)}
-  onBoost={() => setBoostModalOpen(true)}
-  onReview={() => setReviewModalOpen(true)}
-  onAvatarClick={() => setAvatarModalOpen(true)}
-  onShare={handleShare}
-  copySuccess={copySuccess}
-  connectionButton={renderConnectionButton()}
-  connectionCount={connectionCount}     // <-- new prop here
-/>
+                user={userToDisplay}
+                isOwnProfile={isOwnProfile}
+                averageRating={averageRating}
+                reviewCount={developerReviews.length}
+                canLeaveReview={canLeaveReview}
+                onEdit={() => setIsEditing(true)}
+                onBoost={() => setBoostModalOpen(true)}
+                onReview={() => setReviewModalOpen(true)}
+                onAvatarClick={() => setAvatarModalOpen(true)}
+                onShare={handleShare}
+                copySuccess={copySuccess}
+                connectionStatus={connectionStatus}
+                connectionHandlers={connectionHandlers}
+                isConnectionLoading={connectionActionStatus === "loading"}
+              />
+
               <div className={styles.content}>
                 <div className={styles.section}>
                   <h3 className={styles.sectionTitle}>About Me:</h3>

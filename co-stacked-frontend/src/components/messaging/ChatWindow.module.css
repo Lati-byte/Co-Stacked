@@ -1,6 +1,5 @@
 /* src/components/messaging/ChatWindow.module.css */
 
-/* --- Main Layout --- */
 .container {
   display: flex;
   flex-direction: column;
@@ -8,112 +7,96 @@
   background-color: var(--background);
 }
 
-/* --- Header --- */
 .header {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.75rem 1.5rem;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border);
-  flex-shrink: 0; /* Prevents header from shrinking */
   background-color: var(--card-background);
 }
+.headerInfo p { margin: 0; }
+.userName { font-weight: 600; }
+.userRole { font-size: 0.8rem; color: var(--muted-foreground); text-transform: capitalize; }
 
-.userName {
-  font-weight: 600;
-  color: var(--foreground);
-}
-
-/* --- Back Button (Mobile Only) --- */
 .backButton {
-  display: none; /* Hidden by default on desktop */
+  display: none; /* Hidden on desktop by default */
   background: none;
   border: none;
-  color: var(--foreground);
   cursor: pointer;
+  color: var(--foreground);
   padding: 0.5rem;
-  margin-left: -0.5rem; /* Align icon nicely with padding */
-  border-radius: 50%;
-  transition: background-color 0.2s ease;
-}
-.backButton:hover {
-  background-color: var(--muted);
+  margin-right: 0.5rem;
 }
 
-/* --- Message Area (Scrollable) --- */
-.messageArea {
-  flex-grow: 1; /* This is the key: makes the area fill available space */
-  overflow-y: auto; /* Enables scrolling when content overflows */
-  padding: 1.5rem;
+.messageList {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
+/* --- CHAT BUBBLE STYLES --- */
+.messageRow {
+  display: flex;
+  max-width: 75%;
+}
+
 .messageBubble {
   padding: 0.75rem 1rem;
-  border-radius: 18px;
-  max-width: 75%;
-  line-height: 1.5;
-  word-wrap: break-word; /* Prevents long words from overflowing */
+  border-radius: 1.25rem;
+  word-wrap: break-word;
 }
 
-.sender {
+.messageText {
+  margin: 0;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+/* My messages (sender) */
+.myMessageRow {
+  align-self: flex-end;
+}
+.myMessageBubble {
   background-color: var(--primary);
   color: var(--primary-foreground);
-  align-self: flex-end; /* Aligns to the right */
-  border-bottom-right-radius: 4px; /* Classic chat bubble tail effect */
+  border-bottom-right-radius: 0.5rem;
 }
 
-.receiver {
-  background-color: var(--muted);
+/* Their messages (receiver) */
+.theirMessageRow {
+  align-self: flex-start;
+}
+.theirMessageBubble {
+  background-color: var(--card-background);
   color: var(--foreground);
-  align-self: flex-start; /* Aligns to the left */
-  border-bottom-left-radius: 4px; /* Classic chat bubble tail effect */
+  border: 1px solid var(--border);
+  border-bottom-left-radius: 0.5rem;
 }
 
-/* --- Footer (Input Form) --- */
+/* --- FOOTER & INPUT FORM --- */
 .footer {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.75rem;
-  padding: 1rem 1.5rem;
+  padding: 0.75rem 1rem;
   border-top: 1px solid var(--border);
-  flex-shrink: 0; /* Prevents footer from shrinking */
   background-color: var(--card-background);
 }
 
-.messageInput {
-  flex-grow: 1; /* Makes input field take up available horizontal space */
+.textarea {
+  flex-grow: 1;
+  max-height: 120px;
+  resize: none;
+  padding: 0.6rem 1rem;
 }
 
-.loader {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-
-/* ======================================== */
-/*            RESPONSIVE QUERIES            */
-/* ======================================== */
-
+/* --- Responsive styles for mobile --- */
 @media (max-width: 768px) {
-  /* Show the back button on mobile */
   .backButton {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* Adjust padding for smaller screens */
-  .header, .footer {
-    padding: 0.75rem 1rem;
-  }
-  .messageArea {
-    padding: 1rem;
+    display: block; /* Show the back button on mobile */
   }
 }

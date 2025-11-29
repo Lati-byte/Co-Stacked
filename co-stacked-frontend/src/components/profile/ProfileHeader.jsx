@@ -3,6 +3,7 @@
 import { Button } from '../shared/Button';
 import { StarRating } from '../shared/StarRating';
 import { Avatar } from '../shared/Avatar';
+import { ConnectionButtons } from './ConnectionButtons'; // 1. Import the new component
 import styles from '../../pages/ProfilePage.module.css';
 import verificationBadge from '../../assets/verification-badge.png';
 import PropTypes from 'prop-types';
@@ -20,11 +21,13 @@ export const ProfileHeader = ({
   onAvatarClick,
   onShare,
   copySuccess,
+  // --- 2. Accept new connection-related props ---
+  connectionStatus,
+  connectionHandlers,
+  isConnectionLoading,
 }) => (
-  // --- THIS IS THE FIX ---
-  // The stray parenthesis that was here has been removed.
-  // The return statement now correctly starts with the opening JSX tag.
   <div className={styles.header}>
+    {/* The main content (avatar, name, etc.) remains unchanged */}
     <div className={styles.headerMain}>
       <div className={styles.avatarWrapper}>
         <Avatar 
@@ -38,7 +41,6 @@ export const ProfileHeader = ({
           </button>
         )}
       </div>
-
       <div className={styles.infoWrapper}>
         <div className={styles.nameWrapper}>
           <h1 className={styles.title}>{user.name}</h1>
@@ -64,17 +66,34 @@ export const ProfileHeader = ({
         <Share2 size={16} />
         <span>{copySuccess ? 'Copied!' : 'Share'}</span>
       </Button>
-      {canLeaveReview && <Button onClick={onReview} variant="secondary">Leave a Review</Button>}
-      {isOwnProfile && (
+      
+      {/* --- 3. RENDER the correct set of buttons based on context --- */}
+      {!isOwnProfile ? (
+        // If viewing someone else's profile, show the connection buttons
+        <ConnectionButtons 
+          status={connectionStatus}
+          onConnect={connectionHandlers.send}
+          onCancel={connectionHandlers.cancel}
+          onRemove={connectionHandlers.remove}
+          onAccept={connectionHandlers.accept}
+          onDecline={connectionHandlers.decline}
+          isLoading={isConnectionLoading}
+        />
+      ) : (
+        // If viewing your own profile, show the management buttons
         <>
           <Button onClick={onBoost} variant="secondary">Boost Profile</Button>
           <Button onClick={onEdit}>Edit Profile</Button>
         </>
       )}
+
+      {/* The "Leave a Review" button is separate as it has its own logic */}
+      {canLeaveReview && <Button onClick={onReview} variant="secondary">Leave a Review</Button>}
     </div>
   </div>
 );
 
+// --- 4. UPDATE PropTypes to include all new props ---
 ProfileHeader.propTypes = {
   user: PropTypes.object.isRequired,
   isOwnProfile: PropTypes.bool.isRequired,
@@ -87,4 +106,7 @@ ProfileHeader.propTypes = {
   onAvatarClick: PropTypes.func.isRequired,
   onShare: PropTypes.func.isRequired,
   copySuccess: PropTypes.string.isRequired,
+  connectionStatus: PropTypes.string,
+  connectionHandlers: PropTypes.object,
+  isConnectionLoading: PropTypes.bool,
 };
