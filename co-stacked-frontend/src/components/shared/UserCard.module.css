@@ -4,12 +4,13 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  overflow: hidden; /* Prevents child content from breaking the card's border-radius */
 }
 
 .header {
   display: flex;
   align-items: center;
-  gap: 0.75rem; /* Slightly reduced gap for mobile */
+  gap: 0.75rem;
   margin-bottom: 0.75rem;
 }
 
@@ -20,14 +21,14 @@
 }
 
 .name {
-  font-size: 1.1rem; /* Reduced base font size */
+  font-size: 1.1rem;
   font-weight: 700;
   line-height: 1.3;
   color: var(--foreground);
 }
 
 .verifiedIcon {
-  height: 18px; /* Slightly smaller icon */
+  height: 18px;
   width: auto;
   flex-shrink: 0;
 }
@@ -35,13 +36,13 @@
 .role {
   text-transform: capitalize;
   color: var(--muted-foreground);
-  font-size: 0.85rem; /* Reduced base font size */
+  font-size: 0.85rem;
   margin-top: 0.1rem;
 }
 
 .bio {
   color: var(--foreground);
-  font-size: 0.9rem; /* Reduced base font size */
+  font-size: 0.9rem;
   line-height: 1.6;
   margin-bottom: 1rem;
   flex-grow: 1;
@@ -84,13 +85,30 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.5rem; /* Add a small gap to prevent elements from touching */
 }
 
+/* --- THIS IS THE FIX --- */
 .availability {
   font-size: 0.8rem;
   font-weight: 500;
   color: var(--muted-foreground);
+  
+  /* 1. Allow this element to shrink if space is tight */
+  flex-shrink: 1;
+  /* 2. Allow it to shrink smaller than its content, forcing text to wrap */
+  min-width: 0;
+  /* 3. Ensure long words can break if necessary */
+  word-break: break-word;
+  text-align: left;
 }
+
+/* This targets the button in the footer and prevents it from shrinking */
+.footer > :last-child {
+  flex-shrink: 0;
+}
+/* --- END FIX --- */
+
 
 .boostedCard {
   border: 2px solid var(--primary);
@@ -117,14 +135,13 @@
 /*            RESPONSIVE QUERIES            */
 /* ======================================== */
 
-/* --- Medium screens and up (e.g., tablets) --- */
 @media (min-width: 768px) {
   .header {
-    gap: 1rem; /* Increase gap back */
+    gap: 1rem;
     margin-bottom: 1rem;
   }
   .name {
-    font-size: 1.25rem; /* Increase font size back */
+    font-size: 1.25rem;
   }
   .verifiedIcon {
     height: 20px;
