@@ -13,8 +13,8 @@ export const ProfileHeader = ({
   isOwnProfile, 
   averageRating, 
   reviewCount,
-  canLeaveReview, // <-- 1. Re-accept this prop
-  onReview,       // <-- 1. Re-accept this prop
+  canLeaveReview,
+  onReview,
   onEdit, 
   onBoost, 
   onAvatarClick,
@@ -40,6 +40,7 @@ export const ProfileHeader = ({
       <div className={styles.infoWrapper}>
         <div className={styles.nameWrapper}>
           <h1 className={styles.title}>{user.name}</h1>
+
           {user.isVerified && (
             <div className={styles.verifiedBadge} title="Verified User">
               <img src={verificationBadge} alt="Verification Badge" className={styles.badgeIcon} />
@@ -47,13 +48,20 @@ export const ProfileHeader = ({
             </div>
           )}
         </div>
+
         {user.role === 'developer' && reviewCount > 0 && (
           <div className={styles.aggregateRating}>
             <StarRating rating={averageRating} />
             <span>({reviewCount} {reviewCount === 1 ? 'review' : 'reviews'})</span>
           </div>
         )}
+
         <p className={styles.subtitle}>{user.role}</p>
+
+        {/* ✅ --- NEW CONNECTION COUNT ADDED HERE --- */}
+        <p className={styles.connectionCount}>
+          {user.connections?.length || 0} Connections
+        </p>
       </div>
     </div>
     
@@ -65,8 +73,6 @@ export const ProfileHeader = ({
         <span>{copySuccess ? 'Copied!' : 'Share'}</span>
       </Button>
       
-      {/* --- 2. THIS IS THE FIX --- */}
-      {/* Conditionally render the "Leave a Review" button based on the prop */}
       {canLeaveReview && (
         <Button onClick={onReview} variant="secondary">Leave a Review</Button>
       )}
@@ -81,14 +87,14 @@ export const ProfileHeader = ({
   </div>
 );
 
-// --- 3. UPDATE PropTypes ---
+// PropTypes
 ProfileHeader.propTypes = {
   user: PropTypes.object.isRequired,
   isOwnProfile: PropTypes.bool.isRequired,
   averageRating: PropTypes.number,
   reviewCount: PropTypes.number,
-  canLeaveReview: PropTypes.bool, // Re-add this prop
-  onReview: PropTypes.func.isRequired, // Re-add this prop
+  canLeaveReview: PropTypes.bool,
+  onReview: PropTypes.func.isRequired,
   onEdit: PropTypes.func.isRequired,
   onBoost: PropTypes.func.isRequired,
   onAvatarClick: PropTypes.func.isRequired,
