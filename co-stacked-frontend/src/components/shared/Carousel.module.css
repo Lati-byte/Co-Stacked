@@ -1,24 +1,45 @@
-.carouselWrapper {
+/* src/components/shared/Carousel.module.css */
+
+.carouselContainer {
+  display: grid;
+  grid-auto-flow: column; /* This is the key to laying out items horizontally */
+  grid-auto-columns: 80%; /* Each item will be 80% of the container's width */
+  gap: 1rem;
+  
+  /* Enable scrolling */
   overflow-x: auto;
-  display: flex;
-  scroll-snap-type: x mandatory;
-  gap: 1rem;
-  padding-bottom: 1rem;
-
-  /* Smooth scroll */
-  scroll-behavior: smooth;
-
-  /* For mobile momentum scrolling */
-  -webkit-overflow-scrolling: touch;
+  
+  /* Hide the scrollbar for a cleaner look */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
 }
 
-.carouselTrack {
-  display: flex;
-  gap: 1rem;
+.carouselContainer::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
 }
 
-.carouselSlide {
-  flex: 0 0 80%;        /* Adjust width for how many cards you want visible */
-  max-width: 300px;     /* limit slide width */
-  scroll-snap-align: center;
+/* Add some padding to the start and end of the scroll area */
+.carouselContainer {
+  padding: 0.5rem 1.5rem;
+  /* Adjust margin to align with page content */
+  margin: 0 -1.5rem;
+}
+
+/* --- Responsive Adjustments --- */
+@media (min-width: 640px) {
+  .carouselContainer {
+    grid-auto-columns: 45%;
+  }
+}
+
+@media (min-width: 768px) {
+  .carouselContainer {
+    grid-auto-columns: 30%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .carouselContainer {
+    grid-auto-columns: 23%;
+  }
 }

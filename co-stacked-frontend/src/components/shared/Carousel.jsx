@@ -1,18 +1,16 @@
-import React from "react";
-import styles from "./Carousel.module.css";
+// src/components/shared/Carousel.jsx
 
-export const Carousel = ({ items, renderItem }) => {
-  if (!items || items.length === 0) return null;
+import styles from './Carousel.module.css';
+import PropTypes from 'prop-types';
 
+export const Carousel = ({ children }) => {
   return (
-    <div className={styles.carouselWrapper}>
-      <div className={styles.carouselTrack}>
-        {items.map((item) => (
-          <div className={styles.carouselSlide} key={item._id}>
-            {renderItem(item)}
-          </div>
-        ))}
-      </div>
+    <div className={styles.carouselContainer}>
+      {children}
     </div>
   );
+};
+
+Carousel.propTypes = {
+  children: PropTypes.node.isRequired,
 };
