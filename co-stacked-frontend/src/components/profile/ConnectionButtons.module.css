@@ -1,0 +1,25 @@
+/* src/components/profile/ConnectionButtons.module.css */
+
+/* --- MOBILE FIRST: Default to a two-column grid --- */
+.container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+/* 
+  This targets the single "Connect" button when it's the only child.
+  'grid-column: 1 / -1' makes it span the full width of the grid container.
+*/
+.container > button:only-child {
+  grid-column: 1 / -1;
+}
+
+/* --- DESKTOP: Switch to flexbox on larger screens --- */
+@media (min-width: 768px) {
+  .container {
+    display: flex; /* Switch to flex for auto-sizing */
+    width: auto;
+  }
+}

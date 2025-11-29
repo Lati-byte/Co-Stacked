@@ -1,30 +1,34 @@
 // src/components/profile/ConnectionButtons.jsx
 
 import { Button } from '../shared/Button';
-import styles from '../../pages/ProfilePage.module.css';
+import styles from './ConnectionButtons.module.css'; // <-- 1. IMPORT from the new, dedicated file
 import PropTypes from 'prop-types';
+import { UserPlus, Check, Clock } from 'lucide-react'; // Import icons for better UI
 
 export const ConnectionButtons = ({ status, onConnect, onCancel, onRemove, onAccept, onDecline, isLoading }) => {
   switch (status) {
+    case 'loading':
+      return <Button variant="secondary" disabled>Loading...</Button>;
+
     case 'connected':
       return (
-        <div className={styles.connectionActions}>
-          <Button disabled variant="secondary">Connected ✓</Button>
+        <div className={styles.container}>
+          <Button disabled variant="secondary"><Check size={16} /> Connected</Button>
           <Button onClick={onRemove} variant="outline" disabled={isLoading}>Remove</Button>
         </div>
       );
     
     case 'pending_sent':
       return (
-        <div className={styles.connectionActions}>
-          <Button disabled variant="secondary">Request Sent</Button>
+        <div className={styles.container}>
+          <Button disabled variant="secondary"><Clock size={16} /> Request Sent</Button>
           <Button onClick={onCancel} variant="outline" disabled={isLoading}>Cancel</Button>
         </div>
       );
     
     case 'pending_received':
       return (
-        <div className={styles.connectionActions}>
+        <div className={styles.container}>
           <Button onClick={onAccept} variant="primary" disabled={isLoading}>Accept</Button>
           <Button onClick={onDecline} variant="outline" disabled={isLoading}>Decline</Button>
         </div>
@@ -32,11 +36,22 @@ export const ConnectionButtons = ({ status, onConnect, onCancel, onRemove, onAcc
     
     default: // not_connected
       return (
-        <Button onClick={onConnect} variant="primary" disabled={isLoading}>
-          {isLoading ? 'Sending...' : 'Connect'}
-        </Button>
+        // The container class is not needed for a single button, but we wrap it for consistency.
+        <div className={styles.container}>
+            <Button onClick={onConnect} variant="primary" disabled={isLoading}>
+              <UserPlus size={16} /> {isLoading ? 'Sending...' : 'Connect'}
+            </Button>
+        </div>
       );
   }
 };
 
-ConnectionButtons.propTypes = { /* Add PropTypes for all props */ };
+ConnectionButtons.propTypes = {
+  status: PropTypes.string.isRequired,
+  onConnect: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  onRemove: PropTypes.func.isRequired,
+  onAccept: PropTypes.func.isRequired,
+  onDecline: PropTypes.func.isRequired,
+  isLoading: PropTypes.bool,
+};
