@@ -54,7 +54,8 @@ export const ProfilePage = () => {
   const [isAvatarModalOpen, setAvatarModalOpen] = useState(false);
   const [copySuccess, setCopySuccess] = useState("");
   const [connectionStatus, setConnectionStatus] = useState("loading");
-
+  const [connectionCount, setConnectionCount] = useState(0);
+  
   const { actionStatus: connectionActionStatus } = useSelector(
     (state) => state.connections
   );
@@ -154,6 +155,28 @@ export const ProfilePage = () => {
       dispatch(recordProfileView(userId));
     }
   }, [userId, loggedInUser, dispatch]);
+
+  useEffect(() => {
+  if (!userToDisplay?._id) {
+    setConnectionCount(0);
+    return;
+  }
+
+  let cancelled = false;
+
+  API.get(`/connections/count/${userToDisplay._id}`)
+    .then((res) => {
+      if (!cancelled) setConnectionCount(res.data.count ?? 0);
+    })
+    .catch((err) => {
+      console.error('Failed to fetch connection count', err);
+      if (!cancelled) setConnectionCount(0);
+    });
+
+  return () => {
+    cancelled = true;
+  };
+}, [userToDisplay?._id]);
 
   // --- 5. EARLY RETURN IS NOW SAFELY AT THE END ---
   if (
@@ -295,19 +318,20 @@ export const ProfilePage = () => {
                   </div>
                 )}
               <ProfileHeader
-                user={userToDisplay}
-                isOwnProfile={isOwnProfile}
-                averageRating={averageRating}
-                reviewCount={developerReviews.length}
-                canLeaveReview={canLeaveReview}
-                onEdit={() => setIsEditing(true)}
-                onBoost={() => setBoostModalOpen(true)}
-                onReview={() => setReviewModalOpen(true)}
-                onAvatarClick={() => setAvatarModalOpen(true)}
-                onShare={handleShare}
-                copySuccess={copySuccess}
-                connectionButton={renderConnectionButton()}
-              />
+  user={userToDisplay}
+  isOwnProfile={isOwnProfile}
+  averageRating={averageRating}
+  reviewCount={developerReviews.length}
+  canLeaveReview={canLeaveReview}
+  onEdit={() => setIsEditing(true)}
+  onBoost={() => setBoostModalOpen(true)}
+  onReview={() => setReviewModalOpen(true)}
+  onAvatarClick={() => setAvatarModalOpen(true)}
+  onShare={handleShare}
+  copySuccess={copySuccess}
+  connectionButton={renderConnectionButton()}
+  connectionCount={connectionCount}     // <-- new prop here
+/>
               <div className={styles.content}>
                 <div className={styles.section}>
                   <h3 className={styles.sectionTitle}>About Me:</h3>

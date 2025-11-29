@@ -93,6 +93,21 @@ const userSchema = mongoose.Schema(
   }
 );
 
+// Users you are currently connected to
+connections: [
+  { type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] }
+],
+
+// Requests you have sent to others (pending)
+sentConnections: [
+  { type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] }
+],
+
+// Requests you have received from others (pending)
+receivedConnections: [
+  { type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] }
+],
+
 // Middleware to automatically hash the user's password before saving
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {

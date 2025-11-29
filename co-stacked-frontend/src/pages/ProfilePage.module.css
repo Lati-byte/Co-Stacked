@@ -299,6 +299,12 @@
   gap: 0.75rem;
 }
 
+.connectionCount {
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-top: 4px;
+  color: var(--muted-foreground);
+}
 
 /* --- Main Content Body (unchanged) --- */
 /* ... */
