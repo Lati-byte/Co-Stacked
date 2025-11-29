@@ -41,8 +41,10 @@
 
 .headerActions {
   display: flex;
+  flex-wrap: wrap; /* Allow all action buttons to wrap */
   gap: 0.75rem;
-  flex-shrink: 0;
+  width: 100%;
+  justify-content: center; /* Center the buttons on mobile */
 }
 
 .nameWrapper {
