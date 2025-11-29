@@ -123,16 +123,21 @@ const removeOrCancelConnection = async (req, res) => {
   } catch (error) { res.status(500).json({ message: 'Server Error' }); }
 };
 
-// @desc    Get a user's connections
-// @route   GET /api/connections
+/**
+ * @desc    Get a user's connections
+ * @route   GET /api/connections
+ * @access  Private
+ */
 const getConnections = async (req, res) => {
   try {
     const connections = await Connection.find({
       $or: [{ requester: req.user._id }, { recipient: req.user._id }],
       status: 'accepted',
     })
-    .populate('requester', 'name role avatarUrl')
-    .populate('recipient', 'name role avatarUrl');
+    // --- THIS IS THE FIX ---
+    // Remove the second argument to populate the FULL user object.
+    .populate('requester')
+    .populate('recipient');
     
     // Remap data to show the other user, not the logged-in user
     const userConnections = connections.map(conn => {
@@ -143,7 +148,10 @@ const getConnections = async (req, res) => {
     });
 
     res.json(userConnections);
-  } catch (error) { res.status(500).json({ message: 'Server Error' }); }
+  } catch (error) {
+    console.error(`[GET CONNECTIONS ERROR]: ${error.message}`);
+    res.status(500).json({ message: 'Server Error' });
+  }
 };
 
 // @desc    Get pending connection requests for logged-in user
